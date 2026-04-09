@@ -1,6 +1,2030 @@
 export const concepts = [
   {
-    id: 1, section: "Álgebra Lineal", sectionCode: "II",
+    id: 1,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Número real",
+    tags: ["análisis real", "axiomática", "completitud", "continuidad", "fundamentos"],
+    definition: "Un número real es un elemento del único cuerpo arquimediano completo (salvo isomorfismo), denotado ℝ. Extiende a los racionales incluyendo los irracionales, y se caracteriza por la propiedad del supremo: todo subconjunto no vacío acotado superiormente posee un supremo en ℝ.",
+    formal: {
+      notation: "Sea $\\mathbb{R}$ el cuerpo ordenado completo único (salvo isomorfismo de cuerpos ordenados)",
+      body: "\\mathbb{R} \\text{ es un cuerpo ordenado completo, es decir, una tupla } (\\mathbb{R},\\, +,\\, \\cdot,\\, \\leq) \\text{ tal que:} \\\\ \\quad (1)\\; (\\mathbb{R}, +, \\cdot) \\text{ es un cuerpo (field)} \\\\ \\quad (2)\\; \\leq \\text{ es un orden total compatible con las operaciones} \\\\ \\quad (3)\\; \\textbf{Completitud (propiedad del supremo):} \\\\ \\qquad \\forall\\, S \\subseteq \\mathbb{R},\\; S \\neq \\emptyset,\\; S \\text{ acotado superiormente} \\implies \\exists\\, \\sup S \\in \\mathbb{R}",
+      geometric: "\\mathbb{R} \\cong \\{\\text{puntos de la recta numérica}\\} \\quad \\text{con distancia } d(x,y) = |x - y|, \\text{ espacio métrico completo y separable}",
+      properties: [
+        "\\text{Arquimediana: } \\forall\\, x \\in \\mathbb{R},\\; \\exists\\, n \\in \\mathbb{N} \\text{ tal que } n > x",
+        "\\text{Densidad de } \\mathbb{Q}: \\forall\\, a < b \\in \\mathbb{R},\\; \\exists\\, q \\in \\mathbb{Q} \\text{ con } a < q < b",
+        "\\text{No numerable: } |\\mathbb{R}| = 2^{\\aleph_0} > \\aleph_0 = |\\mathbb{Q}| \\quad (\\text{Cantor, 1874})",
+      ],
+    },
+    intuition: "Imagina una recta perfectamente continua, sin huecos. Los enteros son postes de luz equidistantes; los racionales son todas las fracciones de esa distancia — densas, pero dejando infinitos 'huecos irracionales' como $\\sqrt{2}$ o $\\pi$. Los reales 'rellenan' todos esos huecos: cualquier sucesión convergente de reales tiene su límite también en ℝ. Esa propiedad de no tener huecos es la completitud, y es lo que hace a ℝ el escenario natural del análisis, el cálculo y, por extensión, todo el machine learning.",
+    development: [
+      {
+        label: "Construcciones formales de ℝ",
+        body: "Existen dos construcciones clásicas que parten de $\\mathbb{Q}$:\n\n**Cortaduras de Dedekind (1872).** Una cortadura es un par $(A, B)$ con $A \\cup B = \\mathbb{Q}$, $A \\cap B = \\emptyset$, $A \\neq \\emptyset \\neq B$, $A$ sin máximo, y $\\forall a \\in A, b \\in B: a < b$. Cada real se identifica con una cortadura:\n$$\\sqrt{2} \\;\\longleftrightarrow\\; A = \\{q \\in \\mathbb{Q} : q < 0 \\text{ ó } q^2 < 2\\}$$\n\n**Sucesiones de Cauchy (Cantor, 1872).** $\\mathbb{R}$ se construye como el cociente $\\mathcal{C}(\\mathbb{Q}) / {\\sim}$, donde $\\mathcal{C}(\\mathbb{Q})$ son las sucesiones de Cauchy en $\\mathbb{Q}$ y $(a_n) \\sim (b_n) \\iff \\lim_{n\\to\\infty}|a_n - b_n| = 0$. Ambas construcciones producen estructuras isomorfas."
+      },
+      {
+        label: "Representación posicional y punto flotante",
+        body: "Todo $x \\in \\mathbb{R}$ admite expansión decimal (base $\\beta$):\n$$x = \\pm \\sum_{k=-\\infty}^{N} d_k \\,\\beta^k, \\quad d_k \\in \\{0, 1, \\ldots, \\beta - 1\\}$$\nEn cómputo, los reales se aproximan mediante **números de punto flotante** (IEEE 754):\n$$\\text{fl}(x) = (-1)^s \\cdot m \\cdot \\beta^{e}, \\quad m \\in [1, \\beta),\\; e \\in [e_{\\min}, e_{\\max}]$$\nEl error de redondeo unitario $\\mathbf{u} = \\frac{1}{2}\\beta^{1-p}$ (con $p$ dígitos de mantisa) acota el error relativo: $|\\text{fl}(x) - x| \\leq \\mathbf{u}\\,|x|$. En `float64`: $\\mathbf{u} \\approx 1.11 \\times 10^{-16}$."
+      },
+      {
+        label: "Topología de ℝ y completitud métrica",
+        body: "$(\\mathbb{R}, |\\cdot|)$ es un **espacio métrico completo**: toda sucesión de Cauchy converge en $\\mathbb{R}$:\n$$\\forall\\,\\varepsilon > 0,\\; \\exists\\, N \\in \\mathbb{N} : m,n > N \\implies |a_m - a_n| < \\varepsilon \\;\\Longrightarrow\\; \\exists\\, L \\in \\mathbb{R}: a_n \\to L$$\nPor el **Teorema de Bolzano-Weierstrass**, toda sucesión acotada en $\\mathbb{R}$ tiene una subsucesión convergente. Los conjuntos abiertos generan la topología usual, y $\\mathbb{R}$ es un espacio separable (base numerable: intervalos con extremos racionales), localmente compacto pero no compacto."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "Los reales son el sustrato de toda la maquinaria de ML/DL:\n\n**Parámetros y gradientes.** Los pesos de una red neuronal $\\theta \\in \\mathbb{R}^p$ viven en un espacio euclídeo real; la retropropagación calcula $\\nabla_\\theta \\mathcal{L} \\in \\mathbb{R}^p$ explotando la diferenciabilidad de $\\mathbb{R}$.\n\n**Precisión numérica.** En la práctica se usan `float32` ($\\mathbf{u} \\approx 6 \\times 10^{-8}$) y, cada vez más, `bfloat16` o `float16` para eficiencia en GPU. El error de redondeo acumulado puede desestabilizar el entrenamiento, de ahí técnicas como **mixed precision** y **gradient scaling**.\n\n**Funciones de activación.** ReLU, sigmoid, tanh son funciones $f: \\mathbb{R} \\to \\mathbb{R}$ cuyas propiedades (monotonicidad, Lipschitzianidad, diferenciabilidad casi en todo punto) determinan la dinámica de optimización.\n\n**Log-sum-exp y estabilidad.** El truco $\\log\\sum_i e^{x_i} = x^* + \\log\\sum_i e^{x_i - x^*}$ con $x^* = \\max_i x_i$ evita overflow/underflow en aritmética de punto flotante, aplicado en softmax y cálculo de log-verosimilitudes."
+      },
+    ],
+    code: `import numpy as np
+import sys
+
+# ── 1. Tipos de punto flotante en NumPy ───────────────────────────────────────
+for dtype in [np.float16, np.float32, np.float64, np.longdouble]:
+    info = np.finfo(dtype)
+    print(f"{str(dtype.__name__):>12s} | eps={info.eps:.3e} | "
+          f"max={info.max:.3e} | bits={info.bits}")
+
+# ── 2. Propiedad arquimediana ─────────────────────────────────────────────────
+x = 1e-15
+n = 1
+while n <= x:          # busca n ∈ ℕ tal que n > x
+    n += 1
+print(f"\\nArquimediana: para x={x}, se cumple n={n} > x → {n > x}")
+
+# ── 3. Densidad de Q en R ─────────────────────────────────────────────────────
+from fractions import Fraction
+
+def racional_entre(a: float, b: float) -> Fraction:
+    """Devuelve un racional q con a < q < b usando mediante de Stern-Brocot."""
+    fa, fb = Fraction(a).limit_denominator(10**6), Fraction(b).limit_denominator(10**6)
+    return (fa + fb) / 2
+
+a, b = np.pi, np.pi + 1e-6
+q = racional_entre(a, b)
+print(f"\\nDensidad de Q: entre {a:.10f} y {b:.10f}")
+print(f"  Racional hallado: {q} ≈ {float(q):.10f}")
+print(f"  ¿Está en (a,b)? {a < float(q) < b}")
+
+# ── 4. Error de representación en float64 ─────────────────────────────────────
+x_exact = np.sqrt(2)          # irracional: no representable exactamente
+u = np.finfo(np.float64).eps / 2   # error de redondeo unitario
+print(f"\\nsqrt(2) en float64 : {x_exact!r}")
+print(f"Error unitario u    : {u:.3e}")
+print(f"Verificación x²     : {x_exact**2!r}  (debería ser 2.0)")
+
+# ── 5. Sucesión de Cauchy → límite en R ──────────────────────────────────────
+# Sucesión: a_n = (1 + 1/n)^n  → e
+cauchy = [(1 + 1/n)**n for n in range(1, 500)]
+limite = cauchy[-1]
+print(f"\\n(1+1/n)^n → {limite:.10f}  |  e = {np.e:.10f}  |  error = {abs(limite-np.e):.2e}")
+
+# ── 6. Truco log-sum-exp (estabilidad numérica) ───────────────────────────────
+def log_sum_exp_naive(x: np.ndarray) -> float:
+    return np.log(np.sum(np.exp(x)))      # puede dar inf/nan
+
+def log_sum_exp_stable(x: np.ndarray) -> float:
+    x_star = np.max(x)
+    return x_star + np.log(np.sum(np.exp(x - x_star)))   # numéricamente seguro
+
+x = np.array([1000.0, 1001.0, 1002.0])
+print(f"\\nlog-sum-exp naive  : {log_sum_exp_naive(x)}")    # inf
+print(f"log-sum-exp estable: {log_sum_exp_stable(x):.6f}") # correcto
+`,
+    related: ["Sistema de Punto Flotante", "Completitud Métrica", "Número Complejo", "Axioma del Supremo", "Épsilon-Delta"],
+    hasViz: true,
+    vizType: "numeroReal",
+  },
+  {
+    id: 2,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Número Complejo",
+    tags: ["álgebra", "cuerpo", "forma polar", "euler", "análisis complejo"],
+    definition: "Un número complejo es un elemento del cuerpo ℂ, extensión algebraica de ℝ obtenida al adjuntar la unidad imaginaria i con la propiedad i² = −1. Todo z ∈ ℂ se escribe como z = a + bi con a, b ∈ ℝ, y ℂ es algebraicamente cerrado: todo polinomio no constante con coeficientes en ℂ tiene al menos una raíz en ℂ (Teorema Fundamental del Álgebra).",
+    formal: {
+      notation: "Sea $z \\in \\mathbb{C}$, $z = a + bi$ con $a = \\operatorname{Re}(z) \\in \\mathbb{R}$, $b = \\operatorname{Im}(z) \\in \\mathbb{R}$, $i^2 = -1$",
+      body: "\\mathbb{C} := \\mathbb{R}[x] / \\langle x^2 + 1 \\rangle \\;\\cong\\; \\left\\{\\, a + bi \\;\\middle|\\; a, b \\in \\mathbb{R},\\; i^2 = -1 \\,\\right\\} \\\\ \\text{con operaciones:} \\\\ \\quad (a+bi)+(c+di) = (a+c)+(b+d)i \\\\ \\quad (a+bi)(c+di) = (ac-bd)+(ad+bc)i \\\\ \\text{Módulo: } |z| = \\sqrt{a^2+b^2} \\in \\mathbb{R}_{\\geq 0} \\qquad \\text{Conjugado: } \\bar{z} = a - bi \\\\ \\text{Inverso multiplicativo: } z^{-1} = \\dfrac{\\bar{z}}{|z|^2}, \\quad z \\neq 0",
+      geometric: "z = |z|\\,e^{i\\theta} = |z|(\\cos\\theta + i\\sin\\theta), \\quad \\theta = \\arg(z) = \\operatorname{atan2}(b,\\,a) \\in (-\\pi, \\pi] \\\\ z_1 z_2 = |z_1||z_2|\\,e^{i(\\theta_1+\\theta_2)} \\quad \\text{(multiplicar = escalar y rotar)}",
+      properties: [
+        "\\text{Clausura algebraica: } \\forall\\, p \\in \\mathbb{C}[x],\\; \\deg p \\geq 1 \\implies \\exists\\, z_0 \\in \\mathbb{C}: p(z_0)=0",
+        "\\text{Identidad de Euler: } e^{i\\pi} + 1 = 0 \\quad \\Longleftarrow \\quad e^{i\\theta} = \\cos\\theta + i\\sin\\theta",
+        "\\text{Fórmula de De Moivre: } (\\cos\\theta+i\\sin\\theta)^n = \\cos(n\\theta)+i\\sin(n\\theta),\\quad n \\in \\mathbb{Z}",
+      ],
+    },
+    intuition: "Mientras los reales viven en una recta, los complejos habitan el plano: la parte real es el eje horizontal, la imaginaria el vertical. Multiplicar por $z = |z|e^{i\\theta}$ es una transformación lineal que **escala** por $|z|$ y **rota** por $\\theta$. Eso convierte a $\\mathbb{C}$ en el lenguaje natural de ondas, rotaciones y frecuencias — la base de la Transformada de Fourier y de los embeddings rotatorios en Transformers.",
+    development: [
+      {
+        label: "Construcción algebraica y estructura de cuerpo",
+        body: "La construcción rigurosa parte del anillo de polinomios $\\mathbb{R}[x]$ y el ideal maximal $\\langle x^2+1 \\rangle$ (maximal porque $x^2+1$ es irreducible sobre $\\mathbb{R}$):\n\n$$\\mathbb{C} := \\mathbb{R}[x]/\\langle x^2+1\\rangle$$\n\nEl elemento $i := [x]$ satisface $i^2 = [x^2] = [-1] = -1$. Como cociente de un anillo commutativo por un ideal maximal, $\\mathbb{C}$ es un **cuerpo**. Toda extensión algebraica de $\\mathbb{R}$ de grado $> 1$ es isomorfa a $\\mathbb{C}$ — en sentido preciso, $\\mathbb{C}$ es la **clausura algebraica** de $\\mathbb{R}$.\n\nComo espacio vectorial real, $\\mathbb{C} \\cong \\mathbb{R}^2$ con base $\\{1, i\\}$. La multiplicación por $z = a+bi$ corresponde a la transformación lineal:\n$$M_z = \\begin{pmatrix} a & -b \\\\ b & a \\end{pmatrix} \\in \\mathbb{R}^{2\\times 2}$$\ncuyo determinante es $a^2 + b^2 = |z|^2$."
+      },
+      {
+        label: "Geometría: plano de Argand y forma polar",
+        body: "Identificar $z = a + bi \\leftrightarrow (a, b) \\in \\mathbb{R}^2$ define el **plano de Argand-Gauss**. La distancia euclidiana coincide con el módulo: $d(z_1, z_2) = |z_1 - z_2|$, haciendo de $\\mathbb{C}$ un espacio métrico completo.\n\nLa **forma polar** aprovecha coordenadas polares:\n$$z = r\\,e^{i\\theta}, \\quad r = |z| \\geq 0,\\quad \\theta = \\arg(z)$$\n\nEl producto en forma polar es especialmente limpio:\n$$z_1 z_2 = r_1 r_2\\, e^{i(\\theta_1+\\theta_2)}$$\n\nGeométricamente: **módulos se multiplican, argumentos se suman**. Las raíces $n$-ésimas de la unidad, $\\omega_k = e^{2\\pi i k/n}$ con $k = 0, \\ldots, n-1$, son los vértices de un polígono regular de $n$ lados inscrito en el círculo unitario $|z| = 1$, y son fundamentales en la **Transformada Discreta de Fourier**."
+      },
+      {
+        label: "Análisis complejo: diferenciabilidad y ecuaciones de Cauchy-Riemann",
+        body: "Una función $f: \\mathbb{C} \\to \\mathbb{C}$ es **holomorfa** (complejo-diferenciable) en $z_0$ si existe:\n$$f'(z_0) = \\lim_{h \\to 0} \\frac{f(z_0 + h) - f(z_0)}{h}, \\quad h \\in \\mathbb{C}$$\n\nEscribiendo $f = u + iv$ con $u, v: \\mathbb{R}^2 \\to \\mathbb{R}$, la holomorfía equivale a las **ecuaciones de Cauchy-Riemann**:\n$$\\frac{\\partial u}{\\partial x} = \\frac{\\partial v}{\\partial y}, \\qquad \\frac{\\partial u}{\\partial y} = -\\frac{\\partial v}{\\partial x}$$\n\nUna función holomorfa en todo $\\mathbb{C}$ se llama **entera**. El Teorema de Liouville establece que toda función entera acotada es constante — consecuencia del cual se deduce el Teorema Fundamental del Álgebra."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "Los números complejos aparecen de forma directa y profunda en ML/DL:\n\n**Transformada de Fourier y señales.** La DFT de una señal $x_0, \\ldots, x_{N-1} \\in \\mathbb{R}$ produce coeficientes $X_k \\in \\mathbb{C}$:\n$$X_k = \\sum_{n=0}^{N-1} x_n\\, e^{-2\\pi i kn/N}$$\nLa FFT lo computa en $\\mathcal{O}(N \\log N)$ en lugar de $\\mathcal{O}(N^2)$, y es la base de modelos de audio como WaveNet y Whisper.\n\n**Rotary Position Embeddings (RoPE).** En Transformers modernos (LLaMA, Gemini), la atención incorpora posición multiplicando los embeddings de consulta/clave por rotaciones complejas:\n$$f(\\mathbf{q}, m) = \\mathbf{q}\\, e^{im\\theta}$$\naquí $m$ es la posición del token y $\\theta$ un vector de frecuencias. La rotación compleja garantiza que el producto interno $\\langle f(\\mathbf{q},m),\\, f(\\mathbf{k},n)\\rangle$ depende solo de la distancia relativa $m - n$.\n\n**Redes neuronales complejas.** Existen variantes de redes con pesos $W \\in \\mathbb{C}^{m\\times n}$, útiles en procesamiento de señales de radar y MRI, donde la fase de la señal contiene información crítica que los reales descartan."
+      },
+    ],
+    code: `import numpy as np
+import cmath
+
+# ── 1. Aritmética básica en ℂ ─────────────────────────────────────────────────
+z1 = complex(3, 4)      # 3 + 4i
+z2 = complex(1, -2)     # 1 - 2i
+
+print(f"z1 = {z1},  z2 = {z2}")
+print(f"Suma        : {z1 + z2}")
+print(f"Producto    : {z1 * z2}")
+print(f"Módulo |z1| : {abs(z1):.6f}")          # √(9+16) = 5
+print(f"Conjugado   : {z1.conjugate()}")
+print(f"Inverso z1⁻¹: {1/z1:.6f}")
+print(f"z1 * conj   : {z1 * z1.conjugate()}")  # = |z1|² ∈ ℝ
+
+# ── 2. Forma polar ────────────────────────────────────────────────────────────
+r, theta = cmath.polar(z1)
+print(f"\\nForma polar z1: r={r:.4f}, θ={theta:.4f} rad ({np.degrees(theta):.2f}°)")
+z1_reconstruido = cmath.rect(r, theta)
+print(f"Reconstruido  : {z1_reconstruido}")
+
+# ── 3. Identidad de Euler y raíces de la unidad ───────────────────────────────
+print(f"\\ne^(iπ) + 1   : {cmath.exp(1j * np.pi) + 1:.2e}")  # ≈ 0
+
+n = 8
+raices = [cmath.rect(1, 2 * np.pi * k / n) for k in range(n)]
+print(f"\\nRaíces {n}-ésimas de la unidad:")
+for k, w in enumerate(raices):
+    print(f"  ω_{k} = {w.real:+.4f} {w.imag:+.4f}i  |  arg = {np.degrees(cmath.phase(w)):+.1f}°")
+
+# ── 4. Representación matricial de ℂ ─────────────────────────────────────────
+def complejo_a_matriz(z: complex) -> np.ndarray:
+    """Isomorfismo ℂ → M₂(ℝ): z = a+bi ↦ [[a,-b],[b,a]]"""
+    a, b = z.real, z.imag
+    return np.array([[a, -b], [b, a]])
+
+Mz1 = complejo_a_matriz(z1)
+Mz2 = complejo_a_matriz(z2)
+print(f"\\nM_z1 =\\n{Mz1}")
+print(f"det(M_z1) = {np.linalg.det(Mz1):.1f}  (debería ser |z1|²={abs(z1)**2:.1f})")
+print(f"M_z1 @ M_z2 vs complejo_a_matriz(z1*z2):")
+print(np.allclose(Mz1 @ Mz2, complejo_a_matriz(z1 * z2)))  # True
+
+# ── 5. DFT manual usando exponenciales complejas ──────────────────────────────
+def dft(x: np.ndarray) -> np.ndarray:
+    N = len(x)
+    n = np.arange(N)
+    k = n.reshape((N, 1))
+    W = np.exp(-2j * np.pi * k * n / N)   # matriz de Vandermonde compleja
+    return W @ x
+
+x = np.array([1, 2, 3, 4], dtype=complex)
+X_manual = dft(x)
+X_numpy  = np.fft.fft(x)
+print(f"\\nDFT manual  : {X_manual}")
+print(f"NumPy FFT   : {X_numpy}")
+print(f"Coinciden   : {np.allclose(X_manual, X_numpy)}")
+
+# ── 6. RoPE — Rotary Position Embedding (mini-demo) ──────────────────────────
+def rope(q: np.ndarray, pos: int, theta_base: float = 10000.0) -> np.ndarray:
+    """
+    Aplica RoPE a un vector de query q ∈ ℝ^d interpretando pares como ℂ.
+    q_rot[2k] + i*q_rot[2k+1] = (q[2k] + i*q[2k+1]) * e^{i * pos / theta_base^(2k/d)}
+    """
+    d = len(q)
+    assert d % 2 == 0
+    q_complex = q[::2] + 1j * q[1::2]          # d/2 números complejos
+    freqs = pos / theta_base ** (np.arange(d // 2) * 2 / d)
+    rotations = np.exp(1j * freqs)
+    q_rot = q_complex * rotations
+    out = np.empty(d)
+    out[::2]  = q_rot.real
+    out[1::2] = q_rot.imag
+    return out
+
+np.random.seed(42)
+q = np.random.randn(8)
+print(f"\\nRoPE pos=0 : {rope(q, 0).round(4)}")   # sin rotación → igual que q
+print(f"RoPE pos=1 : {rope(q, 1).round(4)}")
+print(f"‖q‖ = ‖rope(q,1)‖ ? {np.allclose(np.linalg.norm(q), np.linalg.norm(rope(q,1)))}")
+`,
+    related: ["Número Real", "Transformada de Fourier", "Rotary Position Embedding", "Álgebra Lineal Compleja", "Ecuaciones de Cauchy-Riemann"],
+    hasViz: true,
+    vizType: "numeroComplejo",
+  },
+  {
+    id: 3,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Campo (Álgebra)",
+    tags: ["álgebra abstracta", "estructura algebraica", "cuerpo", "axiomas", "fundamentos"],
+    definition: "Un campo (o cuerpo) es una estructura algebraica (F, +, ·) en la que F es un conjunto no vacío dotado de dos operaciones binarias que satisfacen los axiomas de cuerpo: (F, +) es un grupo abeliano, (F\\{0}, ·) es un grupo abeliano, y la multiplicación distribuye sobre la suma. Los campos son el escenario algebraico mínimo en que se puede hacer aritmética completa — sumar, restar, multiplicar y dividir (excepto por cero).",
+    formal: {
+      notation: "Sea $(F, +, \\cdot)$ un campo con identidad aditiva $0$ e identidad multiplicativa $1 \\neq 0$",
+      body: "(F, +, \\cdot) \\text{ es un campo} \\iff \\text{se cumplen los 9 axiomas:} \\\\ \\quad \\textbf{A1. }\\text{Clausura: } a+b \\in F \\qquad \\textbf{A2. }\\text{Asociatividad: }(a+b)+c = a+(b+c) \\\\ \\quad \\textbf{A3. }\\text{Conmutatividad: } a+b = b+a \\qquad \\textbf{A4. }\\text{Identidad: } \\exists\\,0: a+0=a \\\\ \\quad \\textbf{A5. }\\text{Inverso aditivo: } \\exists\\,{-a}: a+(-a)=0 \\\\ \\quad \\textbf{M1--M4. }\\text{Análogos para } (F\\setminus\\{0\\}, \\cdot) \\text{ (grupo abeliano con identidad }1) \\\\ \\quad \\textbf{D. }\\text{Distributividad: } a\\cdot(b+c) = a\\cdot b + a\\cdot c \\\\ \\\\  \\text{Característica: } \\operatorname{char}(F) := \\min\\{n \\in \\mathbb{N}^+ : n\\cdot 1 = 0\\} \\text{ (0 si no existe tal }n\\text{)}",
+      geometric: "F^n := \\underbrace{F \\times \\cdots \\times F}_{n} \\text{ es un espacio vectorial sobre } F \\text{ de dimensión } n \\\\ \\text{Todo espacio vectorial requiere que los escalares formen un campo}",
+      properties: [
+        "\\text{Unicidad de identidades y de inversos: } 0,\\,1,\\,-a,\\,a^{-1} \\text{ son únicos en } F",
+        "\\text{Caract. prima o cero: } \\operatorname{char}(F) \\in \\{0\\} \\cup \\{p : p \\text{ primo}\\}",
+        "\\text{Campos finitos (Galois): } |F| = p^n \\text{ para algún primo } p,\\; n \\in \\mathbb{N}^+;\\text{ denotado } \\mathbb{F}_{p^n} \\text{ o } GF(p^n)",
+      ],
+    },
+    intuition: "Un campo es el sistema numérico más completo posible: puedes sumar, restar, multiplicar y siempre dividir (salvo por cero), y las reglas son exactamente las que conoces de $\\mathbb{Q}$, $\\mathbb{R}$ o $\\mathbb{C}$. Pensa en él como la 'licencia mínima' que deben tener los escalares para que el álgebra lineal funcione: sin campo no hay espacio vectorial, sin espacio vectorial no hay álgebra lineal, y sin álgebra lineal no hay ML.",
+    development: [
+      {
+        label: "Jerarquía de estructuras algebraicas",
+        body: "Un campo es la estructura algebraica más rica de la jerarquía clásica. Cada nivel añade axiomas al anterior:\n\n$$\\text{Magma} \\subsetneq \\text{Semigrupo} \\subsetneq \\text{Monoide} \\subsetneq \\text{Grupo} \\subsetneq \\text{Grupo abeliano}$$\n\n$$\\text{Anillo} \\subsetneq \\text{Anillo conmutativo} \\subsetneq \\text{Dominio íntegro} \\subsetneq \\text{Campo}$$\n\nUn **anillo** $(R, +, \\cdot)$ exige que $(R,+)$ sea grupo abeliano y que $\\cdot$ sea asociativa y distributiva, pero no requiere inversos multiplicativos ni conmutatividad del producto. Un **dominio íntegro** añade conmutatividad, identidad multiplicativa $1 \\neq 0$, y ausencia de divisores de cero ($ab=0 \\Rightarrow a=0$ o $b=0$). Un **campo** añade que todo elemento no nulo tiene inverso multiplicativo."
+      },
+      {
+        label: "Campos fundamentales y sus características",
+        body: "Los campos más importantes en matemáticas y computación son:\n\n| Campo | $\\operatorname{char}$ | Cardinalidad | Notas |\n|---|---|---|---|\n| $\\mathbb{Q}$ | $0$ | $\\aleph_0$ | Mínimo campo de característica 0 |\n| $\\mathbb{R}$ | $0$ | $2^{\\aleph_0}$ | Único cuerpo arquimediano completo |\n| $\\mathbb{C}$ | $0$ | $2^{\\aleph_0}$ | Algebraicamente cerrado |\n| $\\mathbb{F}_2 = \\{0,1\\}$ | $2$ | $2$ | Base de la aritmética booleana |\n| $\\mathbb{F}_p$ | $p$ primo | $p$ | Enteros módulo $p$ |\n| $\\mathbb{F}_{p^n}$ | $p$ primo | $p^n$ | Campo de Galois |\n\nLa característica determina la aritmética fundamental: en $\\mathbb{F}_2$, $1+1=0$, lo que elimina la mitad de las operaciones familiares. Todo campo de característica $0$ contiene una copia de $\\mathbb{Q}$; todo campo de característica $p$ contiene una copia de $\\mathbb{F}_p$."
+      },
+      {
+        label: "Extensiones de campo y polinomios",
+        body: "Dado un campo $F$ y un polinomio irreducible $p(x) \\in F[x]$ de grado $n$, el cociente:\n$$E = F[x]/\\langle p(x) \\rangle$$\nes una **extensión de campo** de grado $[E:F] = n$. Es exactamente la construcción que produce $\\mathbb{C}$ desde $\\mathbb{R}$ (con $p(x)=x^2+1$) y los campos de Galois $\\mathbb{F}_{p^n}$ desde $\\mathbb{F}_p$.\n\nEl **Teorema de la base primitiva** garantiza que $\\mathbb{F}_{p^n}^\\times = \\mathbb{F}_{p^n}\\setminus\\{0\\}$ es un grupo cíclico: existe $g \\in \\mathbb{F}_{p^n}$ (elemento primitivo) tal que:\n$$\\mathbb{F}_{p^n}^\\times = \\{g^0, g^1, g^2, \\ldots, g^{p^n-2}\\}$$\n\nEsta estructura cíclica es la base de la criptografía de curva elíptica y de los códigos correctores de errores Reed-Solomon."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "El concepto de campo es el fundamento silencioso de toda la maquinaria matemática del ML:\n\n**Álgebra lineal sobre ℝ.** Todo el álgebra lineal del ML — matrices de pesos, gradientes, descomposiciones SVD/QR — ocurre sobre $\\mathbb{R}$, que es un campo. Sin la propiedad de inversión multiplicativa no existiría la matriz inversa, los sistemas $Ax=b$ no tendrían solución única, ni habría descomposiciones espectrales.\n\n**Aritmética modular y criptografía.** Los transformers modernos se despliegan en entornos donde la privacidad importa. Técnicas como *Federated Learning* con *Secure Aggregation* emplean campos finitos $\\mathbb{F}_p$ (o sus extensiones) para computación multipartita segura: los gradientes se codifican en $\\mathbb{F}_p$, se agregan módulo $p$, y se decodifican sin revelar valores individuales.\n\n**Códigos de Galois y confiabilidad.** Los códigos Reed-Solomon, construidos sobre $\\mathbb{F}_{2^8}$ (los bytes de un ordenador), protegen datos en almacenamiento distribuido (RAID, Google Colossus). Sus propiedades dependen directamente de que $\\mathbb{F}_{2^8}$ sea un campo: la existencia de inversos garantiza la corrección de errores.\n\n**Cuantización y campos finitos.** La cuantización de modelos (int8, int4) trabaja en $\\mathbb{Z}/2^k\\mathbb{Z}$, que **no** es un campo (hay divisores de cero). Este es precisamente el origen de los errores numéricos en inferencia cuantizada: la estructura algebraica se degrada de campo a anillo."
+      },
+    ],
+    code: `from __future__ import annotations
+from typing import Any
+import numpy as np
+
+# ── 1. Campo F_p: aritmética modular sobre enteros módulo primo p ─────────────
+class Fp:
+    """Elemento del campo F_p = Z/pZ para p primo."""
+    def __init__(self, val: int, p: int):
+        assert self._es_primo(p), f"{p} no es primo"
+        self.p = p
+        self.val = int(val) % p
+
+    @staticmethod
+    def _es_primo(n: int) -> bool:
+        if n < 2: return False
+        return all(n % i != 0 for i in range(2, int(n**0.5)+1))
+
+    def __add__(self, other: Fp) -> Fp:  return Fp(self.val + other.val, self.p)
+    def __sub__(self, other: Fp) -> Fp:  return Fp(self.val - other.val, self.p)
+    def __mul__(self, other: Fp) -> Fp:  return Fp(self.val * other.val, self.p)
+    def __neg__(self)            -> Fp:  return Fp(-self.val, self.p)
+
+    def __truediv__(self, other: Fp) -> Fp:
+        # Inverso multiplicativo por pequeño teorema de Fermat: a^{p-2} mod p
+        if other.val == 0:
+            raise ZeroDivisionError("División por cero en F_p")
+        inv = pow(other.val, self.p - 2, self.p)
+        return Fp(self.val * inv, self.p)
+
+    def __repr__(self) -> str:
+        return f"{self.val} (mod {self.p})"
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Fp) and self.val == other.val and self.p == other.p
+
+# Demo F_7
+p = 7
+a, b = Fp(3, p), Fp(5, p)
+print(f"=== Campo F_{p} ===")
+print(f"a = {a},  b = {b}")
+print(f"a + b = {a + b}")
+print(f"a * b = {a * b}")
+print(f"a / b = {a / b}")   # 3 * 5^{-1} mod 7 = 3*3 = 9 = 2
+print(f"Verificación (a/b)*b = {(a/b)*b}")  # debe dar a = 3
+
+# ── 2. Tabla de multiplicar de F_5 ───────────────────────────────────────────
+p = 5
+print(f"\\n=== Tabla multiplicativa de F_{p} (elementos no nulos) ===")
+elems = list(range(1, p))
+header = "   " + "  ".join(f"{e}" for e in elems)
+print(header)
+for i in elems:
+    row = f"{i} | " + "  ".join(
+        str(Fp(i, p) * Fp(j, p)).split()[0] for j in elems
+    )
+    print(row)
+
+# ── 3. Verificar axiomas de campo sobre F_p ───────────────────────────────────
+def verificar_axiomas_campo(p: int) -> dict[str, bool]:
+    elems = [Fp(v, p) for v in range(p)]
+    ne    = [Fp(v, p) for v in range(1, p)]  # no nulos
+
+    cero = Fp(0, p); uno = Fp(1, p)
+
+    resultados = {}
+    # A4: identidad aditiva
+    resultados["Identidad aditiva (a+0=a)"] = all(
+        a + cero == a for a in elems)
+    # A5: inverso aditivo
+    resultados["Inverso aditivo (a+(-a)=0)"] = all(
+        a + (-a) == cero for a in elems)
+    # A3: conmutatividad suma
+    resultados["Conmutatividad +"] = all(
+        a + b == b + a for a in elems for b in elems)
+    # M4: inverso multiplicativo
+    resultados["Inverso mult. (a·a⁻¹=1)"] = all(
+        a * (uno / a) == uno for a in ne)
+    # D: distributividad
+    resultados["Distributividad"] = all(
+        a * (b + c) == a*b + a*c
+        for a in elems for b in elems for c in elems)
+    return resultados
+
+print("\\n=== Verificación axiomas F_7 ===")
+for axioma, ok in verificar_axiomas_campo(7).items():
+    print(f"  {'✓' if ok else '✗'} {axioma}")
+
+# ── 4. Campo de Galois F_{2^8} (byte arithmetic) ─────────────────────────────
+# Usado en AES y códigos Reed-Solomon
+# Polinomio irreducible: x^8 + x^4 + x^3 + x + 1 (= 0x11B en AES)
+AES_POLY = 0x11B
+
+def gf256_mul(a: int, b: int) -> int:
+    """Multiplicación en GF(2^8) con reducción módulo AES_POLY."""
+    result = 0
+    while b:
+        if b & 1:
+            result ^= a           # suma en GF(2) es XOR
+        a <<= 1
+        if a & 0x100:
+            a ^= AES_POLY         # reducción modular
+        b >>= 1
+    return result & 0xFF
+
+def gf256_inv(a: int) -> int:
+    """Inverso multiplicativo en GF(2^8) por exponenciación: a^{254}."""
+    if a == 0: raise ZeroDivisionError
+    result = 1
+    exp = 254  # p^n - 2 = 256 - 2
+    base = a
+    while exp:
+        if exp & 1:
+            result = gf256_mul(result, base)
+        base = gf256_mul(base, base)
+        exp >>= 1
+    return result
+
+a_byte, b_byte = 0x53, 0xCA
+prod = gf256_mul(a_byte, b_byte)
+inv_a = gf256_inv(a_byte)
+print(f"\\n=== GF(2^8) — aritmética de bytes ===")
+print(f"0x{a_byte:02X} × 0x{b_byte:02X} = 0x{prod:02X}")
+print(f"0x{a_byte:02X}⁻¹ = 0x{inv_a:02X}")
+print(f"Verificación: 0x{a_byte:02X} × 0x{inv_a:02X} = 0x{gf256_mul(a_byte, inv_a):02X}  (debe ser 0x01)")
+
+# ── 5. Z/6Z NO es campo (divisores de cero) ───────────────────────────────────
+print("\\n=== ¿Por qué Z/6Z no es campo? ===")
+for a in range(1, 6):
+    for b in range(1, 6):
+        if (a * b) % 6 == 0:
+            print(f"  Divisor de cero: {a} × {b} ≡ 0 (mod 6) → no hay inverso de {a}")
+            break
+`,
+    related: ["Número Real", "Número Complejo", "Espacio Vectorial", "Anillo", "Campo de Galois"],
+    hasViz: true,
+    vizType: "campoAlgebra",
+  },
+  {
+    id: 4,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Variable",
+    tags: ["fundamentos", "lógica matemática", "estadística", "notación", "tipos de datos"],
+    definition: "Una variable es un símbolo que actúa como marcador de posición para un elemento no especificado de un conjunto dado, llamado dominio o universo de discurso. Según el contexto, puede representar una incógnita (álgebra), un argumento de una función (análisis), una cantidad aleatoria con distribución de probabilidad (estadística) o un parámetro entrenable (ML). La distinción entre variable libre y ligada, y entre variable aleatoria y determinista, es fundamental para la precisión formal.",
+    formal: {
+      notation: "Sea $x$ una variable con dominio $\\mathcal{X}$; se escribe $x \\in \\mathcal{X}$",
+      body: "\\textbf{Variable determinista: } x \\in \\mathcal{X} \\text{ — símbolo ligado a un dominio, sin distribución} \\\\ \\textbf{Variable aleatoria (discreta): } X : \\Omega \\to \\mathcal{X}, \\text{ medible respecto de } (\\Omega, \\mathcal{F}, P) \\\\ \\quad P(X = x_k) = p_k \\geq 0, \\quad \\sum_{k} p_k = 1 \\\\ \\textbf{Variable aleatoria (continua): } f_X : \\mathcal{X} \\to \\mathbb{R}_{\\geq 0}, \\quad \\int_{\\mathcal{X}} f_X(x)\\,dx = 1 \\\\ \\textbf{Variable ligada vs libre: } \\sum_{x=1}^{n} x^2 \\;\\text{(ligada)}\\quad\\text{vs}\\quad f(x) = x^2\\;\\text{(libre)}",
+      geometric: "\\mathcal{X} \\subseteq \\mathbb{R}^d \\text{ — el dominio define la geometría del espacio de valores:} \\\\ \\text{escalar } (d=1),\\text{ vector } (d>1),\\text{ categórico } (\\mathcal{X} = \\{c_1,\\ldots,c_k\\}),\\text{ funcional } (\\mathcal{X} = L^2)",
+      properties: [
+        "\\text{Tipo escalar: } x \\in \\mathbb{R} \\text{ (o } \\mathbb{C}, \\mathbb{Z}, \\mathbb{F}_p\\text{)} — \\text{dimensión } d=1",
+        "\\text{Tipo vectorial: } \\mathbf{x} \\in \\mathbb{R}^d,\\; d > 1 — \\text{base del álgebra lineal en ML}",
+        "\\text{Variable aleatoria: } \\mathbb{E}[X] = \\int x\\,dP_X(x),\\quad \\operatorname{Var}(X) = \\mathbb{E}[(X-\\mathbb{E}[X])^2]",
+      ],
+    },
+    intuition: "Una variable es una 'caja con etiqueta': la etiqueta es el nombre ($x$, $\\theta$, $\\mathbf{w}$) y la caja puede contener cualquier valor de su dominio. En álgebra la caja tiene un valor fijo pero desconocido; en análisis la caja se mueve por su dominio; en estadística la caja tiene un mecanismo aleatorio que decide qué valor toma. En ML conviven los tres roles simultáneamente: $\\mathbf{x}$ es el dato (fijo para cada muestra), $\\theta$ es el parámetro (fijo pero desconocido, a estimar) y $\\hat{y}$ es la predicción (función de ambos).",
+    development: [
+      {
+        label: "Taxonomía de variables por dominio y rol",
+        body: "Las variables se clasifican a lo largo de varios ejes ortogonales:\n\n**Por tipo de dominio:**\n- *Continua*: $x \\in \\mathbb{R}$ o $\\mathbf{x} \\in \\mathbb{R}^d$. Admite derivación e integración.\n- *Discreta*: $x \\in \\mathbb{Z}$, $x \\in \\{0,1,\\ldots,K-1\\}$. Operaciones de suma finita.\n- *Categórica*: $x \\in \\{\\text{gato, perro, pez}\\}$. Requiere codificación (*one-hot*, *embeddings*).\n- *Funcional*: $x \\in L^2([0,1])$. Variables cuyo 'valor' es una función; base del aprendizaje funcional.\n\n**Por rol lógico:**\n- *Libre*: ocurre sin cuantificador que la acote. En $f(x) = x^2$, $x$ es libre.\n- *Ligada*: cuantificada o indexada. En $\\sum_{i=1}^n x_i$, el índice $i$ está ligado.\n- *Parámetro*: libre pero tratada como constante en el contexto actual ($\\mu$ en $\\mathcal{N}(x;\\mu,\\sigma^2)$).\n\n**Por certeza:**\n$$\\underbrace{x \\in \\mathbb{R}^d}_{\\text{determinista}} \\qquad \\text{vs} \\qquad \\underbrace{X : (\\Omega,\\mathcal{F},P) \\to (\\mathbb{R}^d, \\mathcal{B}^d)}_{\\text{aleatoria (medible)}}$$"
+      },
+      {
+        label: "Variable aleatoria: construcción formal",
+        body: "Una **variable aleatoria** no es un número, sino una función medible entre espacios de medida. Dado el espacio de probabilidad $(\\Omega, \\mathcal{F}, P)$:\n$$X : \\Omega \\longrightarrow (\\mathcal{X}, \\mathcal{B}),\\quad X^{-1}(B) \\in \\mathcal{F}\\;\\forall B \\in \\mathcal{B}$$\n\nLa **ley** (o distribución) de $X$ es la medida de probabilidad inducida $P_X = P \\circ X^{-1}$ sobre $(\\mathcal{X}, \\mathcal{B})$. Sus momentos:\n$$\\mathbb{E}[g(X)] = \\int_\\Omega g(X(\\omega))\\,dP(\\omega) = \\int_{\\mathcal{X}} g(x)\\,dP_X(x)$$\n\nEl **soporte** de $X$ es $\\operatorname{supp}(P_X) = \\overline{\\{x : P_X(B(x,\\varepsilon)) > 0\\;\\forall\\varepsilon>0\\}}$. La distinción entre variable aleatoria y su *realización* $x = X(\\omega)$ es crítica: confundirlas es el origen de errores conceptuales frecuentes en ML."
+      },
+      {
+        label: "Variables en lógica y lenguajes formales",
+        body: "En lógica de primer orden, una variable es un término sin interpretación fija. La distinción libre/ligada determina el alcance de los cuantificadores:\n$$\\forall x\\;\\exists y:\\; x + y = 0 \\qquad (x,y \\text{ ligadas})$$\n$$\\text{vs}\\quad P(x) := x > 0 \\qquad (x \\text{ libre, }P\\text{ es un predicado})$$\n\nEn $\\lambda$-cálculo (fundamento de lenguajes funcionales y, por analogía, de redes neuronales como computación):\n$$\\lambda x.\\, (x + y) \\qquad x \\text{ ligada},\\; y \\text{ libre (variable libre = dependencia externa)}$$\n\nEsta distinción aparece en frameworks de ML: en PyTorch, las variables con `requires_grad=True` son 'libres' respecto al grafo computacional — el optimizador puede modificarlas; las demás son constantes (ligadas o fijas)."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "En ML coexisten simultáneamente cuatro roles de variable con semánticas distintas:\n\n**Variables de entrada** $\\mathbf{x} \\in \\mathbb{R}^d$: realizaciones de una variable aleatoria desconocida $X \\sim P_{\\text{data}}$. El objetivo del aprendizaje es aproximar propiedades de $P_{\\text{data}}$ a partir de muestras $\\{\\mathbf{x}^{(i)}\\}_{i=1}^n$.\n\n**Parámetros** $\\theta \\in \\mathbb{R}^p$: variables deterministas libres optimizadas por descenso de gradiente:\n$$\\theta \\leftarrow \\theta - \\eta\\,\\nabla_\\theta \\mathcal{L}(\\theta)$$\n\n**Variables latentes** $\\mathbf{z} \\in \\mathbb{R}^k$: variables aleatorias no observadas que codifican estructura oculta. En VAEs: $\\mathbf{z} \\sim \\mathcal{N}(\\boldsymbol{\\mu}_\\phi(\\mathbf{x}),\\, \\operatorname{diag}(\\boldsymbol{\\sigma}^2_\\phi(\\mathbf{x})))$.\n\n**Variables de atención** en Transformers: las matrices $Q, K, V \\in \\mathbb{R}^{n \\times d_k}$ son transformaciones lineales de la entrada — variables intermedias del grafo computacional cuya semántica emerge del entrenamiento.\n\n**Notación de Einstein** (convención de índices repetidos implican suma), frecuente en implementaciones tensorizadas:\n$$y_i = W_{ij}\\,x_j \\equiv \\sum_j W_{ij}\\,x_j \\qquad \\text{(einsum en NumPy/PyTorch)}$$"
+      },
+    ],
+    code: `import numpy as np
+from dataclasses import dataclass, field
+from typing import Callable
+
+# ── 1. Variable determinista vs aleatoria ────────────────────────────────────
+print("=== Variables deterministas ===")
+x_escalar  = 3.14                              # x ∈ ℝ
+x_vector   = np.array([1.0, 2.0, 3.0])        # x ∈ ℝ³
+x_matriz   = np.eye(3)                         # X ∈ ℝ^{3×3}
+print(f"Escalar : {x_escalar}")
+print(f"Vector  : {x_vector}")
+print(f"Matriz  :\\n{x_matriz}")
+
+print("\\n=== Variable aleatoria discreta ===")
+# X ~ Categórica({0,1,2}, p=[0.1, 0.3, 0.6])
+vals = np.array([0, 1, 2])
+probs = np.array([0.1, 0.3, 0.6])
+assert np.isclose(probs.sum(), 1.0)
+
+media    = np.sum(vals * probs)
+varianza = np.sum((vals - media)**2 * probs)
+print(f"E[X]    = {media:.4f}")
+print(f"Var(X)  = {varianza:.4f}")
+muestras = np.random.choice(vals, size=10_000, p=probs)
+print(f"Media empírica  (n=10k): {muestras.mean():.4f}  (esperado {media:.4f})")
+
+print("\\n=== Variable aleatoria continua (Gaussiana) ===")
+mu, sigma = 2.0, 1.5
+X_muestras = np.random.normal(mu, sigma, size=10_000)
+print(f"E[X] teórico={mu:.2f}, empírico={X_muestras.mean():.4f}")
+print(f"Std  teórico={sigma:.2f}, empírico={X_muestras.std():.4f}")
+
+# ── 2. Taxonomía de tipos de variable ────────────────────────────────────────
+@dataclass
+class Variable:
+    nombre:   str
+    dominio:  str
+    rol:      str           # 'entrada', 'parámetro', 'latente', 'objetivo'
+    grad:     bool = False  # ¿es entrenable?
+    shape:    tuple = field(default_factory=lambda: ())
+
+    def __repr__(self):
+        g = "∇" if self.grad else " "
+        return f"[{g}] {self.nombre:10s} ∈ {self.dominio:15s}  rol={self.rol}"
+
+variables_nn = [
+    Variable("x",      "ℝ^d",       "entrada",    grad=False, shape=(32, 768)),
+    Variable("W_q",    "ℝ^{d×d_k}", "parámetro",  grad=True,  shape=(768, 64)),
+    Variable("z",      "ℝ^k",       "latente",     grad=False, shape=(32, 64)),
+    Variable("y_hat",  "ℝ^C",       "objetivo",    grad=False, shape=(32, 10)),
+    Variable("theta",  "ℝ^p",       "parámetro",   grad=True,  shape=(1_000_000,)),
+]
+print("\\n=== Taxonomía de variables en una red neuronal ===")
+for v in variables_nn:
+    print(v)
+
+# ── 3. Variable libre vs ligada (ejemplo funcional) ───────────────────────────
+print("\\n=== Variable libre vs ligada ===")
+# Variable libre: x en f(x) = x²
+f: Callable[[float], float] = lambda x: x**2
+print(f"f(3) = {f(3)}  — x es libre (argumento)")
+
+# Variable ligada: i en Σ_{i=0}^{n-1} i²
+n = 5
+suma = sum(i**2 for i in range(n))   # i está ligada al bucle
+print(f"Σ_{{i=0}}^{{{n-1}}} i² = {suma}  — i es ligada (cuantificada)")
+
+# ── 4. Notación de Einstein con np.einsum ─────────────────────────────────────
+print("\\n=== Notación de Einstein (einsum) ===")
+np.random.seed(42)
+W = np.random.randn(4, 3)   # W_{ij}  ∈ ℝ^{4×3}
+x = np.random.randn(3)      # x_j     ∈ ℝ^3
+
+# y_i = W_{ij} x_j  (suma implícita sobre j)
+y_einsum = np.einsum("ij,j->i", W, x)
+y_matmul = W @ x
+print(f"einsum  y = Wx : {y_einsum.round(4)}")
+print(f"matmul  y = Wx : {y_matmul.round(4)}")
+print(f"Coinciden      : {np.allclose(y_einsum, y_matmul)}")
+
+# Traza: T = W_{ii}  (contracción de índice libre a ligado)
+A = np.random.randn(4, 4)
+traza_einsum = np.einsum("ii->", A)
+print(f"\\ntraza(A) einsum : {traza_einsum:.4f}")
+print(f"traza(A) np      : {np.trace(A):.4f}")
+
+# ── 5. Variable latente en un VAE (capa de muestreo) ─────────────────────────
+print("\\n=== Variable latente z en VAE — reparametrización ===")
+# z = μ + σ·ε,  ε ~ N(0,I)  — ε es la variable auxiliar (libre)
+d_latente = 8
+mu_z    = np.random.randn(d_latente)       # salida del encoder
+log_var = np.random.randn(d_latente)       # log σ²
+sigma_z = np.exp(0.5 * log_var)
+
+eps = np.random.randn(d_latente)           # ε ~ N(0, I)
+z   = mu_z + sigma_z * eps                # truco de reparametrización
+
+print(f"μ(x)   = {mu_z.round(3)}")
+print(f"σ(x)   = {sigma_z.round(3)}")
+print(f"z      = {z.round(3)}")
+print(f"‖z-μ‖  = {np.linalg.norm(z - mu_z):.4f}")
+`,
+    related: ["Función", "Variable Aleatoria", "Espacio Vectorial", "Tensor", "Parámetro y Estadístico"],
+    hasViz: true,
+    vizType: "variable",
+  },
+  {
+    id: 5,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Función",
+    tags: ["análisis", "mapeo", "dominio", "codominio", "composición", "fundamentos"],
+    definition: "Una función es una correspondencia que asigna a cada elemento de un conjunto de partida (dominio) exactamente un elemento de un conjunto de llegada (codominio). Formalmente es una relación binaria con la propiedad de unicidad: si (x, y₁) y (x, y₂) pertenecen a la relación, entonces y₁ = y₂. Las funciones son el objeto matemático central del análisis, el álgebra y el aprendizaje automático: toda red neuronal es, en última instancia, una función parametrizada f_θ: ℝᵈ → ℝᵏ.",
+    formal: {
+      notation: "Sea $f: X \\to Y$ una función con dominio $X$, codominio $Y$, y regla de asignación $x \\mapsto f(x)$",
+      body: "f \\subseteq X \\times Y \\text{ tal que } \\forall\\, x \\in X,\\; \\exists!\\, y \\in Y : (x, y) \\in f \\\\ \\text{Equivalentemente: } f : X \\to Y,\\quad x \\mapsto f(x) \\\\ \\textbf{Imagen: } \\operatorname{Im}(f) = f(X) = \\{f(x) : x \\in X\\} \\subseteq Y \\\\ \\textbf{Preimagen: } f^{-1}(B) = \\{x \\in X : f(x) \\in B\\},\\quad B \\subseteq Y \\\\ \\textbf{Composición: } (g \\circ f)(x) = g(f(x)),\\quad f: X\\to Y,\\; g: Y \\to Z",
+      geometric: "\\textbf{Inyectiva: } f(x_1)=f(x_2) \\Rightarrow x_1=x_2 \\qquad \\textbf{Sobreyectiva: } f(X)=Y \\\\ \\textbf{Biyectiva: } \\text{inyectiva} \\land \\text{sobreyectiva} \\Rightarrow \\exists\\, f^{-1}: Y \\to X \\\\ \\textbf{Lipschitz: } \\exists\\, L\\geq 0:\\; \\|f(x_1)-f(x_2)\\| \\leq L\\|x_1-x_2\\|\\;\\forall x_1,x_2 \\in X",
+      properties: [
+        "\\text{Identidad: } \\operatorname{id}_X : X \\to X,\\; x \\mapsto x \\quad \\Rightarrow \\quad f \\circ \\operatorname{id}_X = \\operatorname{id}_Y \\circ f = f",
+        "\\text{Asociatividad de } \\circ:\\; (h \\circ g) \\circ f = h \\circ (g \\circ f) \\quad (\\text{no conmuta en general})",
+        "\\text{Teorema del valor intermedio: } f \\in C([a,b]),\\; f(a)<c<f(b) \\Rightarrow \\exists\\, \\xi \\in (a,b): f(\\xi)=c",
+      ],
+    },
+    intuition: "Una función es una máquina con una ranura de entrada y una de salida: metes un elemento del dominio, sale exactamente uno del codominio. Lo que distingue a las funciones de una mera tabla de valores es la **regla** — una ley que describe cómo transformar la entrada. Una red neuronal no es más que una composición de funciones simples (afines + no lineales): $f_\\theta = \\sigma_L \\circ A_L \\circ \\cdots \\circ \\sigma_1 \\circ A_1$, donde cada $A_k(\\mathbf{x}) = W_k\\mathbf{x} + \\mathbf{b}_k$ y cada $\\sigma_k$ es una activación.",
+    development: [
+      {
+        label: "Tipos de función y propiedades globales",
+        body: "Las propiedades estructurales de una función determinan qué operaciones son posibles sobre ella:\n\n**Inyectividad** (uno a uno): $f(x_1) = f(x_2) \\Rightarrow x_1 = x_2$. Equivale a que $f^{-1}$ existe como función parcial. Ejemplo: $e^x: \\mathbb{R} \\to \\mathbb{R}_{>0}$.\n\n**Sobreyectividad** (sobre): $f(X) = Y$. Todo elemento del codominio tiene al menos una preimagen. Ejemplo: $\\sin: \\mathbb{R} \\to [-1,1]$.\n\n**Biyectividad**: inyectiva y sobreyectiva simultáneamente. Garantiza la existencia de inversa global $f^{-1}: Y \\to X$ con $f^{-1} \\circ f = \\operatorname{id}_X$.\n\n**Lipschitz continua** con constante $L$: controla cuánto puede 'variar' la salida respecto a la entrada. Es condición suficiente para la unicidad de puntos fijos (Banach) y para que el descenso de gradiente converja con paso $\\eta < 1/L$:\n$$\\|f(x_1) - f(x_2)\\| \\leq L\\,\\|x_1 - x_2\\| \\quad \\forall\\, x_1, x_2 \\in X$$"
+      },
+      {
+        label: "Composición y el álgebra de funciones",
+        body: "La composición $g \\circ f$ es la operación fundamental que encadena transformaciones. En el conjunto de todas las funciones $X \\to X$, la composición define un **monoide** (asociativa, con identidad $\\operatorname{id}_X$), y si restringimos a las biyecciones obtenemos el **grupo simétrico** $\\operatorname{Sym}(X)$.\n\nLas funciones $f: \\mathbb{R}^n \\to \\mathbb{R}^m$ diferenciables se componen mediante la **regla de la cadena**:\n$$D(g \\circ f)(x) = Dg(f(x)) \\cdot Df(x)$$\n\ndonde $Df(x) \\in \\mathbb{R}^{m \\times n}$ es la matriz Jacobiana. Esta regla, aplicada iterativamente a través de las capas de una red, es exactamente la **retropropagación** (*backpropagation*):\n$$\\frac{\\partial \\mathcal{L}}{\\partial \\theta_k} = \\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{a}_L} \\cdot \\frac{\\partial \\mathbf{a}_L}{\\partial \\mathbf{a}_{L-1}} \\cdots \\frac{\\partial \\mathbf{a}_{k+1}}{\\partial \\theta_k}$$"
+      },
+      {
+        label: "Funciones de orden superior y espacios funcionales",
+        body: "Una **función de orden superior** toma funciones como argumentos o devuelve funciones. Ejemplos fundamentales:\n\n- **Funcional**: $J: C^1([a,b]) \\to \\mathbb{R}$, como $J[f] = \\int_a^b f(x)^2\\,dx$. El cálculo de variaciones optimiza sobre espacios funcionales.\n- **Operador diferencial**: $\\mathcal{D}: C^1 \\to C^0$, $\\mathcal{D}[f] = f'$.\n- **Transformada integral**: $\\mathcal{K}[f](y) = \\int K(x,y)f(x)\\,dx$ (núcleo de convolución en CNNs).\n\nEl espacio $L^2([a,b]) = \\{f: \\int_a^b |f|^2 < \\infty\\}$ con producto interno $\\langle f, g\\rangle = \\int_a^b f(x)g(x)\\,dx$ es un **espacio de Hilbert** de dimensión infinita. Los **kernels** en SVM y Gaussian Processes son funciones $k: X \\times X \\to \\mathbb{R}$ simétricas y semidefinidas positivas que definen implícitamente el producto interno en un espacio de Hilbert de dimensión (posiblemente infinita)."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "El aprendizaje automático es, fundamentalmente, **búsqueda en espacios de funciones**:\n\n**Hipótesis como función.** Un modelo de ML aproxima una función desconocida $f^*: \\mathcal{X} \\to \\mathcal{Y}$ dentro de una clase de hipótesis $\\mathcal{H} = \\{f_\\theta : \\theta \\in \\Theta\\}$. El entrenamiento es:\n$$\\hat{\\theta} = \\arg\\min_{\\theta \\in \\Theta}\\; \\frac{1}{n}\\sum_{i=1}^n \\ell(f_\\theta(\\mathbf{x}^{(i)}),\\, y^{(i)}) + \\lambda\\,\\Omega(\\theta)$$\n\n**Red neuronal = composición de funciones.** Una red de $L$ capas es:\n$$f_\\theta = f_L \\circ f_{L-1} \\circ \\cdots \\circ f_1, \\quad f_k(\\mathbf{x}) = \\sigma(W_k\\mathbf{x} + \\mathbf{b}_k)$$\n\n**Teorema de aproximación universal** (Hornik 1991): para cualquier $\\varepsilon > 0$ y $f^* \\in C(K)$ con $K \\subset \\mathbb{R}^n$ compacto, existe una red de una capa oculta con activación sigmoide y ancho suficiente tal que $\\sup_{x \\in K}|f_\\theta(x) - f^*(x)| < \\varepsilon$. Esto justifica teóricamente la expresividad de las redes neuronales.\n\n**Funciones de activación como no-linealidades.** Sin activaciones no lineales, cualquier composición de funciones afines sigue siendo afín: $W_2(W_1 x + b_1) + b_2 = (W_2 W_1)x + (W_2 b_1 + b_2)$. La no-linealidad es la condición necesaria para que la composición enriquezca la clase de hipótesis."
+      },
+    ],
+    code: `import numpy as np
+from typing import Callable, TypeVar
+from functools import reduce
+
+X = TypeVar("X")
+Y = TypeVar("Y")
+Z = TypeVar("Z")
+
+# ── 1. Función como objeto de primera clase ───────────────────────────────────
+f: Callable[[float], float] = lambda x: x**2 + 1
+g: Callable[[float], float] = lambda x: np.sqrt(np.abs(x))
+
+print("=== Función como objeto de primera clase ===")
+print(f"f(3)    = {f(3)}")
+print(f"g(4)    = {g(4):.4f}")
+
+# ── 2. Composición de funciones ───────────────────────────────────────────────
+def compose(*fns: Callable) -> Callable:
+    """Compone funciones de derecha a izquierda: compose(h,g,f)(x) = h(g(f(x)))"""
+    return reduce(lambda f, g: lambda x: f(g(x)), fns)
+
+h = lambda x: np.log(x + 1e-9)
+gof = compose(g, f)         # g ∘ f
+hogof = compose(h, g, f)    # h ∘ g ∘ f
+
+x = 2.0
+print(f"\\n=== Composición ===")
+print(f"f(x)      = {f(x):.4f}")
+print(f"(g∘f)(x)  = {gof(x):.4f}   [esperado: sqrt(f(x))={np.sqrt(f(x)):.4f}]")
+print(f"(h∘g∘f)(x)= {hogof(x):.4f}  [esperado: log(g(f(x)))={np.log(gof(x)):.4f}]")
+
+# ── 3. Propiedades: inyectividad y sobreyectividad (numéricas) ────────────────
+def es_inyectiva_numerica(f: Callable, dominio: np.ndarray, tol: float = 1e-8) -> bool:
+    """Verifica inyectividad en una muestra discreta del dominio."""
+    valores = [f(x) for x in dominio]
+    for i in range(len(valores)):
+        for j in range(i + 1, len(valores)):
+            if np.abs(valores[i] - valores[j]) < tol and np.abs(dominio[i] - dominio[j]) > tol:
+                return False
+    return True
+
+dominio = np.linspace(-3, 3, 200)
+print(f"\\n=== Propiedades ===")
+print(f"e^x  inyectiva en [-3,3]: {es_inyectiva_numerica(np.exp, dominio)}")
+print(f"x²   inyectiva en [-3,3]: {es_inyectiva_numerica(lambda x: x**2, dominio)}")
+print(f"x²   inyectiva en [0,3] : {es_inyectiva_numerica(lambda x: x**2, np.linspace(0,3,100))}")
+
+# ── 4. Constante de Lipschitz empírica ───────────────────────────────────────
+def lipschitz_empirico(f: Callable, dominio: np.ndarray, n_pares: int = 5000) -> float:
+    """Estima L = sup |f(x₁)-f(x₂)| / |x₁-x₂| sobre pares aleatorios."""
+    idx = np.random.randint(0, len(dominio), size=(n_pares, 2))
+    x1, x2 = dominio[idx[:, 0]], dominio[idx[:, 1]]
+    mask = np.abs(x1 - x2) > 1e-10
+    ratios = np.abs(f(x1[mask]) - f(x2[mask])) / np.abs(x1[mask] - x2[mask])
+    return float(ratios.max())
+
+print(f"\\n=== Constante de Lipschitz (empírica) ===")
+for nombre, fn, dom in [
+    ("sin(x)",  np.sin,       np.linspace(-np.pi, np.pi, 500)),
+    ("tanh(x)", np.tanh,      np.linspace(-5, 5, 500)),
+    ("ReLU(x)", lambda x: np.maximum(0, x), np.linspace(-3, 3, 500)),
+    ("x²",      lambda x: x**2,             np.linspace(-2, 2, 500)),
+]:
+    L = lipschitz_empirico(fn, dom)
+    print(f"  L({nombre:10s}) ≈ {L:.4f}")
+
+# ── 5. Red neuronal como composición de funciones ─────────────────────────────
+class CapaDensa:
+    """f_k(x) = σ(Wx + b)"""
+    def __init__(self, d_in: int, d_out: int, activacion: Callable, seed: int = 0):
+        rng = np.random.default_rng(seed)
+        self.W = rng.standard_normal((d_out, d_in)) * np.sqrt(2 / d_in)  # He init
+        self.b = np.zeros(d_out)
+        self.sigma = activacion
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return self.sigma(self.W @ x + self.b)
+
+relu   = lambda x: np.maximum(0, x)
+linear = lambda x: x
+
+capas = [
+    CapaDensa(4, 16, relu,   seed=1),
+    CapaDensa(16, 8, relu,   seed=2),
+    CapaDensa(8,  2, linear, seed=3),
+]
+
+# Red = composición secuencial
+def red(x: np.ndarray, capas: list) -> np.ndarray:
+    return reduce(lambda v, capa: capa(v), capas, x)
+
+x_entrada = np.array([1.0, -0.5, 0.3, 2.1])
+y_salida  = red(x_entrada, capas)
+print(f"\\n=== Red neuronal como composición (4→16→8→2) ===")
+print(f"Entrada : {x_entrada}")
+print(f"Salida  : {y_salida.round(4)}")
+
+# Verificar con paso manual
+y_manual = capas[2](capas[1](capas[0](x_entrada)))
+print(f"Manual  : {y_manual.round(4)}")
+print(f"Coincide: {np.allclose(y_salida, y_manual)}")
+
+# ── 6. Funcional de pérdida (función de funciones) ────────────────────────────
+def mse(f_theta: Callable, X: np.ndarray, y: np.ndarray) -> float:
+    """J[f_θ] = (1/n) Σ (f_θ(xᵢ) - yᵢ)² — funcional que evalúa la función f_θ"""
+    preds = np.array([f_theta(xi) for xi in X])
+    return float(np.mean((preds - y)**2))
+
+np.random.seed(42)
+X_data = np.linspace(-2, 2, 30)
+y_data = 3 * X_data + 1 + np.random.randn(30) * 0.3   # recta + ruido
+
+f_buena = lambda x: 3 * x + 1          # función cercana a la verdad
+f_mala  = lambda x: 0 * x + 0          # función constante
+
+print(f"\\n=== Funcional de pérdida MSE ===")
+print(f"MSE(f_buena) = {mse(f_buena, X_data, y_data):.4f}")
+print(f"MSE(f_mala)  = {mse(f_mala,  X_data, y_data):.4f}")
+`,
+    related: ["Variable", "Derivada y Gradiente", "Composición y Backpropagation", "Espacio Vectorial", "Función de Activación"],
+    hasViz: true,
+    vizType: "funcion",
+  },
+  {
+    id: 6,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Dominio y Rango",
+    tags: ["análisis", "función", "dominio", "imagen", "codominio", "restricción"],
+    definition: "El dominio de una función f: X → Y es el conjunto X de todos los valores de entrada para los que f está definida. El rango (o imagen) es el subconjunto Im(f) = f(X) ⊆ Y de valores efectivamente alcanzados por f. El codominio Y es el conjunto de llegada declarado, que puede contener elementos no alcanzados. La distinción dominio / codominio / imagen es fundamental: determina sobreyectividad, inversibilidad y el comportamiento numérico de modelos en regiones fuera de la distribución de entrenamiento.",
+    formal: {
+      notation: "Sea $f: X \\to Y$; se define $\\operatorname{Dom}(f) = X$, $\\operatorname{Cod}(f) = Y$, $\\operatorname{Im}(f) = f(X)$",
+      body: "\\operatorname{Dom}(f) := X = \\{x : f(x) \\text{ está definida}\\} \\\\ \\operatorname{Cod}(f) := Y \\quad (\\text{conjunto de llegada declarado}) \\\\ \\operatorname{Im}(f) := f(X) = \\{y \\in Y : \\exists\\, x \\in X,\\; f(x) = y\\} \\subseteq Y \\\\ \\textbf{Preimagen de un conjunto: } f^{-1}(B) = \\{x \\in X : f(x) \\in B\\},\\quad B \\subseteq Y \\\\ \\textbf{Restricción: } f|_A : A \\to Y,\\; (f|_A)(x) = f(x),\\quad A \\subseteq X \\\\ \\textbf{Dominio natural: } \\operatorname{Dom}_{\\text{nat}}(f) = \\{x \\in \\mathbb{R}^n : f(x) \\in \\mathbb{R}\\}",
+      geometric: "f \\text{ sobreyectiva} \\iff \\operatorname{Im}(f) = Y \\\\ f \\text{ inversible} \\iff f \\text{ biyectiva} \\iff \\operatorname{Im}(f) = Y \\text{ y } f \\text{ inyectiva} \\\\ \\text{Gráfica: } \\Gamma_f = \\{(x, f(x)) : x \\in X\\} \\subseteq X \\times Y",
+      properties: [
+        "\\operatorname{Im}(g \\circ f) \\subseteq \\operatorname{Im}(g);\\quad \\text{igualdad si } \\operatorname{Im}(f) = \\operatorname{Dom}(g)",
+        "f^{-1}(B_1 \\cup B_2) = f^{-1}(B_1) \\cup f^{-1}(B_2);\\quad f^{-1}(B_1 \\cap B_2) = f^{-1}(B_1) \\cap f^{-1}(B_2)",
+        "A \\subseteq f^{-1}(f(A));\\quad f(f^{-1}(B)) \\subseteq B \\quad (\\text{igualdad si } f \\text{ sobreyectiva/inyectiva respectivamente})",
+      ],
+    },
+    intuition: "El dominio es la 'zona de validez' de una función: todo lo que le puedes dar de comer. El rango es lo que realmente produce: no necesariamente llena todo el codominio. La diferencia importa muchísimo en ML: un modelo entrenado solo ve una región del dominio (la distribución de entrenamiento), y su rango efectivo puede ser mucho más pequeño que el codominio declarado. Cuando llega un dato fuera del dominio de entrenamiento (*out-of-distribution*), la función puede producir salidas arbitrarias — aunque técnicamente $f(x)$ exista, no tiene significado estadístico garantizado.",
+    development: [
+      {
+        label: "Dominio natural y restricciones analíticas",
+        body: "El **dominio natural** de una expresión analítica es el mayor subconjunto de $\\mathbb{R}^n$ en el que la expresión produce un valor real bien definido. Los obstáculos más comunes son:\n\n| Expresión | Restricción | Dominio natural |\n|---|---|---|\n| $\\sqrt{x}$ | $x \\geq 0$ | $[0, +\\infty)$ |\n| $\\log x$ | $x > 0$ | $(0, +\\infty)$ |\n| $1/x$ | $x \\neq 0$ | $\\mathbb{R}\\setminus\\{0\\}$ |\n| $\\arcsin x$ | $|x| \\leq 1$ | $[-1, 1]$ |\n| $\\sqrt{1-x^2-y^2}$ | $x^2+y^2 \\leq 1$ | Disco unitario en $\\mathbb{R}^2$ |\n\nEn funciones de varias variables, el dominio es un subconjunto de $\\mathbb{R}^n$ que puede ser abierto, cerrado o ninguno de los dos. La frontera del dominio suele ser el lugar donde ocurren discontinuidades, singularidades numéricas o comportamientos degenerados relevantes para la optimización."
+      },
+      {
+        label: "Imagen, restricción y extensión de funciones",
+        body: "Calcular la imagen exacta de una función puede ser difícil; a menudo se trabaja con cotas:\n$$\\operatorname{Im}(f) \\subseteq [\\inf_{x\\in X} f(x),\\; \\sup_{x\\in X} f(x)]$$\n\nCuando $f$ es continua en un compacto $K \\subset \\mathbb{R}^n$, el **Teorema del Valor Extremo** garantiza que el ínfimo y el supremo se alcanzan, y la imagen es un intervalo compacto (Teorema del Valor Intermedio en $\\mathbb{R}$).\n\nLa **restricción** $f|_A$ reduce el dominio a $A \\subseteq X$ preservando la regla. Esto permite:\n- Recuperar inyectividad: $\\sin|_{[-\\pi/2,\\,\\pi/2]}$ es inyectiva → define $\\arcsin$.\n- Definir inversas locales via el **Teorema de la Función Inversa**: si $Df(x_0)$ es invertible, $f$ es localmente biyectiva en un entorno de $x_0$.\n\nLa **extensión** $\\tilde{f}: \\tilde{X} \\supset X \\to Y$ amplía el dominio preservando $\\tilde{f}|_X = f$. En análisis funcional, el **Teorema de Hahn-Banach** garantiza extensiones de funcionales lineales."
+      },
+      {
+        label: "Dominio en funciones multivariadas y transformaciones",
+        body: "Para funciones $f: \\mathbb{R}^n \\to \\mathbb{R}^m$, el dominio puede tener geometría compleja. Casos relevantes en ML:\n\n**Función softmax** $\\sigma: \\mathbb{R}^K \\to \\Delta^{K-1}$:\n$$\\sigma(\\mathbf{z})_k = \\frac{e^{z_k}}{\\sum_{j=1}^K e^{z_j}}$$\n$\\operatorname{Dom} = \\mathbb{R}^K$, $\\operatorname{Im} = \\Delta^{K-1} = \\{\\mathbf{p} \\in \\mathbb{R}^K_{\\geq 0}: \\sum p_k = 1\\}$ (símplex abierto). El rango **nunca** incluye las esquinas del símplex (probabilidades 0 o 1 exactas) con entradas finitas.\n\n**Función log-verosimilitud** $\\ell: (0,1) \\to (-\\infty, 0)$, $\\ell(p) = \\log p$. El dominio excluye $p=0$; la imagen es la semirrecta negativa. Intentar evaluar $\\log(0)$ — ocurre con predicciones de probabilidad exactamente 0 — es el origen del *log(0) = -inf* que desestabiliza el entrenamiento.\n\n**Transformaciones afines** $T(\\mathbf{x}) = A\\mathbf{x} + \\mathbf{b}$: $\\operatorname{Im}(T) = \\operatorname{col}(A) + \\mathbf{b}$ (subespacio afín de dimensión $\\operatorname{rank}(A)$). Si $\\operatorname{rank}(A) < m$, la imagen es un subespacio propio de $\\mathbb{R}^m$ — la función **no** es sobreyectiva."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "El dominio y el rango tienen implicaciones directas en el diseño y la robustez de modelos:\n\n**Dominio de entrenamiento vs. dominio de despliegue.** El modelo aprende $f_\\theta$ sobre muestras de $P_{\\text{train}}$, cuyo soporte es el dominio efectivo de entrenamiento. En inferencia, si $\\mathbf{x} \\notin \\operatorname{supp}(P_{\\text{train}})$ (dato *OOD*), la predicción es una extrapolación sin garantía estadística. Técnicas de detección OOD (energy score, Mahalanobis distance) estiman si $\\mathbf{x}$ está en la región de cobertura.\n\n**Rango de activaciones y normalización.** Cada capa mapea $\\mathbf{h}_k \\in \\mathbb{R}^{d_k}$ (dominio $\\mathbb{R}^{d_k}$, rango $\\mathbb{R}^{d_k}$ si es afín, o $\\mathbb{R}^{d_k}_{\\geq 0}$ si es ReLU). Batch Normalization restringe el rango efectivo de las activaciones a media $\\approx 0$ y varianza $\\approx 1$ antes de la capa siguiente — cambia el dominio efectivo de la próxima función.\n\n**Rango de funciones de pérdida.** El diseño de $\\mathcal{L}$ impone restricciones:\n- Cross-entropy: $\\mathcal{L} \\in [0, +\\infty)$; no acotada superiormente → gradientes pueden explotar.\n- MSE: $\\mathcal{L} \\in [0, +\\infty)$; sensible a outliers por cuadratura.\n- Huber loss: $\\mathcal{L} \\in [0, +\\infty)$; acotada en derivadas → robusto a outliers.\n\n**Clipping y saturación.** Operaciones como `torch.clamp(x, -1, 1)` restringen explícitamente el rango. Las activaciones sigmoid/tanh saturan el rango a $(0,1)$ o $(-1,1)$: la imagen nunca alcanza los extremos, lo que provoca el problema de **gradientes que se desvanecen** en regiones de saturación donde $f'(x) \\approx 0$."
+      },
+    ],
+    code: `import numpy as np
+from typing import Callable, Optional
+
+# ── 1. Dominio natural: detección de puntos inválidos ─────────────────────────
+def evaluar_seguro(
+    f: Callable[[float], float],
+    xs: np.ndarray,
+    centinela: float = np.nan,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Evalúa f en xs, marcando con centinela los puntos fuera del dominio natural.
+    Devuelve (valores, máscara_dominio).
+    """
+    valores = np.full_like(xs, centinela, dtype=float)
+    mascara = np.zeros(len(xs), dtype=bool)
+    for i, x in enumerate(xs):
+        try:
+            with np.errstate(all="raise"):
+                v = f(x)
+            if np.isfinite(v):
+                valores[i] = v
+                mascara[i] = True
+        except (FloatingPointError, ValueError, ZeroDivisionError):
+            pass
+    return valores, mascara
+
+xs = np.linspace(-2, 4, 9)
+print("=== Dominio natural ===")
+for nombre, fn in [
+    ("sqrt(x)",   np.sqrt),
+    ("log(x)",    np.log),
+    ("1/x",       lambda x: 1 / x),
+    ("arcsin(x)", np.arcsin),
+]:
+    vals, mask = evaluar_seguro(fn, xs)
+    dom = xs[mask]
+    print(f"  {nombre:12s}: Dom ⊆ [{dom.min():.2f}, {dom.max():.2f}] | "
+          f"Im ⊆ [{vals[mask].min():.3f}, {vals[mask].max():.3f}]  "
+          f"({mask.sum()}/{len(xs)} puntos válidos)")
+
+# ── 2. Cálculo de imagen empírica ─────────────────────────────────────────────
+def imagen_empirica(
+    f: Callable[[np.ndarray], np.ndarray],
+    dominio: np.ndarray,
+    n_puntos: int = 10_000,
+) -> tuple[float, float]:
+    """Aproxima [inf Im(f), sup Im(f)] muestreando densamente el dominio."""
+    if dominio.ndim == 1:
+        xs = np.linspace(dominio[0], dominio[1], n_puntos)
+    else:
+        xs = dominio
+    ys = f(xs)
+    ys = ys[np.isfinite(ys)]
+    return float(ys.min()), float(ys.max())
+
+print("\\n=== Imagen (rango) empírico ===")
+casos = [
+    ("sin(x)    en [-π, π]",  np.sin,         np.array([-np.pi, np.pi])),
+    ("tanh(x)   en [-5, 5]",  np.tanh,        np.array([-5., 5.])),
+    ("x²        en [-3, 3]",  lambda x: x**2, np.array([-3., 3.])),
+    ("sigmoid   en [-10,10]", lambda x: 1/(1+np.exp(-x)), np.array([-10., 10.])),
+    ("ReLU      en [-3, 3]",  lambda x: np.maximum(0, x), np.array([-3., 3.])),
+]
+for nombre, fn, dom in casos:
+    lo, hi = imagen_empirica(fn, dom)
+    print(f"  Im({nombre}) ≈ [{lo:.5f}, {hi:.5f}]")
+
+# ── 3. Restricción de dominio para recuperar inyectividad → inversa ───────────
+print("\\n=== Restricción de dominio: sin → arcsin ===")
+# sin es inyectiva en [-π/2, π/2]
+dominio_restringido = np.linspace(-np.pi/2, np.pi/2, 7)
+for x in dominio_restringido:
+    y = np.sin(x)
+    x_rec = np.arcsin(y)          # inversa en el dominio restringido
+    print(f"  x={x:+.3f} → sin={y:+.5f} → arcsin={x_rec:+.3f}  "
+          f"| error={abs(x-x_rec):.2e}")
+
+# ── 4. Softmax: dominio ℝ^K → imagen ⊂ Δ^{K-1} ──────────────────────────────
+def softmax(z: np.ndarray) -> np.ndarray:
+    """Numéricamente estable: Im ⊂ Δ^{K-1} (símplex abierto)."""
+    e = np.exp(z - z.max())
+    return e / e.sum()
+
+print("\\n=== Softmax: dominio ℝ^K → Im ⊂ Δ^{K-1} ===")
+for z in [np.array([1., 2., 3.]),
+          np.array([100., 0., 0.]),    # caso extremo
+          np.array([0., 0., 0.])]:     # uniforme
+    p = softmax(z)
+    print(f"  z={z} → p={p.round(6)}  "
+          f"| Σ={p.sum():.8f}  | p∈(0,1)={all(0<pi<1 for pi in p)}")
+
+# ── 5. Detección OOD: distancia de Mahalanobis al dominio de entrenamiento ────
+print("\\n=== Detección OOD con distancia de Mahalanobis ===")
+np.random.seed(42)
+
+# Simula activaciones de la última capa en entrenamiento (distribución entrenamiento)
+n_train = 500
+mu_train = np.array([1.0, 2.0, 0.5])
+cov_train = np.array([[1.0, 0.5, 0.2],
+                       [0.5, 1.5, 0.1],
+                       [0.2, 0.1, 0.8]])
+X_train = np.random.multivariate_normal(mu_train, cov_train, n_train)
+
+# Estima parámetros de la clase
+mu_hat   = X_train.mean(axis=0)
+cov_hat  = np.cov(X_train.T)
+cov_inv  = np.linalg.inv(cov_hat)
+
+def mahalanobis(x: np.ndarray, mu: np.ndarray, sigma_inv: np.ndarray) -> float:
+    d = x - mu
+    return float(np.sqrt(d @ sigma_inv @ d))
+
+# Puntos de prueba: in-distribution y OOD
+puntos = {
+    "In-dist  A": np.array([1.1, 2.2, 0.6]),
+    "In-dist  B": np.array([0.8, 1.7, 0.4]),
+    "OOD      C": np.array([5.0, 8.0, 4.0]),
+    "OOD      D": np.array([-3., -2., -3.]),
+}
+for nombre, x_test in puntos.items():
+    dist = mahalanobis(x_test, mu_hat, cov_inv)
+    etiqueta = "✓ In-domain" if dist < 3.5 else "⚠ OOD"
+    print(f"  {nombre}: Mahal={dist:.3f}  → {etiqueta}")
+
+# ── 6. Saturación de sigmoid y efecto en el gradiente ─────────────────────────
+print("\\n=== Saturación: rango de sigmoid y sus derivadas ===")
+xs_sat = np.array([-10., -5., -2., 0., 2., 5., 10.])
+sig    = lambda x: 1 / (1 + np.exp(-x))
+dsig   = lambda x: sig(x) * (1 - sig(x))   # σ'(x)
+
+print(f"  {'x':>6s} | {'σ(x)':>10s} | {'σ'(x)':>10s} | Zona")
+for x in xs_sat:
+    s, ds = sig(x), dsig(x)
+    zona = "SATURADA" if abs(x) > 4 else "activa"
+    print(f"  {x:6.1f} | {s:10.6f} | {ds:10.6f} | {zona}")
+`,
+    related: ["Función", "Variable", "Función de Activación", "Distribución de Probabilidad", "Detección OOD"],
+    hasViz: true,
+    vizType: "dominioRango",
+  },
+  {
+    id: 7,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Composición de Funciones",
+    tags: ["análisis", "función", "cadena", "backpropagation", "grafo computacional", "regla de la cadena"],
+    definition: "La composición de funciones es la operación que construye una nueva función aplicando sucesivamente dos o más funciones: la salida de una se convierte en la entrada de la siguiente. Dadas f: X → Y y g: Y → Z, la composición g ∘ f: X → Z se define como (g ∘ f)(x) = g(f(x)). La composición es asociativa pero en general no conmutativa, y constituye el mecanismo central de toda red neuronal profunda: cada capa es una función, y la red completa es su composición.",
+    formal: {
+      notation: "Sean $f: X \\to Y$ y $g: Y \\to Z$; la composición se denota $g \\circ f: X \\to Z$",
+      body: "(g \\circ f)(x) := g(f(x)), \\quad \\forall\\, x \\in X \\\\ \\textbf{Condición de compatibilidad: } \\operatorname{Im}(f) \\subseteq \\operatorname{Dom}(g) \\\\ \\textbf{Composición de }n\\text{ funciones: } (f_n \\circ \\cdots \\circ f_1)(x) = f_n(f_{n-1}(\\cdots f_1(x)\\cdots)) \\\\ \\textbf{Regla de la cadena (diferenciable): } (g \\circ f)'(x) = g'(f(x)) \\cdot f'(x) \\\\ \\textbf{Jacobiana de la composición: } D(g \\circ f)(x) = Dg(f(x))\\, Df(x) \\in \\mathbb{R}^{p \\times n}",
+      geometric: "\\text{Red de }L\\text{ capas: } f_\\theta = f_L \\circ f_{L-1} \\circ \\cdots \\circ f_1 \\\\ \\frac{\\partial \\mathcal{L}}{\\partial \\theta_k} = \\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{a}_L} \\cdot \\prod_{\\ell=k+1}^{L} \\frac{\\partial \\mathbf{a}_\\ell}{\\partial \\mathbf{a}_{\\ell-1}} \\cdot \\frac{\\partial \\mathbf{a}_k}{\\partial \\theta_k} \\quad (\\text{backprop})",
+      properties: [
+        "\\text{Asociatividad: } (h \\circ g) \\circ f = h \\circ (g \\circ f) \\quad \\forall\\, f,g,h \\text{ compatibles}",
+        "\\text{No conmutativa en general: } g \\circ f \\neq f \\circ g \\quad (\\text{cuando ambas estén definidas})",
+        "\\text{Identidad: } f \\circ \\operatorname{id}_X = \\operatorname{id}_Y \\circ f = f \\quad \\text{(monoide bajo } \\circ\\text{)}",
+      ],
+    },
+    intuition: "Imagina una cadena de montaje: cada estación recibe una pieza, le hace una transformación específica, y pasa el resultado a la siguiente. La composición $g \\circ f$ es exactamente eso — primero pasa por la máquina $f$, luego por la máquina $g$. Lo crucial es que el orden importa: pintar antes de pulir no es lo mismo que pulir antes de pintar. En deep learning, cada capa es una estación de transformación, y el modelo completo es la cadena entera. La retropropagación es simplemente la regla de la cadena aplicada de atrás hacia adelante a lo largo de esa cadena.",
+    development: [
+      {
+        label: "Álgebra de la composición: monoide y grupos",
+        body: "El conjunto de todas las funciones $X \\to X$ con la operación $\\circ$ forma un **monoide**: es asociativa y tiene elemento neutro $\\operatorname{id}_X$. Si restringimos a las biyecciones $X \\to X$, obtenemos el **grupo simétrico** $\\operatorname{Sym}(X)$ donde además todo elemento tiene inverso ($f^{-1}$ tal que $f^{-1} \\circ f = \\operatorname{id}_X$).\n\nLa no-conmutatividad tiene consecuencias profundas. Para $f(x) = x^2$ y $g(x) = x+1$:\n$$(g \\circ f)(x) = x^2 + 1 \\neq x^2 + 2x + 1 = (f \\circ g)(x)$$\n\nEn redes neuronales, reordenar capas produce modelos completamente distintos. La arquitectura (el orden de composición) es parte central del diseño del modelo."
+      },
+      {
+        label: "Regla de la cadena multivariada y Jacobiana",
+        body: "Para funciones diferenciables $f: \\mathbb{R}^n \\to \\mathbb{R}^m$ y $g: \\mathbb{R}^m \\to \\mathbb{R}^p$, la **regla de la cadena** establece que la derivada de la composición es el producto de las Jacobianas evaluadas en el punto apropiado:\n$$D(g \\circ f)(x) = Dg(\\underbrace{f(x)}_{\\text{punto de eval.}}) \\cdot Df(x) \\in \\mathbb{R}^{p \\times n}$$\n\nPara una composición de $L$ funciones $h = f_L \\circ \\cdots \\circ f_1$:\n$$Dh(x) = Df_L(\\mathbf{a}_{L-1}) \\cdot Df_{L-1}(\\mathbf{a}_{L-2}) \\cdots Df_1(x)$$\n\ndonde $\\mathbf{a}_k = f_k(\\mathbf{a}_{k-1})$ son las activaciones intermedias. Este producto de matrices es el corazón de la **retropropagación**: se computa de derecha a izquierda (hacia atrás) para reutilizar cálculos intermedios eficientemente mediante programación dinámica."
+      },
+      {
+        label: "Grafo computacional y diferenciación automática",
+        body: "La composición de funciones define un **grafo computacional dirigido acíclico (DAG)**: los nodos son operaciones (funciones elementales), las aristas transportan los valores intermedios (tensores). La diferenciación automática (*autograd*) explota este grafo de dos formas:\n\n**Modo hacia adelante** (*forward mode*): propaga las derivadas de izquierda a derecha junto con los valores. Eficiente cuando $n \\ll p$ (pocas entradas, muchas salidas).\n\n**Modo hacia atrás** (*reverse mode / backpropagation*): propaga los gradientes de derecha a izquierda. Eficiente cuando $p \\ll n$, que es exactamente el caso de ML ($p=1$, la pérdida es escalar):\n$$\\bar{x}_k = \\frac{\\partial \\mathcal{L}}{\\partial x_k} = \\sum_{j} \\frac{\\partial \\mathcal{L}}{\\partial z_j} \\frac{\\partial z_j}{\\partial x_k}$$\n\nEl coste de reverse mode es $\\mathcal{O}(\\text{coste forward})$ independientemente del número de parámetros $p$ — razón por la que es la elección universal en DL."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La composición de funciones es la operación definitoria de deep learning:\n\n**Profundidad = composición.** Una red de $L$ capas es $f_\\theta = f_L \\circ \\cdots \\circ f_1$ donde $f_k(\\mathbf{x}) = \\sigma_k(W_k\\mathbf{x} + \\mathbf{b}_k)$. La profundidad permite representar funciones de complejidad creciente con menos parámetros totales que una red de una sola capa de igual capacidad.\n\n**Gradiente de la pérdida como producto de Jacobianas.** Sea $\\mathcal{L} = \\ell \\circ f_L \\circ \\cdots \\circ f_1$:\n$$\\frac{\\partial \\mathcal{L}}{\\partial W_k} = \\underbrace{\\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{a}_L}}_{\\delta_L} \\cdot J_L \\cdots J_{k+1} \\cdot \\frac{\\partial \\mathbf{a}_k}{\\partial W_k}$$\n\n**Desvanecimiento y explosión de gradientes.** Si las normas de las Jacobianas $\\|J_\\ell\\| < 1$ uniformemente, el producto decrece exponencialmente hacia capas tempranas → **vanishing gradient**. Si $\\|J_\\ell\\| > 1$ → **exploding gradient**. Soluciones: ResNets (skip connections crean caminos cortos), normalización de capas (controla $\\|J_\\ell\\|$), inicialización cuidadosa.\n\n**ResNet como suma de composiciones.** La conexión residual redefine la unidad de composición:\n$$\\mathbf{a}_{k+1} = \\mathbf{a}_k + \\mathcal{F}(\\mathbf{a}_k; \\theta_k) \\quad \\Rightarrow \\quad \\frac{\\partial \\mathbf{a}_{k+1}}{\\partial \\mathbf{a}_k} = I + \\frac{\\partial \\mathcal{F}}{\\partial \\mathbf{a}_k}$$\n\nEl término identidad $I$ garantiza que el gradiente tiene siempre un camino directo hacia atrás, mitigando el desvanecimiento independientemente de la profundidad."
+      },
+    ],
+    code: `import numpy as np
+from typing import Callable, List, Tuple
+from functools import reduce
+
+# ── 1. Composición genérica de funciones ──────────────────────────────────────
+def compose(*fns: Callable) -> Callable:
+    """
+    Devuelve la composición fₙ ∘ ⋯ ∘ f₁.
+    compose(h, g, f)(x) == h(g(f(x)))
+    """
+    return reduce(lambda g, f: lambda x: g(f(x)), fns)
+
+f = lambda x: x**2          # f: ℝ → ℝ
+g = lambda x: x + 1         # g: ℝ → ℝ
+h = lambda x: np.sqrt(np.abs(x))
+
+gof   = compose(g, f)       # g ∘ f
+hogof = compose(h, g, f)    # h ∘ g ∘ f
+
+print("=== Composición de funciones escalares ===")
+x0 = 3.0
+print(f"f({x0})         = {f(x0)}")
+print(f"(g∘f)({x0})     = {gof(x0)}   [g(f(x)) = f(x)+1 = {f(x0)+1}]")
+print(f"(h∘g∘f)({x0})   = {hogof(x0):.4f}")
+
+# No conmutatividad
+fog = compose(f, g)
+print(f"\\n(g∘f)(x) = x²+1  vs  (f∘g)(x) = (x+1)²")
+print(f"  g∘f en x=3: {gof(3)}  |  f∘g en x=3: {fog(3)}  → distintos: {gof(3)!=fog(3)}")
+
+# ── 2. Regla de la cadena univariada ──────────────────────────────────────────
+def derivada_numerica(f: Callable, x: float, h: float = 1e-7) -> float:
+    return (f(x + h) - f(x - h)) / (2 * h)
+
+print("\\n=== Regla de la cadena: (g∘f)'(x) = g'(f(x))·f'(x) ===")
+x0 = 2.0
+# f(x) = sin(x),  g(y) = y²
+f2 = np.sin
+g2 = lambda y: y**2
+
+dfdx   = derivada_numerica(f2, x0)                      # f'(x)
+dgdy   = derivada_numerica(g2, f2(x0))                  # g'(f(x))
+cadena = dgdy * dfdx                                     # regla de la cadena
+directo= derivada_numerica(compose(g2, f2), x0)         # verificación directa
+
+print(f"  f(x)=sin(x),  g(y)=y²  en x={x0}")
+print(f"  f'(x)       = {dfdx:.6f}   [cos({x0})={np.cos(x0):.6f}]")
+print(f"  g'(f(x))    = {dgdy:.6f}   [2·sin({x0})={2*np.sin(x0):.6f}]")
+print(f"  Cadena      = {cadena:.6f}")
+print(f"  Directo     = {directo:.6f}")
+print(f"  Error       = {abs(cadena-directo):.2e}")
+
+# ── 3. Jacobiana de una composición vectorial ─────────────────────────────────
+def jacobiana(f: Callable, x: np.ndarray, eps: float = 1e-6) -> np.ndarray:
+    """Jacobiana numérica Df(x) ∈ ℝ^{m×n} por diferencias finitas centradas."""
+    fx = f(x)
+    m, n = len(fx), len(x)
+    J = np.zeros((m, n))
+    for j in range(n):
+        ej = np.zeros(n); ej[j] = eps
+        J[:, j] = (f(x + ej) - f(x - ej)) / (2 * eps)
+    return J
+
+# f: ℝ² → ℝ³,  g: ℝ³ → ℝ²
+def f_vec(x):
+    return np.array([x[0]**2 + x[1], np.sin(x[0]*x[1]), np.exp(-x[0])])
+
+def g_vec(y):
+    return np.array([y[0]*y[1] + y[2], y[0] - y[2]**2])
+
+x = np.array([1.0, 2.0])
+Jf = jacobiana(f_vec, x)            # Df(x) ∈ ℝ^{3×2}
+Jg = jacobiana(g_vec, f_vec(x))     # Dg(f(x)) ∈ ℝ^{2×3}
+J_cadena = Jg @ Jf                  # D(g∘f)(x) ∈ ℝ^{2×2}  — regla de la cadena
+J_directo= jacobiana(compose(g_vec, f_vec), x)
+
+print("\\n=== Jacobiana de composición vectorial ===")
+print(f"Df(x) ∈ ℝ^{{{Jf.shape[0]}×{Jf.shape[1]}}}:\\n{Jf.round(4)}")
+print(f"Dg(f(x)) ∈ ℝ^{{{Jg.shape[0]}×{Jg.shape[1]}}}:\\n{Jg.round(4)}")
+print(f"D(g∘f)(x) = Dg·Df ∈ ℝ^{{{J_cadena.shape[0]}×{J_cadena.shape[1]}}}:\\n{J_cadena.round(4)}")
+print(f"Directo:\\n{J_directo.round(4)}")
+print(f"Error máx: {np.abs(J_cadena - J_directo).max():.2e}")
+
+# ── 4. Red neuronal como composición + backprop manual ────────────────────────
+class Capa:
+    """f_k(x) = σ(Wx + b) con retropropagación."""
+    def __init__(self, d_in, d_out, sigma, dsigma, seed=0):
+        rng = np.random.default_rng(seed)
+        self.W = rng.standard_normal((d_out, d_in)) * np.sqrt(2/d_in)
+        self.b = np.zeros(d_out)
+        self.sigma  = sigma
+        self.dsigma = dsigma   # derivada de σ
+
+    def forward(self, x):
+        self.x = x
+        self.z = self.W @ x + self.b   # preactivación
+        self.a = self.sigma(self.z)    # activación
+        return self.a
+
+    def backward(self, grad_a):
+        # grad_a = ∂L/∂a  (viene de la capa siguiente)
+        grad_z = self.dsigma(self.z) * grad_a      # ∂L/∂z = ∂L/∂a ⊙ σ'(z)
+        self.grad_W = np.outer(grad_z, self.x)     # ∂L/∂W
+        self.grad_b = grad_z                       # ∂L/∂b
+        return self.W.T @ grad_z                   # ∂L/∂x (para la capa anterior)
+
+relu    = lambda z: np.maximum(0, z)
+drelu   = lambda z: (z > 0).astype(float)
+linear  = lambda z: z
+dlinear = lambda z: np.ones_like(z)
+
+capas = [
+    Capa(3, 8,  relu,   drelu,   seed=1),
+    Capa(8, 4,  relu,   drelu,   seed=2),
+    Capa(4, 1,  linear, dlinear, seed=3),
+]
+
+# Forward: composición secuencial
+np.random.seed(0)
+x_in   = np.array([1.0, -0.5, 0.8])
+y_true = np.array([1.5])
+
+a = x_in
+for capa in capas:
+    a = capa.forward(a)
+y_pred = a
+
+# Pérdida MSE: L = ½‖y_pred - y_true‖²
+loss = 0.5 * np.sum((y_pred - y_true)**2)
+grad = y_pred - y_true              # ∂L/∂y_pred
+
+# Backward: regla de la cadena en reversa
+for capa in reversed(capas):
+    grad = capa.backward(grad)
+
+print("\\n=== Red 3→8→4→1: forward + backprop manual ===")
+print(f"y_pred = {y_pred.round(4)}, y_true = {y_true}, loss = {loss:.4f}")
+print(f"Gradiente ∂L/∂x (entrada): {grad.round(6)}")
+for i, capa in enumerate(capas):
+    print(f"  Capa {i+1}: ‖∂L/∂W‖ = {np.linalg.norm(capa.grad_W):.4f}")
+
+# ── 5. Verificación con gradiente numérico (gradient check) ───────────────────
+print("\\n=== Gradient check (Jacobiana numérica vs backprop) ===")
+eps = 1e-5
+grad_num = np.zeros_like(x_in)
+for j in range(len(x_in)):
+    x_plus, x_minus = x_in.copy(), x_in.copy()
+    x_plus[j]  += eps; x_minus[j] -= eps
+
+    def forward_only(x):
+        a = x
+        for capa in capas:
+            z = capa.W @ a + capa.b
+            a = capa.sigma(z)
+        return 0.5 * np.sum((a - y_true)**2)
+
+    grad_num[j] = (forward_only(x_plus) - forward_only(x_minus)) / (2*eps)
+
+print(f"Backprop  ∂L/∂x: {grad.round(6)}")
+print(f"Numérico  ∂L/∂x: {grad_num.round(6)}")
+print(f"Error rel máx   : {np.max(np.abs(grad-grad_num)/(np.abs(grad_num)+1e-8)):.2e}")
+`,
+    related: ["Función", "Dominio y Rango", "Derivada y Gradiente", "Backpropagation", "Grafo Computacional"],
+    hasViz: true,
+    vizType: "composicionFunciones",
+  },
+  {
+    id: 8,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Función Inversa",
+    tags: ["análisis", "biyección", "invertibilidad", "función inversa", "teorema de la función inversa"],
+    definition: "Dada una función biyectiva f: X → Y, su función inversa f⁻¹: Y → X es la única función que satisface f⁻¹(f(x)) = x para todo x ∈ X y f(f⁻¹(y)) = y para todo y ∈ Y. La existencia de la inversa global requiere biyectividad; el Teorema de la Función Inversa garantiza la existencia de inversas locales para funciones diferenciables con Jacobiana invertible en un punto. En ML, la invertibilidad es central en flujos normalizantes, cambios de variable en densidades y transformaciones biyectivas de espacios latentes.",
+    formal: {
+      notation: "Sea $f: X \\to Y$ biyectiva; su inversa $f^{-1}: Y \\to X$ satisface $f^{-1} \\circ f = \\operatorname{id}_X$ y $f \\circ f^{-1} = \\operatorname{id}_Y$",
+      body: "f^{-1}(y) = x \\iff f(x) = y, \\quad \\forall\\, x \\in X,\\; y \\in Y \\\\ \\textbf{Existencia global: } f \\text{ biyectiva} \\iff \\exists!\\, f^{-1}: Y \\to X \\\\ \\textbf{Teorema de la función inversa (local): } f \\in C^1(U),\\; Df(x_0) \\text{ invertible} \\\\ \\quad \\Rightarrow \\exists\\, V \\ni x_0 \\text{ abierto tal que } f|_V \\text{ es } C^1\\text{-difeomorfismo sobre } f(V) \\\\ \\quad \\text{con } D(f^{-1})(y_0) = [Df(x_0)]^{-1}, \\quad y_0 = f(x_0) \\\\ \\textbf{Fórmula de la derivada: } (f^{-1})'(y) = \\dfrac{1}{f'(f^{-1}(y))}",
+      geometric: "\\text{Gráfica de } f^{-1} = \\text{reflexión de } \\Gamma_f \\text{ respecto a la diagonal } y = x \\\\ \\Gamma_{f^{-1}} = \\{(y, x) : (x, y) \\in \\Gamma_f\\} \\\\ \\textbf{Cambio de variable: } \\int_a^b g(f(x))f'(x)\\,dx = \\int_{f(a)}^{f(b)} g(y)\\,dy",
+      properties: [
+        "(f^{-1})^{-1} = f \\quad \\text{y} \\quad (g \\circ f)^{-1} = f^{-1} \\circ g^{-1} \\quad (\\text{inversión invierte el orden})",
+        "\\text{Cambio de variable en densidades: } p_Y(y) = p_X(f^{-1}(y))\\,|\\det J_{f^{-1}}(y)| = \\dfrac{p_X(x)}{|\\det J_f(x)|}",
+        "\\text{Si } f \\text{ es isometría lineal (unitaria): } f^{-1} = f^\\top \\quad (\\text{inversa = transpuesta})",
+      ],
+    },
+    intuition: "Si una función es una 'máquina de transformación' que convierte $x$ en $y$, la función inversa es la misma máquina corriendo en sentido contrario: recibe $y$ y devuelve el $x$ original. Esto solo es posible si la máquina es perfectamente reversible — nunca 'aplasta' dos entradas distintas en la misma salida. En geometría, la gráfica de $f^{-1}$ es el reflejo de la gráfica de $f$ respecto a la diagonal $y=x$: lo que era altura se convierte en ancho y viceversa. En flujos normalizantes, encadenamos transformaciones invertibles para convertir una distribución compleja en una gaussiana simple, y la función inversa es el decodificador que recorre el camino de vuelta.",
+    development: [
+      {
+        label: "Condiciones de invertibilidad y restricciones de dominio",
+        body: "La invertibilidad global requiere **biyectividad**: inyectividad (cada salida proviene de a lo sumo una entrada) y sobreyectividad (toda salida está en la imagen). Cuando $f$ no es globalmente biyectiva, se puede recuperar la invertibilidad **restringiendo el dominio**:\n\n| Función | Dom. natural | Restricción inyectiva | Inversa |\n|---|---|---|---|\n| $\\sin x$ | $\\mathbb{R}$ | $[-\\pi/2, \\pi/2]$ | $\\arcsin$ |\n| $\\cos x$ | $\\mathbb{R}$ | $[0, \\pi]$ | $\\arccos$ |\n| $x^2$ | $\\mathbb{R}$ | $[0,\\infty)$ | $\\sqrt{x}$ |\n| $e^x$ | $\\mathbb{R}$ | $\\mathbb{R}$ (ya inyectiva) | $\\ln x$ |\n| $\\tan x$ | $\\mathbb{R}\\setminus\\{\\frac{\\pi}{2}+k\\pi\\}$ | $(-\\pi/2,\\pi/2)$ | $\\arctan$ |\n\nLa elección de la rama de la restricción es una **convención**: $\\sqrt{x}$ elige la rama positiva de $x^2$. En ML, las funciones de activación como ReLU no son inyectivas en $\\mathbb{R}$ (ReLU$(x)=0$ para todo $x\\leq 0$), lo que hace que ciertas capas sean no invertibles — limitación relevante para flujos normalizantes que exigen biyectividad estricta."
+      },
+      {
+        label: "Teorema de la función inversa y derivada de la inversa",
+        body: "El **Teorema de la Función Inversa** establece que la invertibilidad local es consecuencia de la invertibilidad de la Jacobiana:\n\n**Enunciado**: Sea $f: U \\subseteq \\mathbb{R}^n \\to \\mathbb{R}^n$ de clase $C^1$ y $x_0 \\in U$ tal que $Df(x_0)$ es invertible (i.e., $\\det Df(x_0) \\neq 0$). Entonces existen abiertos $V \\ni x_0$ y $W \\ni f(x_0)$ tales que $f|_V: V \\to W$ es un $C^1$-difeomorfismo y:\n$$D(f^{-1})(y_0) = [Df(x_0)]^{-1}, \\quad y_0 = f(x_0)$$\n\nEn dimensión 1: $(f^{-1})'(y) = 1/f'(f^{-1}(y))$, que tiene la interpretación geométrica de que la pendiente de $f^{-1}$ en $(y, x)$ es el recíproco de la pendiente de $f$ en $(x, y)$.\n\nEl **jacobiano del cambio de variable** para densidades de probabilidad es:\n$$p_Y(y) = p_X(f^{-1}(y))\\,|\\det J_{f^{-1}}(y)|$$\n\nEsta fórmula es la base de los **flujos normalizantes**: si $f$ es una biyección diferenciable con Jacobiana tratable, podemos calcular la densidad transformada exactamente."
+      },
+      {
+        label: "Inversas en álgebra lineal: matrices y pseudoinversa",
+        body: "Para transformaciones lineales $f(\\mathbf{x}) = A\\mathbf{x}$ con $A \\in \\mathbb{R}^{n\\times n}$:\n- $f$ es invertible $\\iff$ $A$ es invertible $\\iff$ $\\det(A) \\neq 0$ $\\iff$ $\\operatorname{rank}(A) = n$\n- La inversa es $f^{-1}(\\mathbf{y}) = A^{-1}\\mathbf{y}$\n\nCuando $A \\in \\mathbb{R}^{m \\times n}$ con $m \\neq n$ o $\\operatorname{rank}(A) < \\min(m,n)$, no existe inversa exacta. Se define la **pseudoinversa de Moore-Penrose** $A^+$ como la solución de mínima norma al sistema $\\min_\\mathbf{x} \\|\\mathbf{x}\\|$ sujeto a $\\min \\|A\\mathbf{x} - \\mathbf{b}\\|$:\n$$A^+ = V\\Sigma^+U^\\top \\quad \\text{(vía SVD: } A = U\\Sigma V^\\top\\text{)}$$\ndonde $\\Sigma^+$ invierte los valores singulares no nulos. La pseudoinversa generaliza la inversa y aparece en la solución de mínimos cuadrados: $\\hat{\\mathbf{x}} = A^+\\mathbf{b}$."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La inversabilidad es un concepto estructural en varios pilares del ML moderno:\n\n**Flujos normalizantes** (*Normalizing Flows*). Aprenden una biyección $f_\\theta: \\mathcal{Z} \\to \\mathcal{X}$ entre una distribución base simple $p_Z$ (p.ej. gaussiana) y la distribución de datos $p_X$. El entrenamiento maximiza la log-verosimilitud exacta:\n$$\\log p_X(\\mathbf{x}) = \\log p_Z(f_\\theta^{-1}(\\mathbf{x})) + \\log|\\det J_{f_\\theta^{-1}}(\\mathbf{x})|$$\nArquitecturas como RealNVP, GLOW y Neural Spline Flows diseñan $f_\\theta$ con Jacobianas triangulares cuyo determinante se computa en $\\mathcal{O}(d)$.\n\n**Inversas en atención**. La operación de atención $\\operatorname{Attn}(Q,K,V) = \\operatorname{softmax}(QK^\\top/\\sqrt{d_k})V$ no es en general invertible respecto a $V$ (softmax colapsa información). Sin embargo, arquitecturas como *Reversible Transformers* (RevNet, Reformer) diseñan bloques invertibles para reducir memoria durante entrenamiento: al propagar hacia atrás se reconstruyen las activaciones usando $f^{-1}$ en lugar de guardarlas.\n\n**Inicialización ortogonal**. Las matrices ortogonales $Q \\in \\mathbb{R}^{n\\times n}$ (con $Q^{-1}=Q^\\top$) son las isometrías lineales: preservan normas y ángulos. La inicialización ortogonal de pesos reduce el problema de gradientes que se desvanecen/explotan porque $\\|Q\\mathbf{x}\\| = \\|\\mathbf{x}\\|$ implica que los valores singulares de $Q$ son todos 1, manteniendo el espectro de la Jacobiana cerca de la identidad.\n\n**Decodificación y codificación simétrica**. En autoencoders simétricos, si el encoder es $f_\\phi: \\mathbb{R}^d \\to \\mathbb{R}^k$ con $k < d$, el decoder $g_\\psi: \\mathbb{R}^k \\to \\mathbb{R}^d$ aproxima una pseudo-inversa: $g_\\psi \\approx f_\\phi^+$. La calidad de la reconstrucción mide cuánta información se preserva — vinculada directamente a la proximidad de $g_\\psi \\circ f_\\phi$ a $\\operatorname{id}_{\\mathbb{R}^d}$."
+      },
+    ],
+    code: `import numpy as np
+from scipy import linalg
+
+# ── 1. Verificación de función inversa: f⁻¹ ∘ f = id ─────────────────────────
+print("=== Verificación f⁻¹ ∘ f = id ===")
+pares = [
+    ("exp / log",   np.exp,             np.log,              np.linspace(0.1, 3, 8)),
+    ("x²   / √x",  lambda x: x**2,     np.sqrt,             np.linspace(0, 3, 8)),
+    ("sin  / arcsin",np.sin,            np.arcsin,           np.linspace(-np.pi/2, np.pi/2, 8)),
+    ("tanh / arctanh",np.tanh,          np.arctanh,          np.linspace(-0.99, 0.99, 8)),
+]
+for nombre, f, finv, xs in pares:
+    errores = np.abs(finv(f(xs)) - xs)
+    print(f"  {nombre:20s}: error_max = {errores.max():.2e}")
+
+# ── 2. Derivada de la función inversa: (f⁻¹)'(y) = 1 / f'(f⁻¹(y)) ───────────
+def deriv_num(f, x, h=1e-7):
+    return (f(x+h) - f(x-h)) / (2*h)
+
+print("\\n=== (f⁻¹)'(y) = 1/f'(f⁻¹(y)) ===")
+# f(x) = e^x → f⁻¹(y) = log(y),  (f⁻¹)'(y) = 1/y
+ys = np.array([0.5, 1.0, 2.0, 4.0])
+for y in ys:
+    x       = np.log(y)                  # f⁻¹(y)
+    df_en_x = np.exp(x)                  # f'(x) = e^x
+    formula = 1.0 / df_en_x              # 1/f'(f⁻¹(y))
+    numerico= deriv_num(np.log, y)       # (f⁻¹)'(y) numérica
+    print(f"  y={y:.1f}  x=log(y)={x:.4f}  1/f'(x)={formula:.4f}  "
+          f"numérico={numerico:.4f}  error={abs(formula-numerico):.2e}")
+
+# ── 3. Inversa de matrices: cuadrada, pseudoinversa Moore-Penrose ──────────────
+print("\\n=== Inversas de matrices ===")
+np.random.seed(42)
+# 3.a Inversa exacta (A cuadrada, full rank)
+A = np.array([[2., 1.], [5., 3.]])
+A_inv = np.linalg.inv(A)
+print(f"A =\\n{A}")
+print(f"A⁻¹ =\\n{A_inv.round(4)}")
+print(f"A @ A⁻¹ =\\n{(A @ A_inv).round(6)}  (debe ser I)")
+
+# 3.b Pseudoinversa (A rectangular)
+B = np.array([[1., 2., 3.],
+              [4., 5., 6.]])             # B ∈ ℝ^{2×3}, rango 2
+B_plus = np.linalg.pinv(B)             # Moore-Penrose: B⁺ ∈ ℝ^{3×2}
+print(f"\\nB ∈ ℝ^{{{B.shape[0]}×{B.shape[1]}}} → B⁺ ∈ ℝ^{{{B_plus.shape[0]}×{B_plus.shape[1]}}}")
+print(f"B @ B⁺ =\\n{(B @ B_plus).round(6)}  (proyector)")
+print(f"B⁺ @ B =\\n{(B_plus @ B).round(6)}  (proyector)")
+
+# 3.c SVD explícita → pseudoinversa
+U, S, Vt = np.linalg.svd(B, full_matrices=False)
+S_inv = np.diag(1.0 / S)
+B_plus_svd = Vt.T @ S_inv @ U.T
+print(f"B⁺ via SVD coincide: {np.allclose(B_plus, B_plus_svd)}")
+
+# ── 4. Solución de mínimos cuadrados via pseudoinversa ────────────────────────
+print("\\n=== Mínimos cuadrados: x̂ = A⁺ b ===")
+# Sistema sobredeterminado: Ax ≈ b, A ∈ ℝ^{5×2}
+A_mc = np.column_stack([np.ones(5), np.array([1., 2., 3., 4., 5.])])
+b    = np.array([2.1, 3.9, 6.2, 7.8, 10.1])   # y ≈ 2x + 0
+x_hat= np.linalg.pinv(A_mc) @ b
+print(f"Coefs (intercepto, pendiente) = {x_hat.round(4)}")
+print(f"Residuo ‖Ax̂-b‖ = {np.linalg.norm(A_mc @ x_hat - b):.4f}")
+print(f"NumPy lstsq:    {np.linalg.lstsq(A_mc, b, rcond=None)[0].round(4)}")
+
+# ── 5. Flujo normalizante: cambio de variable en densidad ─────────────────────
+print("\\n=== Flujo normalizante: cambio de variable en densidad ===")
+from scipy.stats import norm
+
+# Transformación afín: X = μ + σZ,  Z ~ N(0,1)
+mu, sigma = 3.0, 2.0
+f_flow    = lambda z: mu + sigma * z          # z → x  (generación)
+f_inv     = lambda x: (x - mu) / sigma        # x → z  (inferencia)
+log_det_J = np.log(abs(sigma))                # log|det J_f| = log(σ) (escalar)
+
+# Densidad transformada: p_X(x) = p_Z(f⁻¹(x)) / |σ|
+xs = np.array([1.0, 3.0, 5.0, 7.0])
+for x in xs:
+    z      = f_inv(x)
+    log_pZ = norm.logpdf(z)
+    log_pX = log_pZ - log_det_J              # fórmula de cambio de variable
+    pX_ref = norm.logpdf(x, loc=mu, scale=sigma)
+    print(f"  x={x:.1f}: z={z:.3f}  log p_X={log_pX:.4f}  ref={pX_ref:.4f}  "
+          f"error={abs(log_pX-pX_ref):.2e}")
+
+# ── 6. Bloque RevNet: reconstrucción de activaciones sin guardarlas ────────────
+print("\\n=== RevNet: bloque invertible (Gomez et al. 2017) ===")
+# Bloque additive coupling:
+#   Forward:  y1 = x1 + F(x2),  y2 = x2 + G(y1)
+#   Inverse:  x2 = y2 - G(y1),  x1 = y1 - F(x2)
+F = lambda u: np.tanh(u * 0.5)      # red arbitraria F
+G = lambda u: np.sin(u * 0.3)       # red arbitraria G
+
+np.random.seed(7)
+x1, x2 = np.random.randn(4), np.random.randn(4)
+print(f"Entrada:  x1={x1.round(3)},  x2={x2.round(3)}")
+
+# Forward
+y1 = x1 + F(x2)
+y2 = x2 + G(y1)
+print(f"Forward:  y1={y1.round(3)},  y2={y2.round(3)}")
+
+# Inverse (sin haber guardado x1, x2)
+x2_rec = y2 - G(y1)
+x1_rec = y1 - F(x2_rec)
+print(f"Inverso:  x1={x1_rec.round(3)},  x2={x2_rec.round(3)}")
+print(f"Error x1: {np.abs(x1-x1_rec).max():.2e},  Error x2: {np.abs(x2-x2_rec).max():.2e}")
+`,
+    related: ["Función", "Dominio y Rango", "Composición de Funciones", "Flujos Normalizantes", "Pseudoinversa y SVD"],
+    hasViz: true,
+    vizType: "funcionInversa",
+  },
+  {
+    id: 9,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Función Lineal y No Lineal",
+    tags: ["álgebra lineal", "linealidad", "superposición", "activación", "expresividad"],
+    definition: "Una función f: V → W entre espacios vectoriales es lineal si satisface aditividad f(x+y) = f(x)+f(y) y homogeneidad f(αx) = αf(x) para todo x, y ∈ V y escalar α. Una función que viola al menos una de estas propiedades es no lineal. La distinción es arquitecturalmente crítica en deep learning: las transformaciones lineales (capas afines) son expresivamente limitadas — su composición sigue siendo lineal — y las funciones de activación no lineales son el mecanismo que dota a las redes de capacidad de aproximación universal.",
+    formal: {
+      notation: "Sea $f: V \\to W$ con $V, W$ espacios vectoriales sobre $\\mathbb{F}$",
+      body: "f \\text{ es lineal} \\iff \\forall\\, \\mathbf{x}, \\mathbf{y} \\in V,\\; \\alpha \\in \\mathbb{F}: \\\\ \\quad (1)\\; f(\\mathbf{x} + \\mathbf{y}) = f(\\mathbf{x}) + f(\\mathbf{y}) \\quad (\\textbf{aditividad}) \\\\ \\quad (2)\\; f(\\alpha \\mathbf{x}) = \\alpha f(\\mathbf{x}) \\quad (\\textbf{homogeneidad}) \\\\ \\text{Equivalentemente: } f(\\alpha\\mathbf{x} + \\beta\\mathbf{y}) = \\alpha f(\\mathbf{x}) + \\beta f(\\mathbf{y}) \\quad (\\textbf{superposición}) \\\\ \\text{Forma matricial: } f(\\mathbf{x}) = A\\mathbf{x},\\; A \\in \\mathbb{F}^{m \\times n} \\quad (\\text{toda transformación lineal } \\mathbb{R}^n \\to \\mathbb{R}^m)",
+      geometric: "f \\text{ lineal} \\Rightarrow f(\\mathbf{0}) = \\mathbf{0} \\quad (\\text{pasa por el origen}) \\\\ f \\text{ lineal} \\Rightarrow \\text{subespacios} \\mapsto \\text{subespacios: } f(S) \\text{ subespacio si } S \\text{ subespacio} \\\\ f \\text{ afín (no lineal)}: \\; g(\\mathbf{x}) = A\\mathbf{x} + \\mathbf{b},\\; \\mathbf{b} \\neq \\mathbf{0} \\Rightarrow g(\\mathbf{0}) = \\mathbf{b} \\neq \\mathbf{0}",
+      properties: [
+        "\\text{Composición de lineales es lineal: } g \\circ f \\text{ lineal si } f, g \\text{ lineales} \\Rightarrow \\text{profundidad sola no añade expresividad}",
+        "\\ker(f) = \\{\\mathbf{x}: f(\\mathbf{x})=\\mathbf{0}\\} \\text{ subespacio};\\quad \\operatorname{Im}(f) \\text{ subespacio};\\quad \\dim V = \\dim\\ker(f)+\\dim\\operatorname{Im}(f)",
+        "\\text{Toda función continua } f: \\mathbb{R}^n \\to \\mathbb{R}^m \\text{ puede aproximarse con capas lineales + no linealidades (UAT)}",
+      ],
+    },
+    intuition: "Una función lineal es la más 'predecible': doblar la entrada dobla la salida, y la suma de entradas produce la suma de salidas. Geométricamente, las transformaciones lineales son rotaciones, reflexiones, escalados y proyecciones — nunca curvan el espacio, solo lo estiran o comprimen. Las no lineales doblan, curvan y pliegan el espacio, lo que es exactamente lo que necesita un clasificador para separar clases que no son linealmente separables. Sin no linealidades, apilar capas en una red neuronal es inútil: diez capas lineales equivalen a una sola capa lineal. Con no linealidades, cada capa 'dobla' el espacio de representación, aumentando exponencialmente la expresividad del modelo.",
+    development: [
+      {
+        label: "Caracterización algebraica y ejemplos canónicos",
+        body: "La linealidad es una propiedad algebraica estricta. Algunos ejemplos y contraejemplos fundamentales:\n\n**Lineales** (satisfacen aditividad y homogeneidad):\n- $f(\\mathbf{x}) = A\\mathbf{x}$: multiplicación matricial. Toda transformación lineal entre espacios de dimensión finita tiene esta forma.\n- $f(x) = cx$: escalado. Única función lineal $\\mathbb{R} \\to \\mathbb{R}$ (continua).\n- Proyecciones ortogonales, reflexiones, rotaciones.\n\n**Afines** (lineales salvo traslación — no lineales en sentido estricto):\n- $g(\\mathbf{x}) = A\\mathbf{x} + \\mathbf{b}$: falla homogeneidad ($g(\\mathbf{0}) = \\mathbf{b} \\neq \\mathbf{0}$) y aditividad. En ML se llama coloquialmente 'capa lineal' aunque es técnicamente afín.\n\n**No lineales** (rompen superposición):\n- $f(x) = x^2$: $f(1+1) = 4 \\neq 2 = f(1)+f(1)$.\n- $\\sigma(x) = \\max(0,x)$ (ReLU): $\\sigma(-1+(-1)) = 0 \\neq -2 = \\sigma(-1)+\\sigma(-1)$... aunque ReLU es **positivamente homogénea**: $\\sigma(\\alpha x) = \\alpha\\sigma(x)$ para $\\alpha \\geq 0$.\n- $\\tanh, \\operatorname{sigmoid}, \\operatorname{softmax}$: ninguna satisface aditividad."
+      },
+      {
+        label: "Por qué la composición de lineales es lineal",
+        body: "Este es el resultado más crítico para motivar las activaciones no lineales. Si $f(\\mathbf{x}) = A\\mathbf{x}$ y $g(\\mathbf{y}) = B\\mathbf{y}$, entonces:\n$$(g \\circ f)(\\mathbf{x}) = B(A\\mathbf{x}) = (BA)\\mathbf{x} = C\\mathbf{x}$$\n\nUna red de $L$ capas **puramente lineales** (sin activaciones):\n$$f_\\theta(\\mathbf{x}) = W_L W_{L-1} \\cdots W_1 \\mathbf{x} = W_{\\text{eff}}\\mathbf{x}$$\n\nes equivalente a una sola transformación lineal $W_{\\text{eff}} \\in \\mathbb{R}^{d_L \\times d_1}$, independientemente de la profundidad $L$. Esta red solo puede representar funciones que mapean subespacios a subespacios — hipersuperficies planas — lo que la hace incapaz de separar clases no linealmente separables como XOR.\n\nLa **no linealidad** $\\sigma$ rompe este colapso:\n$$f_\\theta(\\mathbf{x}) = W_L \\sigma(W_{L-1} \\cdots \\sigma(W_1 \\mathbf{x}) \\cdots)$$\n\nCada $\\sigma$ 'dobla' el espacio de representación, y la composición de $L$ doblados produce una función de complejidad exponencialmente mayor que ninguna transformación lineal puede replicar."
+      },
+      {
+        label: "Espacio de funciones lineales: Hom(V,W) y su estructura",
+        body: "El conjunto de todas las transformaciones lineales $f: V \\to W$ forma el espacio vectorial $\\operatorname{Hom}(V,W) \\cong \\mathbb{R}^{m \\times n}$ (con $\\dim V = n$, $\\dim W = m$). Este espacio tiene dimensión $mn$ y su base canónica son las matrices elementales $E_{ij}$.\n\nEl **Teorema de la Representación** establece la correspondencia:\n$$\\{f: \\mathbb{R}^n \\to \\mathbb{R}^m \\text{ lineal}\\} \\;\\longleftrightarrow\\; \\mathbb{R}^{m \\times n}$$\n\nLas propiedades algebraicas de $f$ se leen directamente de $A$:\n- $f$ inyectiva $\\iff$ $\\operatorname{rank}(A) = n$ $\\iff$ $\\ker(A) = \\{\\mathbf{0}\\}$\n- $f$ sobreyectiva $\\iff$ $\\operatorname{rank}(A) = m$\n- $f$ isomorfismo $\\iff$ $A$ invertible ($n = m$, $\\det(A) \\neq 0$)\n\nEl **Teorema de Rango-Nulidad** (fundamental para entender bottlenecks en redes):\n$$\\operatorname{rank}(A) + \\operatorname{nullity}(A) = n$$\n\nUna capa con $d_{\\text{oculto}} < d_{\\text{entrada}}$ comprime información de manera irreversible: $\\operatorname{nullity}(W) \\geq d_{\\text{entrada}} - d_{\\text{oculto}} > 0$."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La tensión lineal/no lineal estructura toda la arquitectura de redes neuronales:\n\n**Capas afines + activaciones.** La unidad básica $\\mathbf{h} = \\sigma(W\\mathbf{x} + \\mathbf{b})$ descompone el cómputo en: (1) transformación lineal $W\\mathbf{x}+\\mathbf{b}$ (parámetros entrenables, operación diferenciable en $\\mathcal{O}(nd)$) y (2) no linealidad $\\sigma$ (fija, introduce expresividad).\n\n**Linealidad por tramos de ReLU.** ReLU$(x) = \\max(0,x)$ divide $\\mathbb{R}^n$ en regiones en las que la red se comporta exactamente como una función lineal. Una red ReLU de $L$ capas con ancho $d$ crea hasta $\\mathcal{O}((d/n)^{n(L-1)} d^n)$ regiones lineales — exponencial en la profundidad. Esto explica por qué la profundidad es eficiente: más regiones lineales con menos parámetros.\n\n**Atención como operación bilineal.** La atención en Transformers combina linealidad y no linealidad:\n$$\\operatorname{Attn}(Q,K,V) = \\operatorname{softmax}\\!\\left(\\frac{QK^\\top}{\\sqrt{d_k}}\\right)V$$\nEl producto $QK^\\top$ es bilineal (lineal en $Q$ con $K$ fijo, y viceversa). El softmax introduce no linealidad que permite selección competitiva entre tokens.\n\n**Residual connections y linealidad asegurada.** Las conexiones residuales $\\mathbf{h}_{\\ell+1} = \\mathbf{h}_\\ell + \\mathcal{F}(\\mathbf{h}_\\ell)$ garantizan que la componente identidad (lineal) siempre es alcanzable, facilitando el entrenamiento de redes muy profundas. El Jacobiano $I + J_{\\mathcal{F}}$ tiene siempre autovalores cercanos a 1 cuando $\\|J_{\\mathcal{F}}\\| \\ll 1$."
+      },
+    ],
+    code: `import numpy as np
+    
+# ── 1. Verificación axiomas de linealidad ─────────────────────────────────────
+def es_lineal(f, dom_dim: int, n_tests: int = 2000, tol: float = 1e-8) -> dict:
+    """
+    Verifica aditividad y homogeneidad de f numéricamente sobre vectores aleatorios.
+    f: ℝ^dom_dim → ℝ^m (debe aceptar np.ndarray).
+    """
+    rng = np.random.default_rng(42)
+    falla_adic = falla_hom = 0
+
+    for _ in range(n_tests):
+        x = rng.standard_normal(dom_dim)
+        y = rng.standard_normal(dom_dim)
+        a = rng.standard_normal()
+
+        # Aditividad: f(x+y) == f(x) + f(y)
+        if not np.allclose(f(x+y), f(x)+f(y), atol=tol):
+            falla_adic += 1
+
+        # Homogeneidad: f(αx) == α·f(x)
+        if not np.allclose(f(a*x), a*f(x), atol=tol):
+            falla_hom += 1
+
+    return {
+        "aditividad":   falla_adic == 0,
+        "homogeneidad": falla_hom  == 0,
+        "es_lineal":    falla_adic == 0 and falla_hom == 0,
+        "fallas_adic":  falla_adic,
+        "fallas_hom":   falla_hom,
+    }
+
+A = np.array([[1., 2.], [3., -1.], [0., 4.]])   # A ∈ ℝ^{3×2}
+b = np.array([1., 0., -1.])
+
+funciones = [
+    ("f(x) = Ax       (lineal)",      lambda x: A @ x),
+    ("g(x) = Ax + b   (afín)",        lambda x: A @ x + b),
+    ("h(x) = x²       (no lineal)",   lambda x: x**2),
+    ("r(x) = ReLU(x)  (no lineal)",   lambda x: np.maximum(0, x)),
+    ("t(x) = tanh(x)  (no lineal)",   lambda x: np.tanh(x)),
+    ("p(x) = |x|      (no lineal)",   lambda x: np.abs(x)),
+]
+print("=== Verificación de linealidad ===")
+for nombre, fn in funciones:
+    res = es_lineal(fn, dom_dim=2)
+    print(f"  {nombre:35s} | lineal={str(res['es_lineal']):5s} "
+          f"| adic={str(res['aditividad']):5s} | hom={str(res['homogeneidad']):5s}")
+
+# ── 2. Composición de lineales sigue siendo lineal ────────────────────────────
+print("\\n=== Composición de capas lineales → equivale a una sola ===")
+np.random.seed(0)
+d = [4, 6, 5, 3]                          # dimensiones de entrada/salida por capa
+Ws = [np.random.randn(d[k+1], d[k]) for k in range(len(d)-1)]
+
+# Composición explícita (pase hacia adelante sin activación)
+def red_lineal(x):
+    for W in Ws: x = W @ x
+    return x
+
+# Producto de matrices equivalente
+W_eff = Ws[-1]
+for W in reversed(Ws[:-1]):
+    W_eff = W_eff @ W
+print(f"W_eff ∈ ℝ^{{{W_eff.shape[0]}×{W_eff.shape[1]}}}  "
+      f"(equivale a {len(Ws)} capas lineales)")
+
+x_test = np.random.randn(d[0])
+y_red  = red_lineal(x_test)
+y_eff  = W_eff @ x_test
+print(f"Red lineal(x)  = {y_red.round(4)}")
+print(f"W_eff @ x      = {y_eff.round(4)}")
+print(f"Iguales: {np.allclose(y_red, y_eff)}")
+
+# ── 3. XOR: irresoluble con una capa lineal, resoluble con no linealidad ───────
+print("\\n=== XOR: lineal vs. no lineal ===")
+X_xor = np.array([[0.,0.],[0.,1.],[1.,0.],[1.,1.]])
+y_xor = np.array([0., 1., 1., 0.])
+
+# Intento con perceptrón lineal: mínimos cuadrados
+A_xor = np.column_stack([X_xor, np.ones(4)])
+w_lin = np.linalg.pinv(A_xor) @ y_xor
+pred_lin = A_xor @ w_lin
+acc_lin  = np.mean((pred_lin >= 0.5) == y_xor)
+print(f"  Perceptrón lineal — precisión: {acc_lin:.2f}  (máx posible=0.75 en XOR)")
+
+# Red con 1 capa oculta + ReLU
+np.random.seed(7)
+W1 = np.array([[ 1.,  1.],
+               [ 1.,  1.]])
+b1 = np.array([0., -1.])
+W2 = np.array([ 1., -2.])
+b2 = 0.
+
+def relu(x): return np.maximum(0, x)
+
+preds_nl = []
+for xi in X_xor:
+    h = relu(W1 @ xi + b1)
+    y_hat = W2 @ h + b2
+    preds_nl.append(float(y_hat))
+preds_nl = np.array(preds_nl)
+acc_nl = np.mean((preds_nl >= 0.5) == y_xor)
+print(f"  Red ReLU (2→2→1) — precisión: {acc_nl:.2f}  salidas={preds_nl.round(2)}")
+
+# ── 4. Regiones lineales de una red ReLU ──────────────────────────────────────
+print("\\n=== Regiones lineales de una red ReLU ===")
+# Una red ReLU de 1 capa oculta con H neuronas divide ℝ en ≤ H+1 regiones lineales
+
+def contar_regiones_relu_1d(W1, b1, W2, b2, xmin=-5., xmax=5., N=10000):
+    """Cuenta cambios de pendiente de la red en [xmin, xmax]."""
+    xs = np.linspace(xmin, xmax, N)
+    ys = np.array([W2 @ relu(W1*x + b1) + b2 for x in xs])
+    dy = np.diff(ys)
+    cambios = np.sum(np.abs(np.diff(np.sign(dy))) > 0)
+    return cambios + 1   # nº de regiones lineales ≈ cambios de pendiente + 1
+
+for H in [2, 4, 8, 16]:
+    np.random.seed(H)
+    w1_1d = np.random.randn(H)
+    b1_1d = np.random.randn(H)
+    w2_1d = np.random.randn(H)
+    b2_1d = float(np.random.randn())
+    n_reg = contar_regiones_relu_1d(w1_1d, b1_1d, w2_1d, b2_1d)
+    print(f"  H={H:2d} neuronas → {n_reg:3d} regiones lineales  (cota teórica ≤ {H+1})")
+
+# ── 5. Linealidad local: Jacobiana de funciones no lineales ───────────────────
+print("\\n=== Jacobiana: aproximación lineal local de funciones no lineales ===")
+def jacobiana_num(f, x, eps=1e-6):
+    fx = np.atleast_1d(f(x))
+    n  = len(np.atleast_1d(x))
+    J  = np.zeros((len(fx), n))
+    for j in range(n):
+        ej = np.zeros(n); ej[j] = eps
+        J[:, j] = (f(x+ej) - f(x-ej)) / (2*eps)
+    return J
+
+def softmax(z):
+    e = np.exp(z - z.max()); return e/e.sum()
+
+z0 = np.array([1., 2., 0.5])
+J_sm = jacobiana_num(softmax, z0)
+print(f"Jacobiana de softmax en z0={z0}:")
+print(f"{J_sm.round(4)}")
+print(f"Rango de la Jacobiana = {np.linalg.matrix_rank(J_sm)}  "
+      f"(siempre < K porque softmax vive en el símplex → Jacobiana singular)")
+
+# ── 6. Atención: bilinealidad de QKᵀ ────────────────────────────────────────
+print("\\n=== Atención: QKᵀ es bilineal ===")
+np.random.seed(3)
+d_k = 4
+Q  = np.random.randn(3, d_k)   # 3 queries
+K  = np.random.randn(5, d_k)   # 5 keys
+V  = np.random.randn(5, d_k)
+
+scores = Q @ K.T / np.sqrt(d_k)             # bilineal en Q y K
+weights = np.array([softmax(s) for s in scores])   # no lineal (softmax)
+output  = weights @ V
+
+print(f"Scores QKᵀ/√d  ∈ ℝ^{{{scores.shape[0]}×{scores.shape[1]}}}:\\n{scores.round(3)}")
+print(f"Pesos softmax   ∈ ℝ^{{{weights.shape[0]}×{weights.shape[1]}}} (filas suman 1):\\n{weights.round(3)}")
+print(f"Output Attn     ∈ ℝ^{{{output.shape[0]}×{output.shape[1]}}}:\\n{output.round(3)}")
+`,
+    related: ["Función", "Composición de Funciones", "Función de Activación", "Transformación Lineal", "Red Neuronal Feedforward"],
+    hasViz: true,
+    vizType: "funcionLinealNoLineal",
+  },
+  {
+    id: 10,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Función Convexa y Cóncava",
+    tags: ["optimización", "convexidad", "desigualdad de Jensen", "epígrafo", "gradiente"],
+    definition: "Una función f: C → ℝ definida sobre un conjunto convexo C ⊆ ℝⁿ es convexa si para todo par de puntos x, y ∈ C y todo λ ∈ [0,1] se cumple f(λx+(1-λ)y) ≤ λf(x)+(1-λ)f(y); es cóncava si -f es convexa. La convexidad garantiza que todo mínimo local es global, propiedad que fundamenta la convergencia de los algoritmos de optimización en ML. Las funciones de pérdida convexas como MSE o regresión logística tienen paisajes de optimización benignos; las redes neuronales profundas son altamente no convexas, aunque exhiben estructuras locales explotables.",
+    formal: {
+      notation: "Sea $C \\subseteq \\mathbb{R}^n$ convexo y $f: C \\to \\mathbb{R}$",
+      body: "f \\text{ convexa} \\iff \\forall\\, \\mathbf{x}, \\mathbf{y} \\in C,\\; \\lambda \\in [0,1]: \\\\ \\quad f(\\lambda\\mathbf{x} + (1-\\lambda)\\mathbf{y}) \\leq \\lambda f(\\mathbf{x}) + (1-\\lambda)f(\\mathbf{y}) \\\\ \\text{Caracterización diferenciable (orden 1): } f \\text{ convexa} \\iff \\\\ \\quad f(\\mathbf{y}) \\geq f(\\mathbf{x}) + \\nabla f(\\mathbf{x})^\\top(\\mathbf{y}-\\mathbf{x}) \\quad \\forall\\, \\mathbf{x},\\mathbf{y} \\in C \\\\ \\text{Caracterización diferenciable (orden 2): } f \\in C^2 \\Rightarrow \\\\ \\quad f \\text{ convexa} \\iff \\nabla^2 f(\\mathbf{x}) \\succeq 0 \\;\\forall\\,\\mathbf{x}\\in C \\quad (\\text{Hessiana semidefinida positiva})",
+      geometric: "\\text{Epígrafo: } \\operatorname{epi}(f) = \\{(\\mathbf{x},t)\\in C\\times\\mathbb{R}: t \\geq f(\\mathbf{x})\\} \\\\ f \\text{ convexa} \\iff \\operatorname{epi}(f) \\text{ es conjunto convexo} \\\\ \\textbf{Desigualdad de Jensen: } f\\left(\\sum_i \\lambda_i \\mathbf{x}_i\\right) \\leq \\sum_i \\lambda_i f(\\mathbf{x}_i),\\quad \\lambda_i \\geq 0,\\; \\sum_i\\lambda_i=1",
+      properties: [
+        "f \\text{ convexa, diferenciable} \\Rightarrow \\nabla f(\\mathbf{x}^*)=\\mathbf{0} \\iff \\mathbf{x}^* \\text{ mínimo global}",
+        "\\alpha f + \\beta g \\text{ convexa si } f,g \\text{ convexas y } \\alpha,\\beta \\geq 0 \\quad (\\text{combinación cónica)}",
+        "f \\text{ fuertemente convexa con } \\mu>0: f(\\mathbf{y}) \\geq f(\\mathbf{x})+\\nabla f(\\mathbf{x})^\\top(\\mathbf{y}-\\mathbf{x})+\\frac{\\mu}{2}\\|\\mathbf{y}-\\mathbf{x}\\|^2",
+      ],
+    },
+    intuition: "Una función convexa es aquella cuya gráfica queda por debajo de cualquier cuerda que conecte dos de sus puntos: si tienes dos puntos en la curva y trazas una línea recta entre ellos, la curva queda por debajo. Geométricamente, el epígrafo (la región sobre la gráfica) es un cuenco: cualquier punto interior también está dentro. Esta forma de cuenco tiene una consecuencia dorada para la optimización: no hay valles falsos ni mesetas engañosas — cualquier mínimo que encuentres es el mínimo global. En contraste, el paisaje de pérdida de una red neuronal profunda es como un terreno montañoso lleno de valles locales, puntos de silla y mesetas planas.",
+    development: [
+      {
+        label: "Geometría de la convexidad: epígrafo, conjuntos de nivel y soporte",
+        body: "La convexidad de una función se caracteriza completamente por la geometría de tres objetos:\n\n**Epígrafo**: $\\operatorname{epi}(f) = \\{(\\mathbf{x},t): t \\geq f(\\mathbf{x})\\}$. Una función es convexa si y solo si su epígrafo es un **conjunto convexo**. Esto justifica que el 'cuenco' sea la imagen visual correcta.\n\n**Conjuntos de nivel** (o de sublevel): $\\mathcal{L}_\\alpha(f) = \\{\\mathbf{x}: f(\\mathbf{x}) \\leq \\alpha\\}$. Si $f$ es convexa, todos sus conjuntos de nivel son convexos (aunque el recíproco es falso — quasiconvexidad). Esto es fundamental para el método de proyección de gradiente en dominios restringidos.\n\n**Hiperplano de soporte**: para $f$ convexa diferenciable, el hiperplano tangente en cualquier punto $(\\mathbf{x}_0, f(\\mathbf{x}_0))$ es un **soporte global** del epígrafo:\n$$f(\\mathbf{y}) \\geq f(\\mathbf{x}_0) + \\nabla f(\\mathbf{x}_0)^\\top(\\mathbf{y}-\\mathbf{x}_0) \\quad \\forall\\, \\mathbf{y}$$\n\nEsto significa que la aproximación lineal (gradiente) siempre **subestima** la función — propiedad que garantiza el descenso en métodos de gradiente."
+      },
+      {
+        label: "Convexidad fuerte y condición de Lipschitz del gradiente",
+        body: "Dos condiciones más fuertes que la convexidad simple son cruciales para el análisis de convergencia en optimización:\n\n**Fuertemente convexa** con parámetro $\\mu > 0$:\n$$f(\\mathbf{y}) \\geq f(\\mathbf{x}) + \\nabla f(\\mathbf{x})^\\top(\\mathbf{y}-\\mathbf{x}) + \\frac{\\mu}{2}\\|\\mathbf{y}-\\mathbf{x}\\|^2$$\n\nEquivalente a que $\\nabla^2 f(\\mathbf{x}) \\succeq \\mu I$ en todo punto. Implica que la función crece al menos cuadráticamente lejos del mínimo — hay un único mínimo global y el descenso de gradiente converge a velocidad lineal.\n\n**Gradiente Lipschitz** con constante $L > 0$ ($L$-smooth):\n$$\\|\\nabla f(\\mathbf{x}) - \\nabla f(\\mathbf{y})\\| \\leq L\\|\\mathbf{x}-\\mathbf{y}\\| \\quad \\Leftrightarrow \\quad \\nabla^2 f(\\mathbf{x}) \\preceq LI$$\n\nCombinando ambas condiciones ($0 < \\mu \\leq L$), el **número de condición** $\\kappa = L/\\mu$ determina la velocidad de convergencia de GD:\n$$f(\\mathbf{x}_t) - f^* \\leq \\left(1-\\frac{\\mu}{L}\\right)^t [f(\\mathbf{x}_0)-f^*]$$\n\n$\\kappa$ grande (mal condicionada) → convergencia lenta → justifica el uso de precondicionamiento y métodos de segundo orden como Newton o L-BFGS."
+      },
+      {
+        label: "Desigualdad de Jensen y sus consecuencias",
+        body: "La **Desigualdad de Jensen** es la extensión de la definición de convexidad a combinaciones convexas arbitrarias:\n$$f\\left(\\mathbb{E}[X]\\right) \\leq \\mathbb{E}[f(X)]$$\n\npara cualquier variable aleatoria $X$ integrable y $f$ convexa. Esta desigualdad tiene consecuencias ubicuas:\n\n- **Media aritmética vs. geométrica**: $f(x) = e^x$ es convexa, entonces $e^{\\mathbb{E}[\\log X]} \\leq \\mathbb{E}[X]$ — la media geométrica no supera la aritmética.\n- **Cota del evidence (ELBO)**: en VAEs, la función de log-verosimilitud satisface (con $f = -\\log$, convexa):\n$$\\log p(\\mathbf{x}) = \\log \\mathbb{E}_{q}\\left[\\frac{p(\\mathbf{x},\\mathbf{z})}{q(\\mathbf{z})}\\right] \\geq \\mathbb{E}_q\\left[\\log \\frac{p(\\mathbf{x},\\mathbf{z})}{q(\\mathbf{z})}\\right] = \\text{ELBO}$$\n- **Divergencia KL no negativa**: $D_{KL}(p\\|q) \\geq 0$ se deduce de Jensen aplicada a $f = -\\log$ (convexa) sobre $p/q$."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La convexidad estructura profundamente qué problemas de ML son 'resolubles' y cuáles son difíciles:\n\n**Pérdidas convexas en modelos lineales.** La regresión lineal (MSE), la regresión logística (log-loss), las SVMs (hinge loss) y la regresión ridge tienen funciones de pérdida convexas en $\\theta$. Esto garantiza convergencia de SGD al mínimo global y ausencia de óptimos locales espurios.\n\n**No convexidad de redes profundas.** La pérdida $\\mathcal{L}(\\theta)$ de una red neuronal profunda es **altamente no convexa** en $\\theta$: $\\mathcal{L}(W_2 W_1 \\mathbf{x})$ ya no es convexa en $(W_1, W_2)$ aunque $\\ell$ sea convexa. Sin embargo:\n- Los mínimos locales tienden a tener valor similar al global en redes sobreparametrizadas.\n- Los puntos de silla (saddle points) son más problemáticos que los mínimos locales.\n- El descenso de gradiente estocástico (SGD) con momentum escapa de puntos de silla con alta probabilidad.\n\n**Batch Normalization y convexidad local.** BatchNorm reparametriza la pérdida de forma que la Hessiana local sea mejor condicionada ($\\kappa$ más pequeño), acelerando la convergencia aunque la pérdida global sigue siendo no convexa.\n\n**ELBO y optimización variacional.** El objetivo del VAE es el ELBO: $\\mathcal{L}(\\phi,\\theta) = \\mathbb{E}_{q_\\phi}[\\log p_\\theta(\\mathbf{x}|\\mathbf{z})] - D_{KL}(q_\\phi(\\mathbf{z}|\\mathbf{x})\\|p(\\mathbf{z}))$. El término $D_{KL} \\geq 0$ (por Jensen) actúa como regularizador convexo sobre el espacio latente."
+      },
+    ],
+    code: `import numpy as np
+from typing import Callable
+
+# ── 1. Verificación numérica de convexidad ────────────────────────────────────
+def es_convexa(f: Callable, dom: tuple, n_tests: int = 3000, tol: float = 1e-8) -> dict:
+    """
+    Verifica la desigualdad de Jensen: f(λx+(1-λ)y) ≤ λf(x)+(1-λ)f(y)
+    para vectores aleatorios en dom = (xmin, xmax).
+    """
+    rng = np.random.default_rng(42)
+    xmin, xmax = dom
+    fallas = 0
+    max_viol = 0.0
+
+    for _ in range(n_tests):
+        x   = rng.uniform(xmin, xmax)
+        y   = rng.uniform(xmin, xmax)
+        lam = rng.uniform(0, 1)
+        lhs = f(lam*x + (1-lam)*y)
+        rhs = lam*f(x) + (1-lam)*f(y)
+        viol = lhs - rhs
+        if viol > tol:
+            fallas += 1
+            max_viol = max(max_viol, viol)
+
+    return {"convexa": fallas == 0, "fallas": fallas,
+            "violación_máx": max_viol, "tests": n_tests}
+
+print("=== Verificación de convexidad (Jensen numérico) ===")
+funciones = [
+    ("x²              ", lambda x: x**2,             (-3, 3)),
+    ("eˣ              ", lambda x: np.exp(x),         (-3, 3)),
+    ("|x|             ", lambda x: abs(x),            (-3, 3)),
+    ("-log(x)  [x>0]  ", lambda x: -np.log(x),       (0.01, 3)),
+    ("sin(x)   [no]   ", lambda x: np.sin(x),         (-np.pi, np.pi)),
+    ("-x²      [cónc] ", lambda x: -x**2,             (-3, 3)),
+    ("x³       [no]   ", lambda x: x**3,              (-3, 3)),
+    ("max(0,x) [ReLU] ", lambda x: max(0., x),        (-3, 3)),
+]
+for nombre, fn, dom in funciones:
+    res = es_convexa(fn, dom)
+    simbolo = "✓ convexa " if res["convexa"] else "✗ no conv."
+    print(f"  {nombre}: {simbolo}  |  viol_max={res['violación_máx']:.2e}")
+
+# ── 2. Condición de orden 2: Hessiana semidefinida positiva ────────────────────
+def hessiana_1d(f: Callable, x: float, h: float = 1e-5) -> float:
+    """Segunda derivada numérica: f''(x) ≥ 0 ↔ f convexa."""
+    return (f(x+h) - 2*f(x) + f(x-h)) / h**2
+
+print("\\n=== Criterio de orden 2: f''(x) ≥ 0 ===")
+xs = np.linspace(-2, 2, 7)
+for nombre, fn in [("x²", lambda x: x**2),
+                   ("eˣ", np.exp),
+                   ("sin(x)", np.sin),
+                   ("-x²", lambda x: -x**2)]:
+    d2 = [hessiana_1d(fn, x) for x in xs]
+    min_d2 = min(d2)
+    print(f"  {nombre:8s}: min f''={min_d2:+.4f}  → {'convexa' if min_d2>=-1e-6 else 'no convexa'}")
+
+# ── 3. Desigualdad de Jensen ───────────────────────────────────────────────────
+print("\\n=== Desigualdad de Jensen: f(E[X]) ≤ E[f(X)] ===")
+np.random.seed(0)
+X = np.random.exponential(scale=2.0, size=100_000)   # X ~ Exp(2)
+
+for nombre, fn in [("f=x²   (convexa)", lambda x: x**2),
+                   ("f=eˣ   (convexa)", lambda x: np.exp(np.clip(x, None, 5))),
+                   ("f=-log (convexa)", lambda x: -np.log(np.maximum(x, 1e-9))),
+                   ("f=-x²  (cóncava)", lambda x: -x**2)]:
+    fEX   = fn(np.mean(X))           # f(E[X])
+    EfX   = np.mean(fn(X))           # E[f(X)]
+    jensen_ok = fEX <= EfX + 1e-3    # ≤ para convexas
+    print(f"  {nombre}: f(E[X])={fEX:.4f}  E[f(X)]={EfX:.4f}  "
+          f"  {'≤ ✓' if jensen_ok else '> ✗'}")
+
+# ── 4. KL ≥ 0 por Jensen ─────────────────────────────────────────────────────
+print("\\n=== KL ≥ 0 como consecuencia de Jensen ===")
+def kl_divergence(p: np.ndarray, q: np.ndarray) -> float:
+    """D_KL(p||q) = E_p[log(p/q)] = -E_p[log(q/p)] ≥ 0 por Jensen (f=-log convexa)."""
+    mask = (p > 0) & (q > 0)
+    return float(np.sum(p[mask] * np.log(p[mask] / q[mask])))
+
+# Diferentes pares (p, q) sobre {0,...,4}
+K = 5
+pares = [
+    ("p = q (iguales)",    np.array([0.2,0.2,0.2,0.2,0.2]), np.array([0.2,0.2,0.2,0.2,0.2])),
+    ("p≈q   (parecidas)", np.array([0.3,0.25,0.2,0.15,0.1]),np.array([0.28,0.24,0.22,0.14,0.12])),
+    ("p≠q   (distintas)", np.array([0.7,0.2,0.05,0.03,0.02]),np.array([0.1,0.1,0.3,0.3,0.2])),
+]
+for nombre, p, q in pares:
+    kl = kl_divergence(p, q)
+    print(f"  {nombre}: D_KL={kl:.5f}  ≥ 0: {kl >= -1e-10}")
+
+# ── 5. Convexidad y convergencia de GD ────────────────────────────────────────
+print("\\n=== Convergencia de GD: convexa vs. fuertemente convexa ===")
+def descenso_gradiente(grad_f: Callable, x0: float, lr: float,
+                       n_iter: int) -> list[float]:
+    x = x0; traj = [x]
+    for _ in range(n_iter):
+        x = x - lr * grad_f(x)
+        traj.append(x)
+    return traj
+
+# f1(x) = x²  → μ=2, L=2, κ=1  (bien condicionada)
+# f2(x) = x²/50 + x  → mal condicionada cerca de 0 (ilustrativo)
+# Usamos: f(x) = 0.5·μ·x² y variamos κ
+for nombre, mu, L in [("κ=1   (μ=L=1)",   1.0, 1.0),
+                      ("κ=10  (μ=1,L=10)", 1.0, 10.0),
+                      ("κ=100 (μ=1,L=100)",1.0, 100.0)]:
+    # f(x) = L/2·x² — convexa fuertemente con κ=L/μ
+    grad = lambda x, L=L: L*x       # gradiente de L/2·x²
+    f_val= lambda x, L=L: L/2*x**2
+    lr   = 1.0 / L                   # paso óptimo para GD en smooth convex
+    traj = descenso_gradiente(grad, x0=5.0, lr=lr, n_iter=50)
+    # Converge a 0 (mínimo de f)
+    iter_to_eps = next((i for i,x in enumerate(traj) if abs(x)<0.01), len(traj))
+    rate = (1 - mu/L)
+    print(f"  {nombre}: tasa=(1-μ/L)={rate:.3f}  iters_hasta_|x|<0.01: {iter_to_eps}")
+
+# ── 6. ELBO: lower bound por Jensen en VAE ───────────────────────────────────
+print("\\n=== ELBO: log p(x) ≥ ELBO (por Jensen, -log convexa) ===")
+# Modelo generativo: p(z)=N(0,1), p(x|z)=N(z,0.1²)
+# Aproximación variacional: q(z|x)=N(mu_q, sig_q²)
+# log p(x) ≈ log∫p(x|z)p(z)dz  — intractable
+# ELBO = E_q[log p(x|z)] - KL(q||p)
+
+from scipy.stats import norm
+
+def elbo(x_obs: float, mu_q: float, sig_q: float,
+         sig_likelihood: float = 0.1, n_mc: int = 10_000) -> float:
+    z_samples = np.random.normal(mu_q, sig_q, n_mc)
+    log_pxz   = norm.logpdf(x_obs, loc=z_samples, scale=sig_likelihood)
+    log_pz    = norm.logpdf(z_samples, 0, 1)
+    log_qz    = norm.logpdf(z_samples, mu_q, sig_q)
+    return float(np.mean(log_pxz + log_pz - log_qz))
+
+# log p(x) por MC (con prior como propuesta, importance weighting)
+def log_px_mc(x_obs: float, sig_likelihood: float = 0.1,
+              n_mc: int = 100_000) -> float:
+    z = np.random.normal(0, 1, n_mc)
+    log_w = norm.logpdf(x_obs, z, sig_likelihood)
+    # log E[w] via logsumexp
+    return float(np.log(np.mean(np.exp(log_w - log_w.max()))) + log_w.max())
+
+np.random.seed(1)
+x_obs = 1.5
+log_px = log_px_mc(x_obs)
+
+print(f"  x_obs={x_obs},  log p(x) ≈ {log_px:.4f}")
+for mu_q, sig_q in [(1.5,0.1),(1.0,0.5),(0.0,1.0)]:
+    elbo_val = elbo(x_obs, mu_q, sig_q)
+    gap = log_px - elbo_val
+    print(f"  q=N({mu_q},{sig_q}²): ELBO={elbo_val:.4f}  "
+          f"gap(log p - ELBO)={gap:.4f}  ≥0: {gap>=-1e-3}")
+`,
+    related: ["Función", "Función Lineal y No Lineal", "Gradiente y Hessiana", "Descenso de Gradiente", "ELBO y VAE"],
+    hasViz: true,
+    vizType: "funcionConvexaConcava",
+  },
+  {
+    id: 11,
+    section: "I. Fundamentos Numéricos y Funcionales",
+    sectionCode: "I",
+    name: "Límites y Continuidad",
+    tags: ["análisis real", "épsilon-delta", "continuidad", "límite", "topología"],
+    definition: "El límite de una función f en un punto x₀ es el valor L al que f(x) se aproxima arbitrariamente cuando x se acerca a x₀ sin necesariamente igualarlo. Formalmente (Cauchy-Weierstrass): lim_{x→x₀} f(x) = L iff para todo ε > 0 existe δ > 0 tal que 0 < |x−x₀| < δ implica |f(x)−L| < ε. Una función es continua en x₀ si el límite existe, f está definida en x₀, y ambos coinciden. La continuidad es la condición mínima de regularidad para garantizar propiedades como el Teorema del Valor Intermedio, y es requisito implícito en casi toda la maquinaria del cálculo diferencial e integral que sustenta el aprendizaje automático.",
+    formal: {
+      notation: "Sea $f: D \\subseteq \\mathbb{R}^n \\to \\mathbb{R}^m$ y $\\mathbf{x}_0$ un punto de acumulación de $D$",
+      body: "\\lim_{\\mathbf{x} \\to \\mathbf{x}_0} f(\\mathbf{x}) = L \\quad \\overset{\\text{def}}{\\iff} \\quad \\forall\\,\\varepsilon > 0,\\; \\exists\\,\\delta > 0: \\\\ \\quad 0 < \\|\\mathbf{x} - \\mathbf{x}_0\\| < \\delta \\implies \\|f(\\mathbf{x}) - L\\| < \\varepsilon \\\\ \\textbf{Continuidad en } \\mathbf{x}_0: \\\\ \\quad (1)\\; f(\\mathbf{x}_0) \\text{ definida} \\quad (2)\\; \\lim_{\\mathbf{x}\\to\\mathbf{x}_0}f(\\mathbf{x}) \\text{ existe} \\quad (3)\\; \\lim_{\\mathbf{x}\\to\\mathbf{x}_0}f(\\mathbf{x}) = f(\\mathbf{x}_0) \\\\ \\textbf{Equivalente secuencial: } f \\text{ continua en } \\mathbf{x}_0 \\iff \\\\ \\quad \\forall\\,(\\mathbf{x}_n) \\to \\mathbf{x}_0: f(\\mathbf{x}_n) \\to f(\\mathbf{x}_0)",
+      geometric: "f \\text{ uniformemente continua en } D: \\forall\\,\\varepsilon>0,\\;\\exists\\,\\delta>0 \\text{ (independiente de }\\mathbf{x}_0\\text{)}: \\\\ \\|\\mathbf{x}-\\mathbf{y}\\|<\\delta \\implies \\|f(\\mathbf{x})-f(\\mathbf{y})\\|<\\varepsilon \\\\ \\text{Toda función Lipschitz es unif. continua (con }\\delta=\\varepsilon/L\\text{); toda unif. continua en compacto es Lipschitz si }C^1",
+      properties: [
+        "\\text{Álgebra de límites: } \\lim(f \\pm g) = \\lim f \\pm \\lim g,\\quad \\lim(fg)=(\\lim f)(\\lim g),\\quad \\lim(f/g)=\\lim f/\\lim g\\;(\\lim g\\neq 0)",
+        "\\text{Teorema de composición: } g \\text{ continua en } L,\\; \\lim_{x\\to x_0}f(x)=L \\Rightarrow \\lim_{x\\to x_0}(g\\circ f)(x)=g(L)",
+        "\\text{Heine-Cantor: } f \\text{ continua en compacto } K \\Rightarrow f \\text{ uniformemente continua en } K",
+      ],
+    },
+    intuition: "El límite captura la idea de 'acercarse sin llegar': ¿hacia dónde va $f(x)$ cuando $x$ se acerca a $x_0$? La definición $\\varepsilon$-$\\delta$ traduce esto en un reto-respuesta: tú fijas un radio de tolerancia $\\varepsilon$ alrededor del valor objetivo $L$; yo debo encontrar un radio $\\delta$ alrededor de $x_0$ tal que cualquier $x$ dentro de ese radio produzca un $f(x)$ dentro de tu tolerancia. La continuidad es simplemente que el límite coincide con el valor real de la función — no hay saltos, agujeros ni explosiones. En redes neuronales, la continuidad de las activaciones y las funciones de pérdida garantiza que pequeñas perturbaciones en los pesos producen pequeños cambios en la salida — condición sin la cual el gradiente no tendría significado.",
+    development: [
+      {
+        label: "Definición ε-δ: el contrato de aproximación",
+        body: "La definición formal de Cauchy-Weierstrass para $\\lim_{x \\to x_0} f(x) = L$ establece un protocolo iterado:\n\n1. **Adversario** elige $\\varepsilon > 0$ (la tolerancia de salida deseada).\n2. **Demostrador** responde con $\\delta > 0$ (radio de entrada suficientemente pequeño).\n3. Se verifica: $0 < |x - x_0| < \\delta \\implies |f(x) - L| < \\varepsilon$.\n\nNota crítica: $0 < |x - x_0|$ excluye exactamente $x_0$ — el límite no depende del valor de $f$ en $x_0$ (ni siquiera requiere que $f$ esté definida ahí).\n\nPara demostrar límites concretos, la estrategia es construir $\\delta$ como función de $\\varepsilon$. Ejemplo: $\\lim_{x\\to 2} (3x-1) = 5$:\n$$|f(x)-L| = |3x-1-5| = 3|x-2| < \\varepsilon \\iff |x-2| < \\frac{\\varepsilon}{3}$$\n\nEl demostrador elige $\\delta = \\varepsilon/3$. Esta construcción lineal siempre es posible para funciones Lipschitz con constante $L$: basta tomar $\\delta = \\varepsilon/L$."
+      },
+      {
+        label: "Tipos de discontinuidad y su relevancia numérica",
+        body: "Las discontinuidades se clasifican según el comportamiento de los límites laterales $f(x_0^-)$ y $f(x_0^+)$:\n\n| Tipo | Condición | Ejemplo | Relevancia en ML |\n|---|---|---|---|\n| **Evitable** | $\\lim$ existe pero $\\neq f(x_0)$ | $\\sin(x)/x$ en $x=0$ | Raro; se corrige redefiniendo |\n| **Salto** | $f(x_0^-) \\neq f(x_0^+)$, ambos finitos | Escalón de Heaviside | Gradiente indefinido (ReLU en 0) |\n| **Infinita** | $|f(x)| \\to \\infty$ | $1/x$ en $x=0$ | Overflow numérico, log(0) |\n| **Esencial** | No existe ningún límite lateral | $\\sin(1/x)$ en $x=0$ | Inestabilidad caótica |\n\nLa discontinuidad de salto de ReLU en $x=0$ es la más relevante en DL: técnicamente $\\text{ReLU}'(0)$ no existe, pero en la práctica se asigna un **subgradiente** $\\partial\\text{ReLU}(0) \\in [0,1]$ (tipicamente $0$). La teoría del subgradiente extiende el análisis de convergencia al caso no diferenciable."
+      },
+      {
+        label: "Continuidad uniforme, Lipschitz y extensión de funciones",
+        body: "Hay una jerarquía de condiciones de regularidad, cada una más fuerte que la anterior:\n$$\\text{Lipschitz} \\subsetneq \\text{Unif. continua} \\subsetneq \\text{Continua} \\subsetneq \\text{Semicontinua}$$\n\n**Lipschitz continua** con constante $L$: $|f(x)-f(y)| \\leq L|x-y|$. Implica que el gradiente (si existe) está acotado por $L$ en norma. Es la condición que usamos en el análisis de convergencia de GD: si $\\|\\nabla f\\| \\leq L$, el paso $\\eta < 2/L$ garantiza descenso.\n\n**Heine-Cantor**: toda función continua en un compacto $K \\subset \\mathbb{R}^n$ es uniformemente continua. Esto justifica que las funciones de pérdida (evaluadas en conjuntos de datos acotados) tengan $\\delta$ global independiente del punto — la optimización es 'estable' en el dominio de datos.\n\n**Extensión de Tietze**: toda función continua sobre un cerrado $A \\subset \\mathbb{R}^n$ admite extensión continua a todo $\\mathbb{R}^n$ preservando el supremo. Fundamento teórico detrás de la interpolación y la generalización de modelos a nuevas entradas."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La continuidad es el requisito de regularidad mínimo que permea toda la maquinaria de ML:\n\n**Diferenciabilidad requiere continuidad.** El gradiente $\\nabla_\\theta \\mathcal{L}$ solo existe si $\\mathcal{L}$ es continua en $\\theta$ (y más: diferenciable). Si las funciones de pérdida o activación tuvieran discontinuidades de salto en regiones visitadas por el optimizador, el descenso de gradiente perdería sentido.\n\n**ReLU y el subgradiente.** ReLU$(x) = \\max(0,x)$ es continua en todo $\\mathbb{R}$ (incluyendo $x=0$) pero no diferenciable en $x=0$. PyTorch asigna $\\text{ReLU}'(0) = 0$ por convención — una elección de subgradiente. La continuidad garantiza que la aproximación por diferencias finitas $[f(x+h)-f(x)]/h$ tiene límite para $x \\neq 0$.\n\n**Continuidad de la función de pérdida y paisaje de optimización.** La continuidad de $\\mathcal{L}$ en $\\theta$ garantiza que pequeñas perturbaciones en pesos (ruido SGD, dropout, weight decay) producen cambios pequeños y predecibles en la pérdida. Esta propiedad es la base de las garantías de generalización via estabilidad algorítmica (Bousquet & Elisseeff 2002).\n\n**Límites en secuencias y convergencia de entrenamientos.** La convergencia de SGD se formula como: ¿existe $\\theta^*$ tal que $\\theta_t \\to \\theta^*$? Para definir '$\\to$' necesitamos topología, y la continuidad de $\\mathcal{L}$ garantiza que $\\mathcal{L}(\\theta_t) \\to \\mathcal{L}(\\theta^*)$. Sin continuidad, la secuencia de pérdidas podría converger sin que los pesos converjan — el llamado problema de identificabilidad.\n\n**Límites y normalización numérica.** Expresiones como $\\operatorname{softmax}(\\mathbf{z})_k = e^{z_k}/\\sum_j e^{z_j}$ requieren análisis de límite para su estabilización: cuando $z_k \\to \\pm\\infty$, el valor tiende a $0$ o $1$, y el truco log-sum-exp explota la continuidad del logaritmo para evitar overflow sin cambiar el límite."
+      },
+    ],
+    code: `import numpy as np
+from typing import Callable, Optional
+
+# ── 1. Verificación numérica de límite (ε-δ) ─────────────────────────────────
+def verificar_limite(
+    f: Callable[[float], float],
+    x0: float,
+    L: float,
+    epsilons: list[float] = [0.1, 0.01, 0.001],
+    n_puntos: int = 10_000,
+) -> dict:
+    """
+    Para cada ε, halla empíricamente el mayor δ tal que
+    0 < |x-x0| < δ → |f(x)-L| < ε.
+    """
+    resultados = {}
+    xs = np.concatenate([
+        np.linspace(x0 - 1, x0 - 1e-9, n_puntos//2),
+        np.linspace(x0 + 1e-9, x0 + 1, n_puntos//2),
+    ])
+    try:
+        ys = np.array([f(x) for x in xs])
+        validos = np.isfinite(ys)
+        xs, ys = xs[validos], ys[validos]
+    except Exception:
+        return {"error": "Función no evaluable"}
+
+    for eps in epsilons:
+        dentro_eps = np.abs(ys - L) < eps          # |f(x)-L| < ε
+        dist_x0    = np.abs(xs - x0)
+        if dentro_eps.all():
+            delta = 1.0   # delta = ∞ en la práctica
+        else:
+            # δ_max = mínima distancia al x0 donde falla la condición
+            falla = ~dentro_eps
+            delta = dist_x0[falla].min() if falla.any() else 1.0
+        resultados[eps] = {"delta": float(delta), "ratio_delta_eps": float(delta/eps)}
+    return resultados
+
+print("=== Verificación numérica de límites ===")
+casos = [
+    ("(3x-1) → 5   en x=2",   lambda x: 3*x-1,             x0:=2.0,  L:=5.0),
+    ("sin(x)/x → 1 en x=0",   lambda x: np.sin(x)/x,       x0:=0.0,  L:=1.0),
+    ("(x²-1)/(x-1)→2 en x=1", lambda x: (x**2-1)/(x-1),   x0:=1.0,  L:=2.0),
+    ("|x|/x → ±1  en x=0",    lambda x: np.sign(x),        x0:=0.0,  L:=0.0),   # no existe
+]
+# Nota: la sintaxis anterior usa := de walrus; adaptamos para claridad:
+CASOS = [
+    ("(3x-1) → 5   en x=2",   lambda x: 3*x-1,                     2.0, 5.0),
+    ("sin(x)/x → 1 en x=0",   lambda x: np.sin(x)/(x+1e-300),      0.0, 1.0),
+    ("(x²-1)/(x-1)→2 en x=1", lambda x: (x**2-1)/(x-1+1e-300),    1.0, 2.0),
+    ("sign(x) → ? en x=0",    lambda x: float(np.sign(x)) if x!=0 else 0., 0.0, 0.0),
+]
+for nombre, fn, x0, L in CASOS:
+    res = verificar_limite(fn, x0, L, epsilons=[0.1, 0.01, 0.001])
+    if "error" in res: continue
+    deltas = [f"ε={e:.3f}→δ≈{v['delta']:.4f}" for e,v in res.items()]
+    print(f"  {nombre}")
+    print(f"    {' | '.join(deltas)}")
+
+# ── 2. Tipos de discontinuidad ────────────────────────────────────────────────
+print("\\n=== Clasificación de discontinuidades ===")
+def clasificar_discontinuidad(
+    f: Callable, x0: float, h: float = 1e-7
+) -> str:
+    """Clasifica la discontinuidad de f en x0 usando límites laterales."""
+    try:
+        L_izq = f(x0 - h)
+        L_der = f(x0 + h)
+    except Exception:
+        return "infinita o no definida"
+
+    if not (np.isfinite(L_izq) and np.isfinite(L_der)):
+        return "infinita"
+
+    try:
+        f_x0 = f(x0)
+    except Exception:
+        f_x0 = None
+
+    if np.abs(L_izq - L_der) < 1e-5:          # límite lateral único
+        L = (L_izq + L_der) / 2
+        if f_x0 is None or not np.isfinite(f_x0):
+            return "evitable (f no definida en x0)"
+        if np.abs(f_x0 - L) < 1e-5:
+            return "CONTINUA"
+        return f"evitable (lim={L:.4f}, f(x0)={f_x0:.4f})"
+    else:
+        return f"salto (L-={L_izq:.4f}, L+={L_der:.4f})"
+
+funcs_disc = [
+    ("sin(x)/x  en x=0", lambda x: np.sin(x)/x if x!=0 else 1.0, 0.0),
+    ("sign(x)   en x=0", lambda x: float(np.sign(x)),             0.0),
+    ("1/x       en x=0", lambda x: 1.0/x,                         0.0),
+    ("ReLU(x)   en x=0", lambda x: max(0., x),                    0.0),
+    ("x²        en x=1", lambda x: x**2,                          1.0),
+    ("floor(x)  en x=1", lambda x: float(np.floor(x)),            1.0),
+]
+for nombre, fn, x0 in funcs_disc:
+    tipo = clasificar_discontinuidad(fn, x0)
+    print(f"  {nombre:25s}: {tipo}")
+
+# ── 3. Continuidad uniforme vs. puntual ───────────────────────────────────────
+print("\\n=== Continuidad: δ global (uniforme) vs. δ puntual ===")
+def delta_puntual(f, x0, eps, dom, n=5_000):
+    """Mayor δ tal que |f(x)-f(x0)| < eps para x en (x0-δ, x0+δ) ∩ dom."""
+    xs = np.linspace(dom[0], dom[1], n)
+    ys = np.array([f(x) for x in xs])
+    fx0 = f(x0)
+    falla = np.abs(ys - fx0) >= eps
+    dist = np.abs(xs - x0)
+    if not falla.any():
+        return dom[1] - dom[0]
+    return float(dist[falla].min())
+
+eps = 0.1
+print(f"  ε = {eps}  — comparando δ en distintos puntos")
+for nombre, fn, dom in [
+    ("sin(x)  [unif. cont.]", np.sin,          (-np.pi, np.pi)),
+    ("x²      [no unif. cont.]", lambda x:x**2, (-10., 10.)),
+    ("1/x     [no cont. en 0]", lambda x:1/x,  (0.1, 5.)),
+]:
+    puntos = np.linspace(dom[0]+0.1, dom[1]-0.1, 5)
+    deltas = [delta_puntual(fn, x, eps, dom) for x in puntos]
+    print(f"  {nombre:35s}: δ_min={min(deltas):.4f}  δ_max={max(deltas):.4f}")
+
+# ── 4. Continuidad Lipschitz y cota del gradiente ────────────────────────────
+print("\\n=== Constante de Lipschitz y cota del gradiente ===")
+def lipschitz_const(f, dom, n=10_000):
+    xs = np.linspace(dom[0], dom[1], n)
+    ys = np.array([f(x) for x in xs])
+    dx = np.diff(xs); dy = np.diff(ys)
+    ratios = np.abs(dy) / np.abs(dx + 1e-300)
+    return float(ratios.max())
+
+activaciones = [
+    ("sigmoid  σ(x)",  lambda x: 1/(1+np.exp(-x)), (-10., 10.)),
+    ("tanh(x)",        np.tanh,                      (-5.,  5.)),
+    ("ReLU(x)",        lambda x: np.maximum(0., x),  (-5.,  5.)),
+    ("GELU(x)",        lambda x: x*0.5*(1+np.tanh(0.7978*(x+0.044715*x**3))),(-5.,5.)),
+    ("SiLU(x)=x·σ(x)", lambda x: x/(1+np.exp(-x)),  (-5.,  5.)),
+]
+for nombre, fn, dom in activaciones:
+    L = lipschitz_const(fn, dom)
+    print(f"  {nombre:22s}: L ≈ {L:.4f}  → lr_max = 2/L ≈ {2/L:.4f}")
+
+# ── 5. Límites en normalización numérica (softmax) ────────────────────────────
+print("\\n=== Límites numéricos en softmax ===")
+def softmax_naive(z):
+    return np.exp(z) / np.sum(np.exp(z))
+
+def softmax_stable(z):
+    z = z - z.max()         # truco log-sum-exp: desplazar preserva el límite
+    return np.exp(z) / np.sum(np.exp(z))
+
+casos_softmax = [
+    ("normal",   np.array([1., 2., 3.])),
+    ("grande+",  np.array([1000., 1001., 1002.])),  # overflow en naive
+    ("grande-",  np.array([-1000., -1001., -1002.])),  # underflow → 0
+]
+for nombre, z in casos_softmax:
+    try:
+        naive  = softmax_naive(z)
+        naive_ok = np.isfinite(naive).all()
+    except Exception:
+        naive_ok = False; naive = None
+    stable = softmax_stable(z)
+    print(f"  {nombre:10s}: naive_ok={naive_ok}  "
+          f"stable={stable.round(4)}  Σ={stable.sum():.6f}")
+
+# ── 6. Continuidad y estabilidad de entrenamiento ────────────────────────────
+print("\\n=== Continuidad y estabilidad: perturbación de pesos ===")
+np.random.seed(42)
+W = np.random.randn(8, 4)
+x = np.random.randn(4)
+
+relu = lambda v: np.maximum(0., v)
+
+def forward(W, x): return relu(W @ x)
+
+y0 = forward(W, x)
+for noise_std in [1e-4, 1e-3, 1e-2, 1e-1]:
+    dW = np.random.randn(*W.shape) * noise_std
+    y1 = forward(W + dW, x)
+    perturbacion_entrada = noise_std * np.sqrt(W.size)   # ‖ΔW‖_F ≈
+    perturbacion_salida  = np.linalg.norm(y1 - y0)
+    ratio = perturbacion_salida / (perturbacion_entrada + 1e-12)
+    print(f"  ‖ΔW‖≈{perturbacion_entrada:.4f}  ‖Δy‖={perturbacion_salida:.4f}  "
+          f"ratio={ratio:.3f}  (continua → ratio acotado)")
+`,
+    related: ["Función", "Dominio y Rango", "Derivada y Gradiente", "Función de Activación", "Convergencia de Optimizadores"],
+    hasViz: true,
+    vizType: "limitesContinuidad",
+  },
+  {
+    id: 12,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Vector",
+    tags: ["álgebra lineal", "espacio vectorial", "norma", "producto interno", "representación"],
+    definition: "Un vector es un elemento de un espacio vectorial: una entidad que puede sumarse con otros vectores y multiplicarse por escalares respetando los axiomas del espacio vectorial. En ℝⁿ se representa como una n-tupla ordenada de números reales, interpretable geométricamente como una flecha con dirección y magnitud. En ML, los vectores son la unidad fundamental de representación: un dato, un embedding, un gradiente, un estado oculto — todo es un vector en algún espacio de características.",
+    formal: {
+      notation: "Sea $\\mathbf{v} \\in \\mathbb{R}^n$, $\\mathbf{v} = (v_1, v_2, \\ldots, v_n)^\\top$ con $v_i \\in \\mathbb{R}$",
+      body: "\\textbf{Operaciones elementales:} \\\\ \\quad \\mathbf{u} + \\mathbf{v} = (u_1+v_1,\\, \\ldots,\\, u_n+v_n)^\\top \\\\ \\quad \\alpha\\mathbf{v} = (\\alpha v_1,\\, \\ldots,\\, \\alpha v_n)^\\top, \\quad \\alpha \\in \\mathbb{R} \\\\ \\textbf{Producto interior canónico:} \\\\ \\quad \\langle \\mathbf{u}, \\mathbf{v} \\rangle = \\mathbf{u}^\\top\\mathbf{v} = \\sum_{i=1}^n u_i v_i = \\|\\mathbf{u}\\|\\|\\mathbf{v}\\|\\cos\\theta \\\\ \\textbf{Norma euclídea:} \\\\ \\quad \\|\\mathbf{v}\\|_2 = \\sqrt{\\mathbf{v}^\\top\\mathbf{v}} = \\sqrt{\\sum_{i=1}^n v_i^2}",
+      geometric: "\\textbf{Normas } L^p\\text{:} \\quad \\|\\mathbf{v}\\|_p = \\left(\\sum_{i=1}^n |v_i|^p\\right)^{1/p}, \\quad p \\geq 1 \\\\ \\|\\mathbf{v}\\|_1 = \\sum|v_i| \\quad \\|\\mathbf{v}\\|_2 = \\sqrt{\\sum v_i^2} \\quad \\|\\mathbf{v}\\|_\\infty = \\max_i|v_i| \\\\ \\textbf{Proyección ortogonal: } \\operatorname{proj}_{\\mathbf{u}}\\mathbf{v} = \\frac{\\langle\\mathbf{v},\\mathbf{u}\\rangle}{\\|\\mathbf{u}\\|^2}\\,\\mathbf{u}",
+      properties: [
+        "\\text{Cauchy-Schwarz: } |\\langle\\mathbf{u},\\mathbf{v}\\rangle| \\leq \\|\\mathbf{u}\\|\\|\\mathbf{v}\\| \\quad (\\text{igualdad} \\iff \\mathbf{u} \\parallel \\mathbf{v})",
+        "\\text{Desigualdad triangular: } \\|\\mathbf{u}+\\mathbf{v}\\| \\leq \\|\\mathbf{u}\\| + \\|\\mathbf{v}\\|",
+        "\\text{Identidad de paralelogramo: } \\|\\mathbf{u}+\\mathbf{v}\\|^2 + \\|\\mathbf{u}-\\mathbf{v}\\|^2 = 2(\\|\\mathbf{u}\\|^2+\\|\\mathbf{v}\\|^2)",
+      ],
+    },
+    intuition: "Un vector en $\\mathbb{R}^n$ tiene dos vidas simultáneas: como **flecha** (dirección + magnitud en el espacio) y como **lista de coordenadas** (representación numérica). La primera vida da intuición geométrica: el producto interior mide cuánto apuntan en la misma dirección dos flechas — si es cero, son perpendiculares; si es máximo (positivo), son paralelas. La segunda vida es la que usa el ordenador. En ML, un embedding de 768 dimensiones es una flecha en $\\mathbb{R}^{768}$: vectores similares apuntan en direcciones parecidas, y la similitud coseno mide exactamente ese ángulo entre flechas.",
+    development: [
+      {
+        label: "Geometría del producto interior: ángulo, ortogonalidad y proyección",
+        body: "El producto interior $\\langle\\mathbf{u},\\mathbf{v}\\rangle = \\|\\mathbf{u}\\|\\|\\mathbf{v}\\|\\cos\\theta$ codifica simultáneamente tres informaciones: las magnitudes de ambos vectores y el coseno del ángulo entre ellos. Esto implica:\n\n- **Ortogonalidad**: $\\mathbf{u} \\perp \\mathbf{v} \\iff \\langle\\mathbf{u},\\mathbf{v}\\rangle = 0$. En embeddings, dos tokens ortogonales son 'semánticamente independientes'.\n- **Similitud coseno**: $\\cos\\theta = \\langle\\hat{\\mathbf{u}},\\hat{\\mathbf{v}}\\rangle$ donde $\\hat{\\mathbf{v}} = \\mathbf{v}/\\|\\mathbf{v}\\|$. Es la métrica estándar en búsqueda vectorial y RAG.\n- **Proyección**: $\\operatorname{proj}_{\\mathbf{u}}\\mathbf{v} = \\frac{\\langle\\mathbf{v},\\mathbf{u}\\rangle}{\\|\\mathbf{u}\\|^2}\\mathbf{u}$ es la sombra de $\\mathbf{v}$ sobre la recta generada por $\\mathbf{u}$. La descomposición $\\mathbf{v} = \\operatorname{proj}_{\\mathbf{u}}\\mathbf{v} + (\\mathbf{v} - \\operatorname{proj}_{\\mathbf{u}}\\mathbf{v})$ separa $\\mathbf{v}$ en componente paralela y perpendicular a $\\mathbf{u}$ — base de Gram-Schmidt y de la atención por cabeza en Transformers."
+      },
+      {
+        label: "Normas y bolas unitarias: geometría de la regularización",
+        body: "Una norma $\\|\\cdot\\|_p$ mide el 'tamaño' de un vector. La bola unitaria $\\mathcal{B}_p = \\{\\mathbf{x}: \\|\\mathbf{x}\\|_p \\leq 1\\}$ varía dramáticamente con $p$:\n\n- $p=1$ (Manhattan): rombo/diamante. Favorece vectores **sparse** (con muchos ceros).\n- $p=2$ (Euclídea): esfera perfecta. Invariante a rotaciones.\n- $p=\\infty$ (Chebyshev): hipercubo. Controla la coordenada máxima.\n\nEsta geometría es la clave de la regularización:\n$$\\mathcal{L}_{\\text{reg}}(\\theta) = \\mathcal{L}(\\theta) + \\lambda\\|\\theta\\|_p^p$$\n\n- **L2 (Ridge)** $p=2$: penaliza pesos grandes uniformemente, produce soluciones densas y pequeñas. El mínimo de $\\|\\theta\\|_2$ bajo una restricción lineal es el punto más cercano al origen sobre el hiperplano — punto sobre la esfera.\n- **L1 (Lasso)** $p=1$: las esquinas del diamante tocan los hiperplanos de nivel en los ejes coordenados → los mínimos tienden a tener coordenadas exactamente cero → **sparsity** automática.\n- **Elastic Net** $p \\in (1,2)$: combinación que balancea ambas propiedades."
+      },
+      {
+        label: "Vectores en alta dimensión: concentración de medida",
+        body: "La intuición geométrica de dimensiones bajas falla en $\\mathbb{R}^d$ con $d$ grande. Los fenómenos de **concentración de medida** dominan:\n\n**Norma de vectores aleatorios**: si $\\mathbf{v} \\sim \\mathcal{N}(\\mathbf{0}, I_d)$, entonces:\n$$\\|\\mathbf{v}\\|_2 \\approx \\sqrt{d} \\quad (\\text{concentra alrededor de }\\sqrt{d}\\text{ con varianza } \\mathcal{O}(1))$$\n\n**Ortogonalidad casi segura**: para $d$ grande, dos vectores aleatorios son casi ortogonales:\n$$\\cos\\theta = \\frac{\\langle\\mathbf{u},\\mathbf{v}\\rangle}{\\|\\mathbf{u}\\|\\|\\mathbf{v}\\|} \\approx \\mathcal{N}\\!\\left(0,\\frac{1}{d}\\right)$$\n\nEsto justifica por qué los embeddings de LLMs de dimensión $d=768$ o $d=4096$ pueden almacenar miles de conceptos 'casi ortogonales' sin interferencia — la **hipótesis de superposición** (Elhage et al. 2022).\n\n**Lema de Johnson-Lindenstrauss**: para cualquier conjunto de $n$ puntos en $\\mathbb{R}^d$, existe una proyección aleatoria a $k = \\mathcal{O}(\\log n / \\varepsilon^2)$ dimensiones que preserva todas las distancias con factor $(1\\pm\\varepsilon)$. Fundamento de métodos de reducción dimensional y LSH para búsqueda aproximada."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "El vector es la unidad atómica de representación en todo el ecosistema ML/DL:\n\n**Embeddings como vectores**. Cada token en un LLM tiene un embedding $\\mathbf{e}_t \\in \\mathbb{R}^d$. La similitud semántica se mide por similitud coseno: $\\operatorname{sim}(w_1, w_2) = \\langle\\hat{\\mathbf{e}}_1, \\hat{\\mathbf{e}}_2\\rangle$. Las relaciones analógicas de Word2Vec se explican geométricamente: $\\mathbf{e}_{\\text{rey}} - \\mathbf{e}_{\\text{hombre}} + \\mathbf{e}_{\\text{mujer}} \\approx \\mathbf{e}_{\\text{reina}}$ — aritmética vectorial.\n\n**Gradiente como vector**. El gradiente $\\nabla_\\theta \\mathcal{L} \\in \\mathbb{R}^p$ es un vector en el espacio de parámetros que apunta en la dirección de máximo crecimiento de $\\mathcal{L}$. El descenso de gradiente es un paso en la dirección opuesta: $\\theta \\leftarrow \\theta - \\eta\\nabla_\\theta\\mathcal{L}$.\n\n**Atención como producto interior escalado**. La puntuación de atención entre query $\\mathbf{q}_i$ y key $\\mathbf{k}_j$ es:\n$$a_{ij} = \\frac{\\mathbf{q}_i^\\top\\mathbf{k}_j}{\\sqrt{d_k}}$$\nEs literalmente un producto interior entre dos vectores, escalado por $\\sqrt{d_k}$ para compensar la concentración de medida en alta dimensión (sin escalar, los productos interiores crecen como $\\sqrt{d_k}$ y el softmax satura).\n\n**Búsqueda vectorial (RAG)**. En sistemas RAG, los documentos y queries se codifican como vectores en $\\mathbb{R}^d$. La recuperación es búsqueda de $k$-vecinos más cercanos por similitud coseno. Índices como FAISS explotan la concentración de medida y proyecciones aleatorias (HNSW, IVF) para hacer esta búsqueda eficiente en millones de vectores."
+      },
+    ],
+    code: `import numpy as np
+from typing import Optional
+
+# ── 1. Operaciones vectoriales fundamentales ─────────────────────────────────
+print("=== Operaciones vectoriales ===")
+u = np.array([1., 2., 3.])
+v = np.array([4., -1., 2.])
+
+print(f"u = {u}")
+print(f"v = {v}")
+print(f"u + v        = {u + v}")
+print(f"3u           = {3*u}")
+print(f"u · v (dot)  = {np.dot(u, v)}")
+print(f"‖u‖₂         = {np.linalg.norm(u):.6f}")
+print(f"‖u‖₁         = {np.linalg.norm(u, 1):.6f}")
+print(f"‖u‖∞         = {np.linalg.norm(u, np.inf):.6f}")
+
+# ── 2. Ángulo y similitud coseno ──────────────────────────────────────────────
+def cosine_sim(u: np.ndarray, v: np.ndarray) -> float:
+    """cos θ = ⟨u,v⟩ / (‖u‖‖v‖)"""
+    denom = np.linalg.norm(u) * np.linalg.norm(v)
+    return float(np.dot(u, v) / denom) if denom > 1e-12 else 0.
+
+def angulo_grados(u: np.ndarray, v: np.ndarray) -> float:
+    return float(np.degrees(np.arccos(np.clip(cosine_sim(u,v), -1, 1))))
+
+print("\\n=== Ángulo y similitud coseno ===")
+pares = [
+    ("u, v        ", u, v),
+    ("u, u        ", u, u),
+    ("u, -u       ", u, -u),
+    ("u, perp(u)  ", u, np.array([-2.,1.,0.])),  # perpendicular a u en ℝ³ parcialmente
+]
+for nombre, a, b in pares:
+    print(f"  {nombre}: cos={cosine_sim(a,b):+.4f}  θ={angulo_grados(a,b):7.3f}°")
+
+# ── 3. Proyección ortogonal ───────────────────────────────────────────────────
+def proyectar(v: np.ndarray, u: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Descompone v = proj_u(v) + perp_u(v)."""
+    u_hat = u / (np.linalg.norm(u) + 1e-12)
+    paralela  = np.dot(v, u_hat) * u_hat
+    perp      = v - paralela
+    return paralela, perp
+
+print("\\n=== Proyección ortogonal ===")
+proj, perp = proyectar(v, u)
+print(f"proj_u(v)    = {proj.round(4)}")
+print(f"perp_u(v)    = {perp.round(4)}")
+print(f"Verificación: proj+perp = v  → {np.allclose(proj+perp, v)}")
+print(f"Ortogonalidad: ⟨proj,perp⟩ = {np.dot(proj,perp):.2e}  (≈ 0)")
+
+# ── 4. Normas Lp y geometría de regularización ────────────────────────────────
+print("\\n=== Normas Lp ===")
+w = np.array([3., -1., 0., 2., -4., 0., 1.])
+for p in [1, 2, 3, np.inf]:
+    norma = np.linalg.norm(w, p)
+    print(f"  ‖w‖_{str(p):4s} = {norma:.4f}")
+
+# Efecto de regularización L1 vs L2 en mínimos cuadrados
+print("\\n=== Regularización: L1 (Lasso) vs L2 (Ridge) ===")
+from numpy.linalg import solve
+
+np.random.seed(42)
+n, d = 20, 10
+A = np.random.randn(n, d)
+b = A @ np.ones(d) + 0.5 * np.random.randn(n)
+
+def ridge(A, b, lam):
+    """θ_ridge = (AᵀA + λI)⁻¹Aᵀb"""
+    return np.linalg.solve(A.T@A + lam*np.eye(d), A.T@b)
+
+def lasso_coord(A, b, lam, n_iter=1000):
+    """Lasso por descenso de coordenadas (soft-thresholding)."""
+    theta = np.zeros(d)
+    r = b - A@theta
+    for _ in range(n_iter):
+        for j in range(d):
+            r += A[:,j]*theta[j]            # desactiva columna j
+            rho = A[:,j]@r
+            theta[j] = np.sign(rho)*max(0, abs(rho)/np.sum(A[:,j]**2) - lam/np.sum(A[:,j]**2))
+            r -= A[:,j]*theta[j]            # reactiva con nuevo valor
+    return theta
+
+for lam in [0.01, 0.1, 1.0]:
+    th_r = ridge(A, b, lam)
+    th_l = lasso_coord(A, b, lam)
+    zeros_l = np.sum(np.abs(th_l) < 1e-4)
+    print(f"  λ={lam:.2f}: Ridge ‖θ‖₂={np.linalg.norm(th_r):.3f}  "
+          f"Lasso ‖θ‖₁={np.linalg.norm(th_l,1):.3f}  zeros_lasso={zeros_l}/{d}")
+
+# ── 5. Concentración de medida en alta dimensión ──────────────────────────────
+print("\\n=== Concentración de medida ===")
+np.random.seed(0)
+for d in [10, 100, 1000, 10000]:
+    n_samp = 5000
+    V = np.random.randn(n_samp, d)
+    normas   = np.linalg.norm(V, axis=1)
+    # Ángulo entre pares aleatorios
+    A_mat = V / normas[:,None]
+    cos_sim = (A_mat[:250] @ A_mat[250:500].T).diagonal()
+    print(f"  d={d:5d}: E[‖v‖]={normas.mean():.2f} (≈√d={d**0.5:.2f})  "
+          f"std[‖v‖]={normas.std():.3f}  E[cos_θ]={cos_sim.mean():.4f} (≈0)")
+
+# ── 6. Similitud coseno y aritmética de embeddings ────────────────────────────
+print("\\n=== Aritmética de embeddings (Word2Vec style) ===")
+np.random.seed(7)
+d_emb = 50
+
+# Simula embeddings con estructura de analogía: rey-hombre+mujer≈reina
+rey    = np.random.randn(d_emb)
+hombre = 0.6*rey + 0.4*np.random.randn(d_emb)
+mujer  = np.random.randn(d_emb)
+reina  = rey - hombre + mujer + 0.05*np.random.randn(d_emb)  # analogía exacta + ruido
+
+# Candidatos
+vocab = {
+    "rey": rey, "hombre": hombre, "mujer": mujer,
+    "reina": reina,
+    "ruido1": np.random.randn(d_emb),
+    "ruido2": np.random.randn(d_emb),
+}
+query = rey - hombre + mujer   # rey − hombre + mujer
+query_hat = query / np.linalg.norm(query)
+
+ranking = sorted(
+    [(nombre, cosine_sim(query_hat, v/np.linalg.norm(v))) for nombre,v in vocab.items()],
+    key=lambda x: -x[1]
+)
+print("  'rey' − 'hombre' + 'mujer' ≈ ?")
+for nombre, sim in ranking:
+    print(f"    {nombre:8s}: cos={sim:+.4f}")
+
+# ── 7. Producto interior escalado en atención ─────────────────────────────────
+print("\\n=== Atención: escalado por √d_k ===")
+for d_k in [8, 64, 512, 4096]:
+    np.random.seed(d_k)
+    q = np.random.randn(d_k)
+    k = np.random.randn(d_k)
+    score_raw    = np.dot(q, k)
+    score_scaled = np.dot(q, k) / np.sqrt(d_k)
+    print(f"  d_k={d_k:5d}: raw={score_raw:+8.2f}  "
+          f"scaled={score_scaled:+6.3f}  (E[raw]≈0, std[raw]≈√d_k={d_k**0.5:.1f})")
+`,
+    related: ["Espacio Vectorial", "Matriz", "Producto Interno y Norma", "Embedding", "Atención (Attention)"],
+    hasViz: true,
+    vizType: "vector",
+  },
+  {
+    id: 18, section: "Álgebra Lineal", sectionCode: "II",
     name: "Producto Punto (Dot Product)",
     tags: ["vectores", "geometría"],
     definition: "Operación binaria entre dos vectores del mismo espacio que produce un escalar. Mide la proyección de un vector sobre otro ponderada por las magnitudes.",
@@ -40,7 +2064,7 @@ print(f"proj_v(u) = {proj_uv}")`,
     hasViz: true, vizType: "dotproduct",
   },
   {
-    id: 2, section: "Probabilidad", sectionCode: "IV",
+    id: 59, section: "Probabilidad", sectionCode: "IV",
     name: "Teorema de Bayes",
     tags: ["probabilidad", "inferencia"],
     definition: "Relaciona P(A|B) con P(B|A). Permite actualizar creencias previas (prior) con evidencia nueva para obtener creencias actualizadas (posterior).",
@@ -85,7 +2109,7 @@ print(f"log P(E|+)            = {log_posterior:.3f}")`,
     hasViz: true, vizType: "bayes",
   },
   {
-    id: 3, section: "Cálculo y Optimización", sectionCode: "III",
+    id: 39, section: "Cálculo y Optimización", sectionCode: "III",
     name: "Gradiente",
     tags: ["cálculo", "optimización"],
     definition: "Vector de derivadas parciales de una función escalar f: ℝⁿ → ℝ. Apunta en la dirección de máximo crecimiento local. Su negativo es la dirección de máximo descenso.",
@@ -135,7 +2159,7 @@ print(f"f_min = {f(x,y):.2e}")`,
     hasViz: true, vizType: "gradient",
   },
   {
-    id: 4, section: "LLMs Avanzados", sectionCode: "IX",
+    id: 118, section: "LLMs Avanzados", sectionCode: "IX",
     name: "Temperatura y Sampling",
     tags: ["LLMs", "generación"],
     definition: "Parámetros que controlan la aleatoriedad en la generación de tokens. Modifican la distribución de probabilidad sobre el vocabulario antes de muestrear el siguiente token.",
@@ -186,7 +2210,7 @@ for T in [0.2, 1.0, 2.0]:
 
   // ── SECCIÓN II: ÁLGEBRA LINEAL ─────────────────────────────────────────
   {
-    id: 5, section: "Álgebra Lineal", sectionCode: "II",
+    id: 12, section: "Álgebra Lineal", sectionCode: "II",
     name: "Vector",
     tags: ["vectores", "espacio vectorial"],
     definition: "Elemento de un espacio vectorial. Puede interpretarse como una tupla ordenada de escalares (vista algebraica) o como una magnitud con dirección y sentido (vista geométrica).",
@@ -225,7 +2249,7 @@ print(f"L1={l1:.2f}, L2={l2:.3f}, Linf={linf}")`,
     hasViz: false,
   },
   {
-    id: 6, section: "Álgebra Lineal", sectionCode: "II",
+    id: 13, section: "Álgebra Lineal", sectionCode: "II",
     name: "Espacio y Subespacio Vectorial",
     tags: ["álgebra", "estructura"],
     definition: "Un espacio vectorial es un conjunto V sobre un campo F cerrado bajo suma y multiplicación escalar que satisface 8 axiomas. Un subespacio es un subconjunto no vacío de V que es él mismo un espacio vectorial.",
@@ -270,7 +2294,7 @@ print(f"dim(col(A)) = {np.linalg.matrix_rank(A)}")  # 2
     hasViz: false,
   },
   {
-    id: 7, section: "Álgebra Lineal", sectionCode: "II",
+    id: 14, section: "Álgebra Lineal", sectionCode: "II",
     name: "Combinación Lineal y Span",
     tags: ["álgebra", "bases"],
     definition: "Una combinación lineal de vectores es su suma ponderada por escalares. El span (espacio generado) es el conjunto de todas las combinaciones lineales posibles de un conjunto de vectores.",
@@ -313,7 +2337,7 @@ print(f"Rank(A2) = {np.linalg.matrix_rank(A2)}")  # 1`,
     hasViz: false,
   },
   {
-    id: 8, section: "Álgebra Lineal", sectionCode: "II",
+    id: 15, section: "Álgebra Lineal", sectionCode: "II",
     name: "Independencia Lineal",
     tags: ["álgebra", "bases"],
     definition: "Un conjunto de vectores es linealmente independiente (LI) si ninguno puede expresarse como combinación lineal de los demás. Formalmente, la única combinación lineal que da el vector cero es la trivial.",
@@ -353,7 +2377,7 @@ print(f"Kernel: {kernel}")  # combinación que da 0`,
     hasViz: false,
   },
   {
-    id: 9, section: "Álgebra Lineal", sectionCode: "II",
+    id: 16, section: "Álgebra Lineal", sectionCode: "II",
     name: "Base y Dimensión",
     tags: ["álgebra", "espacio vectorial"],
     definition: "Una base de V es un conjunto de vectores linealmente independientes que generan V (span = V). La dimensión de V es el número de vectores en cualquier base — es invariante.",
@@ -403,7 +2427,7 @@ print(f"Coordenadas en B: {coords}")`,
     hasViz: false,
   },
   {
-    id: 10, section: "Álgebra Lineal", sectionCode: "II",
+    id: 20, section: "Álgebra Lineal", sectionCode: "II",
     name: "Norma de un Vector (L1, L2, Max)",
     tags: ["vectores", "métricas"],
     definition: "Función que asigna a cada vector una longitud no negativa, satisfaciendo positividad, homogeneidad y desigualdad triangular. La familia $L_p$ generaliza distintas nociones de 'tamaño'.",
@@ -444,7 +2468,7 @@ print(f"||v_unit||_2 = {np.linalg.norm(v_unit):.6f}")  # 1.0`,
     hasViz: false,
   },
   {
-    id: 11, section: "Álgebra Lineal", sectionCode: "II",
+    id: 22, section: "Álgebra Lineal", sectionCode: "II",
     name: "Similitud Coseno",
     tags: ["vectores", "métricas", "NLP"],
     definition: "Medida de similitud entre dos vectores definida como el coseno del ángulo entre ellos. Invariante a la magnitud — mide orientación, no longitud. Ampliamente usada en NLP y sistemas de recomendación.",
@@ -487,7 +2511,7 @@ print(cs(M))  # matriz de similitudes`,
     hasViz: false,
   },
   {
-    id: 12, section: "Álgebra Lineal", sectionCode: "II",
+    id: 23, section: "Álgebra Lineal", sectionCode: "II",
     name: "Ortogonalidad y Proyección Vectorial",
     tags: ["geometría", "álgebra"],
     definition: "Dos vectores son ortogonales si su producto punto es cero. La proyección ortogonal descompone un vector en componentes paralela y perpendicular a un subespacio dado — es la aproximación más cercana dentro del subespacio.",
@@ -535,7 +2559,7 @@ print(f"Solución LS: {x_hat}")`,
     hasViz: false,
   },
   {
-    id: 13, section: "Álgebra Lineal", sectionCode: "II",
+    id: 24, section: "Álgebra Lineal", sectionCode: "II",
     name: "Matriz y Tipos",
     tags: ["matrices", "álgebra lineal"],
     definition: "Arreglo rectangular de escalares de $m$ filas y $n$ columnas. Representa transformaciones lineales entre espacios vectoriales. Los tipos especiales tienen propiedades algebraicas y computacionales importantes.",
@@ -579,7 +2603,7 @@ print(f"rank(A) = {np.linalg.matrix_rank(A)}")`,
     hasViz: false,
   },
   {
-    id: 14, section: "Álgebra Lineal", sectionCode: "II",
+    id: 26, section: "Álgebra Lineal", sectionCode: "II",
     name: "Determinante y Rango",
     tags: ["matrices", "álgebra"],
     definition: "El determinante es un escalar asociado a una matriz cuadrada que mide el factor de cambio de volumen de la transformación lineal. El rango es la dimensión del espacio columna — cuántas dimensiones 'realmente' usa la transformación.",
@@ -625,7 +2649,7 @@ print(f"det via LU = {det_via_lu:.4f}")`,
     hasViz: false,
   },
   {
-    id: 15, section: "Álgebra Lineal", sectionCode: "II",
+    id: 27, section: "Álgebra Lineal", sectionCode: "II",
     name: "Inversa y Pseudoinversa (Moore-Penrose)",
     tags: ["matrices", "álgebra"],
     definition: "La inversa $A^{-1}$ existe solo para matrices cuadradas no singulares. La pseudoinversa de Moore-Penrose $A^+$ generaliza la inversa a matrices rectangulares y singulares — siempre existe.",
@@ -669,7 +2693,7 @@ print(np.allclose(B @ B_plus @ B, B))      # 1a ecuación`,
     hasViz: false,
   },
   {
-    id: 16, section: "Álgebra Lineal", sectionCode: "II",
+    id: 28, section: "Álgebra Lineal", sectionCode: "II",
     name: "Sistemas de Ecuaciones Lineales",
     tags: ["álgebra", "sistemas"],
     definition: "Conjunto de $m$ ecuaciones lineales en $n$ incógnitas. El análisis de existencia y unicidad de soluciones se determina completamente por el rango de la matriz del sistema y la matriz aumentada.",
@@ -714,7 +2738,7 @@ x_ridge = np.linalg.solve(A.T @ A + lam*np.eye(3), A.T @ b)`,
     hasViz: false,
   },
   {
-    id: 17, section: "Álgebra Lineal", sectionCode: "II",
+    id: 31, section: "Álgebra Lineal", sectionCode: "II",
     name: "Eigenvalores y Eigenvectores",
     tags: ["matrices", "espectral"],
     definition: "Un eigenvector de $A$ es un vector no nulo que la transformación $A$ solo escala (no rota). El factor de escala es el eigenvalor correspondiente. La estructura espectral revela el comportamiento fundamental de la transformación.",
@@ -760,7 +2784,7 @@ print(f"κ(S) = {np.linalg.cond(S):.3f}")`,
     hasViz: false,
   },
   {
-    id: 18, section: "Álgebra Lineal", sectionCode: "II",
+    id: 32, section: "Álgebra Lineal", sectionCode: "II",
     name: "Diagonalización de Matrices",
     tags: ["matrices", "espectral"],
     definition: "Una matriz $A$ es diagonalizable si puede escribirse como $A = PDP^{-1}$ donde $D$ es diagonal (eigenvalores) y $P$ contiene los eigenvectores. Simplifica potencias y funciones de matrices.",
@@ -806,7 +2830,7 @@ print(np.allclose(eAt, expm(t * A)))  # True`,
     hasViz: false,
   },
   {
-    id: 19, section: "Álgebra Lineal", sectionCode: "II",
+    id: 33, section: "Álgebra Lineal", sectionCode: "II",
     name: "Descomposición SVD",
     tags: ["matrices", "factorización", "fundamental"],
     definition: "La Descomposición en Valores Singulares factoriza cualquier matriz $A \\in \\mathbb{R}^{m\\times n}$ (rectangular o singular) en tres matrices. Es la generalización más importante de la eigendescomposición y fundamento de PCA, compresión, y pseudoinversa.",
@@ -852,7 +2876,7 @@ A_plus = Vt.T @ np.diag(1/s) @ U.T`,
     hasViz: false,
   },
   {
-    id: 20, section: "Álgebra Lineal", sectionCode: "II",
+    id: 34, section: "Álgebra Lineal", sectionCode: "II",
     name: "PCA — Análisis de Componentes Principales",
     tags: ["dimensionalidad", "espectral", "ML"],
     definition: "Técnica de reducción de dimensionalidad que encuentra las direcciones de máxima varianza en los datos. Transforma features correlacionadas en componentes ortogonales (sin correlación), ordenados por varianza decreciente.",
@@ -901,7 +2925,7 @@ print(f"Varianza acumulada (2 PCs): {pca.explained_variance_ratio_.sum():.3f}")`
     hasViz: false,
   },
   {
-    id: 21, section: "Álgebra Lineal", sectionCode: "II",
+    id: 35, section: "Álgebra Lineal", sectionCode: "II",
     name: "Tensores y Operaciones Tensoriales",
     tags: ["tensores", "deep learning"],
     definition: "Generalización de escalares (rango 0), vectores (rango 1) y matrices (rango 2) a arreglos multidimensionales de rango arbitrario. Son el objeto de datos fundamental en deep learning.",
@@ -948,7 +2972,7 @@ Z = np.einsum('bij,bjk->bik', X, Y)   # (8,3,5)`,
     hasViz: false,
   },
   {
-    id: 22, section: "Álgebra Lineal", sectionCode: "II",
+    id: 21, section: "Álgebra Lineal", sectionCode: "II",
     name: "Distancia Euclídea",
     tags: ["métricas", "geometría"],
     definition: "Distancia estándar entre dos puntos en $\\mathbb{R}^n$, generalización del teorema de Pitágoras. Inducida por la norma $L_2$. Base de algoritmos de clustering, kNN y kernels gaussianos.",
@@ -998,7 +3022,7 @@ d_mah = mahalanobis(X[0], X[1], np.linalg.inv(Sigma))`,
     hasViz: false,
   },
   {
-    id: 23, section: "Álgebra Lineal", sectionCode: "II",
+    id: 29, section: "Álgebra Lineal", sectionCode: "II",
     name: "Eliminación Gaussiana",
     tags: ["sistemas lineales", "algoritmos"],
     definition: "Algoritmo para resolver sistemas lineales $A\\mathbf{x}=\\mathbf{b}$ transformando la matriz aumentada en forma escalonada reducida mediante operaciones elementales de fila. Base de la factorización LU.",
@@ -1054,7 +3078,7 @@ print(np.allclose(x, x2))`,
     hasViz: false,
   },
   {
-    id: 24, section: "Álgebra Lineal", sectionCode: "II",
+    id: 30, section: "Álgebra Lineal", sectionCode: "II",
     name: "Factorización LU",
     tags: ["matrices", "factorización", "algoritmos"],
     definition: "Descompone $A = LU$ (o $PA=LU$ con pivoteo) en producto de matriz triangular inferior $L$ y superior $U$. Permite resolver sistemas lineales eficientemente para múltiples vectores del lado derecho.",

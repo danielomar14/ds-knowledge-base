@@ -1,5 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 import { concepts } from './data/concepts.js';
+import DotProductViz from './components/visualizations/DotProductViz';
+import BayesViz from './components/visualizations/BayesViz';
+import GradientViz from './components/visualizations/GradientViz';
+import TemperatureViz from './components/visualizations/TemperatureViz';
+import NumeroRealViz from './components/visualizations/NumeroRealViz';
+import NumeroComplejoViz from './components/visualizations/NumeroComplejoViz';
+import CampoAlgebraViz from './components/visualizations/CampoAlgebraViz';
+import VariableViz from './components/visualizations/VariableViz';
+import FuncionViz from './components/visualizations/FuncionViz';
+import DominioRangoViz from './components/visualizations/DominioRangoViz';
+import ComposicionFuncionesViz from './components/visualizations/ComposicionFuncionesViz';
+import FuncionInversaViz from './components/visualizations/FuncionInversaViz';
+import FuncionLinealNoLinealViz from './components/visualizations/FuncionLinealNoLinealViz';
+import FuncionConvexaConcavaViz from './components/visualizations/FuncionConvexaConcavaViz';
+import LimitesContinuidadViz from './components/visualizations/LimitesContinuidadViz';
+import VectorViz from './components/visualizations/VectorViz';
 
 const katexCSS = document.createElement("link");
 katexCSS.rel = "stylesheet";
@@ -49,173 +65,9 @@ function DevBody({ text }) {
 
 // ---- Visualizations ----
 
-function DotProductViz() {
-  const canvasRef = useRef(null);
-  const [angle, setAngle] = useState(45);
-  useEffect(() => {
-    const c = canvasRef.current; if (!c) return;
-    const ctx = c.getContext("2d"), W = c.width, H = c.height, cx = W/2, cy = H/2, sc = 80;
-    ctx.clearRect(0,0,W,H);
-    for (let x=0;x<=W;x+=40){ctx.strokeStyle="rgba(255,255,255,0.04)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
-    for (let y=0;y<=H;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-    ctx.strokeStyle="rgba(255,255,255,0.12)";
-    ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
-    const rad=(angle*Math.PI)/180, u=[2,0], v=[2*Math.cos(rad),2*Math.sin(rad)];
-    const dot=u[0]*v[0]+u[1]*v[1];
-    const arrow=(vx,vy,col,lbl)=>{
-      const ex=cx+vx*sc,ey=cy-vy*sc;
-      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(ex,ey);ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.stroke();
-      const hl=12,a=Math.atan2(ey-cy,ex-cx);
-      ctx.beginPath();ctx.moveTo(ex,ey);
-      ctx.lineTo(ex-hl*Math.cos(a-0.4),ey-hl*Math.sin(a-0.4));
-      ctx.lineTo(ex-hl*Math.cos(a+0.4),ey-hl*Math.sin(a+0.4));
-      ctx.closePath();ctx.fillStyle=col;ctx.fill();
-      ctx.font="bold 13px monospace";ctx.fillStyle=col;ctx.fillText(lbl,ex+8,ey-6);
-    };
-    const pL=dot/(u[0]**2+u[1]**2);
-    ctx.beginPath();ctx.setLineDash([4,4]);
-    ctx.moveTo(cx+v[0]*sc,cy-v[1]*sc);ctx.lineTo(cx+pL*u[0]*sc,cy);
-    ctx.strokeStyle="rgba(251,191,36,0.4)";ctx.lineWidth=1.5;ctx.stroke();ctx.setLineDash([]);
-    arrow(u[0],u[1],"#60a5fa","u");arrow(v[0],v[1],"#34d399","v");
-    ctx.beginPath();ctx.arc(cx,cy,36,-rad,0,true);ctx.strokeStyle="rgba(251,191,36,0.8)";ctx.lineWidth=1.5;ctx.stroke();
-    ctx.font="12px monospace";ctx.fillStyle="#fbbf24";ctx.fillText("θ",cx+40,cy-10);
-    ctx.font="bold 13px monospace";ctx.fillStyle=dot>0.01?"#34d399":dot<-0.01?"#f87171":"#94a3b8";
-    ctx.fillText(`u·v = ${dot.toFixed(2)}`,10,H-28);
-    ctx.fillStyle="rgba(255,255,255,0.3)";ctx.font="11px monospace";
-    ctx.fillText(`cos θ = ${Math.cos(rad).toFixed(3)}`,10,H-10);
-  },[angle]);
-  return (
-    <div className="viz-box">
-      <canvas ref={canvasRef} width={340} height={220} style={{width:"100%",borderRadius:8}}/>
-      <div className="viz-ctrl">
-        <span style={{color:"#475569",fontSize:11}}>θ = {angle}°</span>
-        <input type="range" min={0} max={180} value={angle} onChange={e=>setAngle(+e.target.value)} style={{flex:1,accentColor:"#60a5fa"}}/>
-      </div>
-    </div>
-  );
-}
 
-function BayesViz() {
-  const [prev, setPrev] = useState(1), [sens, setSens] = useState(99);
-  const PE=prev/100, PpE=sens/100, Pps=0.05;
-  const Pp=PpE*PE+Pps*(1-PE), post=(PpE*PE)/Pp;
-  const col=post>0.7?"#f87171":post>0.3?"#fbbf24":"#34d399";
-  return (
-    <div className="viz-box">
-      <div style={{display:"flex",gap:12,marginBottom:14}}>
-        <div style={{flex:1}}>
-          <div style={{fontSize:11,color:"#475569",marginBottom:4}}>Prevalencia: {prev.toFixed(1)}%</div>
-          <input type="range" min={0.1} max={20} step={0.1} value={prev} onChange={e=>setPrev(+e.target.value)} style={{width:"100%",accentColor:"#60a5fa"}}/>
-        </div>
-        <div style={{flex:1}}>
-          <div style={{fontSize:11,color:"#475569",marginBottom:4}}>Sensibilidad: {sens.toFixed(1)}%</div>
-          <input type="range" min={50} max={99.9} step={0.1} value={sens} onChange={e=>setSens(+e.target.value)} style={{width:"100%",accentColor:"#34d399"}}/>
-        </div>
-      </div>
-      <div style={{background:"rgba(255,255,255,0.03)",borderRadius:8,padding:12,marginBottom:12}}>
-        <div style={{fontSize:11,color:"#334155",marginBottom:8}}>P(enfermo | test positivo)</div>
-        <div style={{height:28,background:"rgba(255,255,255,0.05)",borderRadius:6,overflow:"hidden"}}>
-          <div style={{height:"100%",width:`${post*100}%`,background:col,borderRadius:6,transition:"all 0.3s",display:"flex",alignItems:"center",paddingLeft:10,fontSize:13,fontWeight:"bold",color:"#0f172a",fontFamily:"monospace"}}>{(post*100).toFixed(1)}%</div>
-        </div>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
-        {[["Prior P(E)",(PE*100).toFixed(2)+"%","#60a5fa"],["Likelihood",sens.toFixed(1)+"%","#a78bfa"],["P(positivo)",(Pp*100).toFixed(2)+"%","#fbbf24"]].map(([l,v,c])=>(
-          <div key={l} style={{background:"rgba(255,255,255,0.03)",borderRadius:6,padding:8,textAlign:"center"}}>
-            <div style={{fontSize:10,color:"#334155"}}>{l}</div>
-            <div style={{fontSize:13,fontWeight:"bold",color:c,fontFamily:"monospace"}}>{v}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
-function GradientViz() {
-  const canvasRef=useRef(null),[pt,setPt]=useState({x:2.5,y:2.0}),[run,setRun]=useState(false);
-  const animRef=useRef(null);
-  const f=(x,y)=>x*x+2*y*y, gr=(x,y)=>[2*x,4*y];
-  useEffect(()=>{
-    const c=canvasRef.current;if(!c)return;
-    const ctx=c.getContext("2d"),W=c.width,H=c.height,cx=W/2,cy=H/2,sc=50;
-    ctx.clearRect(0,0,W,H);
-    [0.5,2,4.5,8,12.5,18,24.5].forEach((lv,li)=>{
-      ctx.strokeStyle=`rgba(96,165,250,${0.1+li*0.04})`;ctx.lineWidth=1;ctx.beginPath();let first=true;
-      for(let t=0;t<=360;t+=2){const r2=(t*Math.PI)/180,r=Math.sqrt(lv),rx=r*Math.cos(r2),ry=r*Math.sin(r2)/Math.sqrt(2);const px=cx+rx*sc,py=cy-ry*sc;if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);}
-      ctx.closePath();ctx.stroke();
-    });
-    ctx.strokeStyle="rgba(255,255,255,0.1)";ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
-    const {x,y}=pt,[gx,gy]=gr(x,y),gm=Math.sqrt(gx*gx+gy*gy)||1;
-    const nx=gx/gm,ny=gy/gm,as=40,px2=cx+x*sc,py2=cy-y*sc;
-    [[nx,ny,"#f87171","∇f"],[-nx,-ny,"#34d399","-∇f"]].forEach(([dx,dy,col,lbl])=>{
-      ctx.beginPath();ctx.moveTo(px2,py2);ctx.lineTo(px2+dx*as,py2-dy*as);ctx.strokeStyle=col;ctx.lineWidth=2;ctx.stroke();
-      ctx.font="10px monospace";ctx.fillStyle=col;ctx.fillText(lbl,px2+dx*as+3,py2-dy*as+4);
-    });
-    ctx.beginPath();ctx.arc(px2,py2,5,0,Math.PI*2);ctx.fillStyle="#fbbf24";ctx.fill();
-    ctx.beginPath();ctx.arc(cx,cy,4,0,Math.PI*2);ctx.fillStyle="#60a5fa";ctx.fill();
-    ctx.font="11px monospace";ctx.fillStyle="rgba(255,255,255,0.35)";
-    ctx.fillText(`f(${x.toFixed(2)}, ${y.toFixed(2)}) = ${f(x,y).toFixed(3)}`,8,H-10);
-  },[pt]);
-  useEffect(()=>{
-    if(run){animRef.current=setInterval(()=>{setPt(p=>{const[gx,gy]=gr(p.x,p.y),nx=p.x-0.08*gx,ny=p.y-0.08*gy;if(Math.abs(nx)<0.05&&Math.abs(ny)<0.05){setRun(false);return{x:0,y:0};}return{x:nx,y:ny};});},60);}
-    else clearInterval(animRef.current);
-    return()=>clearInterval(animRef.current);
-  },[run]);
-  return (
-    <div className="viz-box">
-      <canvas ref={canvasRef} width={340} height={220} style={{width:"100%",borderRadius:8}}/>
-      <div style={{display:"flex",gap:8,marginTop:10}}>
-        <button onClick={()=>{setPt({x:2.5,y:2.0});setRun(false);}} style={{flex:1,padding:"6px 0",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:6,color:"#64748b",cursor:"pointer",fontSize:12}}>Reset</button>
-        <button onClick={()=>setRun(r=>!r)} style={{flex:2,padding:"6px 0",background:run?"rgba(248,113,113,0.1)":"rgba(52,211,153,0.1)",border:`1px solid ${run?"#f87171":"#34d399"}`,borderRadius:6,color:run?"#f87171":"#34d399",cursor:"pointer",fontSize:12,fontWeight:600}}>
-          {run?"⏸ Pausar":"▶ Gradient Descent"}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function TemperatureViz() {
-  const [temp,setTemp]=useState(1.0),[topP,setTopP]=useState(0.9);
-  const logits=[4.2,2.1,1.5,0.8,0.3,-0.5,-1.2,-2.0],words=["the","a","this","its","that","one","some","any"];
-  const cols=["#60a5fa","#34d399","#a78bfa","#fbbf24","#f87171","#fb923c","#94a3b8","#64748b"];
-  const sm=lgts=>{const sc=lgts.map(z=>z/temp),mx=Math.max(...sc),ex=sc.map(z=>Math.exp(z-mx)),s=ex.reduce((a,b)=>a+b,0);return ex.map(e=>e/s);};
-  const probs=sm(logits);
-  const sorted=[...probs].map((p,i)=>({p,i})).sort((a,b)=>b.p-a.p);
-  let cs=0;const nuc=new Set();
-  for(const{p,i}of sorted){nuc.add(i);cs+=p;if(cs>=topP)break;}
-  return (
-    <div className="viz-box">
-      <div style={{display:"flex",gap:12,marginBottom:14}}>
-        <div style={{flex:1}}>
-          <div style={{fontSize:11,color:"#475569",marginBottom:4}}>T = {temp.toFixed(1)}</div>
-          <input type="range" min={0.1} max={3} step={0.1} value={temp} onChange={e=>setTemp(+e.target.value)} style={{width:"100%",accentColor:"#60a5fa"}}/>
-        </div>
-        <div style={{flex:1}}>
-          <div style={{fontSize:11,color:"#475569",marginBottom:4}}>Top-p = {topP.toFixed(2)}</div>
-          <input type="range" min={0.1} max={1} step={0.01} value={topP} onChange={e=>setTopP(+e.target.value)} style={{width:"100%",accentColor:"#a78bfa"}}/>
-        </div>
-      </div>
-      <div style={{display:"flex",flexDirection:"column",gap:5}}>
-        {probs.map((p,i)=>(
-          <div key={i} style={{display:"flex",alignItems:"center",gap:8}}>
-            <div style={{width:34,fontSize:11,fontFamily:"monospace",color:nuc.has(i)?cols[i]:"#1e293b",transition:"color 0.2s"}}>"{words[i]}"</div>
-            <div style={{flex:1,height:14,background:"rgba(255,255,255,0.04)",borderRadius:3,overflow:"hidden"}}>
-              <div style={{height:"100%",width:`${p*100}%`,background:nuc.has(i)?cols[i]:"rgba(55,65,81,0.3)",borderRadius:3,transition:"all 0.2s",opacity:nuc.has(i)?1:0.2}}/>
-            </div>
-            <div style={{width:40,fontSize:10,fontFamily:"monospace",color:"#475569",textAlign:"right"}}>{(p*100).toFixed(1)}%</div>
-          </div>
-        ))}
-      </div>
-      <div style={{marginTop:10,fontSize:11,color:"#334155"}}>
-        Nucleus ({nuc.size} tokens): <span style={{color:"#a78bfa"}}>{[...nuc].map(i=>`"${words[i]}"`).join(", ")}</span>
-      </div>
-    </div>
-  );
-}
-
-const vizMap={dotproduct:DotProductViz,bayes:BayesViz,gradient:GradientViz,temperature:TemperatureViz};
+const vizMap={dotproduct:DotProductViz,bayes:BayesViz,gradient:GradientViz,temperature:TemperatureViz,numeroReal:NumeroRealViz,numeroComplejo:NumeroComplejoViz,campoAlgebra:CampoAlgebraViz,variable:VariableViz,funcion:FuncionViz,dominioRango:DominioRangoViz,composicionFunciones:ComposicionFuncionesViz,funcionInversa:FuncionInversaViz,funcionLinealNoLineal:FuncionLinealNoLinealViz,funcionConvexaConcava:FuncionConvexaConcavaViz,limitesContinuidad:LimitesContinuidadViz,vector:VectorViz};
 const sectionColors={"Álgebra Lineal":"#60a5fa","Probabilidad":"#a78bfa","Cálculo y Optimización":"#34d399","LLMs Avanzados":"#fb923c","Fundamentos Numéricos":"#f472b6","Machine Learning":"#38bdf8","Deep Learning":"#818cf8"};
 
 export default function App() {
