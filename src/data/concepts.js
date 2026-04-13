@@ -2824,405 +2824,474 @@ for T in [0.2, 1.0, 2.0]:
 
   // ── SECCIÓN II: ÁLGEBRA LINEAL ─────────────────────────────────────────
   {
-    id: 15, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Independencia Lineal",
-    tags: ["álgebra", "bases"],
-    definition: "Un conjunto de vectores es linealmente independiente (LI) si ninguno puede expresarse como combinación lineal de los demás. Formalmente, la única combinación lineal que da el vector cero es la trivial.",
+    id: 26,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Determinante y Rango de una Matriz",
+    tags: ["álgebra lineal", "determinante", "rango", "invertibilidad", "espacio columna", "nulidad"],
+    definition: "El determinante $\\det(A) \\in \\mathbb{R}$ de una matriz cuadrada $A \\in \\mathbb{R}^{n\\times n}$ mide el factor de escala con signo por el cual $A$ multiplica volúmenes orientados en $\\mathbb{R}^n$. El rango $\\text{rank}(A)$ de cualquier matriz $A \\in \\mathbb{R}^{m\\times n}$ es la dimensión de su espacio columna (o fila), es decir, el número de columnas (o filas) linealmente independientes. Ambos conceptos codifican la misma pregunta fundamental: ¿colapsa $A$ el espacio a una dimensión menor?",
     formal: {
-      notation: "Vectores $\\mathbf{v}_1, \\ldots, \\mathbf{v}_k \\in V$",
-      body: "\\text{LI} \\iff \\sum_{i=1}^k \\alpha_i \\mathbf{v}_i = \\mathbf{0} \\implies \\alpha_1 = \\alpha_2 = \\cdots = \\alpha_k = 0",
-      geometric: "\\text{LD (dependientes)} \\iff \\exists\\, j: \\mathbf{v}_j = \\sum_{i \\neq j} \\beta_i \\mathbf{v}_i",
+      notation: "Sea $A \\in \\mathbb{R}^{n \\times n}$ y $B \\in \\mathbb{R}^{m \\times n}$",
+      body: "\\det(A) = \\sum_{\\sigma \\in S_n} \\text{sgn}(\\sigma) \\prod_{i=1}^n a_{i,\\sigma(i)} \\\\[10pt] \\text{rank}(B) = \\dim(\\text{Col}(B)) = \\dim(\\text{Row}(B)) = n - \\dim(\\ker(B))",
+      geometric: "\\det(A) = \\text{Vol orientado del paralelepípedo formado por las columnas de } A",
       properties: [
-        "k > n \\Rightarrow \\text{cualquier conjunto de } k \\text{ vectores en } \\mathbb{R}^n \\text{ es LD}",
-        "\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\} \\text{ LI} \\iff \\text{rank}([\\mathbf{v}_1|\\cdots|\\mathbf{v}_k]) = k",
-        "\\text{Si } \\mathbf{0} \\in S \\Rightarrow S \\text{ es LD}",
+        "\\det(AB) = \\det(A)\\det(B), \\quad \\det(A^\\top) = \\det(A), \\quad \\det(A^{-1}) = 1/\\det(A)",
+        "A \\text{ invertible} \\iff \\det(A) \\neq 0 \\iff \\text{rank}(A) = n \\iff \\ker(A) = \\{\\mathbf{0}\\}",
+        "\\text{Rango-Nulidad: } \\text{rank}(B) + \\text{nullity}(B) = n, \\quad \\text{nullity}(B) = \\dim(\\ker(B))",
       ],
     },
-    intuition: "Vectores LI son como ejes de coordenadas: cada uno aporta información nueva que los demás no pueden reproducir. Vectores LD son redundantes — hay información duplicada, y puedes eliminar uno sin perder cobertura del espacio.",
+    intuition: "El determinante es el 'factor de zoom con signo' de una transformación: $|\\det(A)| = 2$ significa que $A$ duplica todos los volúmenes; $\\det(A) = 0$ significa que $A$ aplasta el espacio a una dimensión menor (colapso irreversible). El signo indica si la orientación se preserva ($+$) o invierte ($-$). El rango cuenta cuántas dimensiones 'sobreviven' a la transformación: si $\\text{rank}(A) = r < n$, la imagen de $A$ es un subespacio de dimensión $r$, y toda la información en las $n-r$ dimensiones restantes se pierde.",
     development: [
-      { label: "Test algebraico", body: "Formas la matriz $A = [\\mathbf{v}_1|\\cdots|\\mathbf{v}_k]$ y calculas $\\text{rank}(A)$:\n— Si $\\text{rank}(A) = k$: LI.\n— Si $\\text{rank}(A) < k$: LD, y el kernel de $A$ revela las combinaciones nulas." },
-      { label: "Determinante (caso cuadrado)", body: "Para $k = n$ vectores en $\\mathbb{R}^n$: $$\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_n\\} \\text{ LI} \\iff \\det([\\mathbf{v}_1|\\cdots|\\mathbf{v}_n]) \\neq 0$$ El determinante mide el volumen del paralelepípedo formado — cero significa colapso dimensional." },
-      { label: "En ML y compresión", body: "Features redundantes (LD o correlacionadas) no añaden información al modelo pero aumentan varianza y el riesgo de multicolinealidad en regresión. PCA transforma features correlacionadas en componentes LI (ortogonales), eliminando redundancia." },
+      {
+        label: "Determinante: definición y cálculo",
+        body: "Para $n=2$: $\\det\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix} = ad - bc$, el área con signo del paralelogramo formado por las columnas.\n\nPara $n=3$, la **regla de Sarrus** o expansión por cofactores:\n\n$$\\det(A) = \\sum_{j=1}^n a_{ij}\\,C_{ij}, \\quad C_{ij} = (-1)^{i+j}M_{ij}$$\n\ndonde $M_{ij}$ es el menor $(i,j)$: el determinante de la submatriz obtenida eliminando fila $i$ y columna $j$.\n\nPropiedades operativas clave: (1) intercambiar dos filas cambia el signo, (2) multiplicar una fila por $\\alpha$ escala el determinante por $\\alpha$, (3) añadir un múltiplo de una fila a otra no cambia el determinante. Estas tres operaciones elementales son la base de la eliminación gaussiana para calcular $\\det$ en $\\mathcal{O}(n^3)$: $\\det(A) = \\prod_i u_{ii}$ donde $U$ es la forma escalonada."
+      },
+      {
+        label: "Rango: definición, cálculo e interpretación",
+        body: "El rango de $A \\in \\mathbb{R}^{m\\times n}$ es la dimensión del **espacio columna** $\\text{Col}(A) = \\{A\\mathbf{x} : \\mathbf{x}\\in\\mathbb{R}^n\\} \\subseteq \\mathbb{R}^m$. Un teorema no trivial garantiza que el **rango columna = rango fila** siempre.\n\nAlgoritmo práctico: aplicar eliminación gaussiana y contar las filas no nulas (pivotes). Equivalentemente, a través de SVD:\n\n$$\\text{rank}(A) = \\#\\{\\sigma_i > 0\\}$$\n\ndonde $\\sigma_i$ son los valores singulares. El **Teorema Rango-Nulidad** conecta rango con el kernel:\n\n$$\\underbrace{\\text{rank}(A)}_{\\text{dim Im}(A)} + \\underbrace{\\text{nullity}(A)}_{\\text{dim ker}(A)} = n$$\n\nSi $\\text{rank}(A) = r$, entonces $A$ se puede descomponer como suma de $r$ matrices de rango 1: $A = \\sum_{i=1}^r \\sigma_i \\mathbf{u}_i\\mathbf{v}_i^\\top$ (SVD truncada)."
+      },
+      {
+        label: "Conexión entre determinante y rango",
+        body: "Para matrices cuadradas $A \\in \\mathbb{R}^{n\\times n}$, las siguientes afirmaciones son todas equivalentes:\n\n$$\\det(A) \\neq 0 \\iff \\text{rank}(A) = n \\iff \\ker(A) = \\{\\mathbf{0}\\} \\iff A \\text{ invertible}$$\n\n$$\\iff A\\mathbf{x}=\\mathbf{b} \\text{ tiene solución única } \\forall \\mathbf{b} \\iff \\text{columnas de } A \\text{ son L.I.}$$\n\nCuando $\\det(A) = 0$ ($A$ singular), $\\text{rank}(A) < n$ y el sistema $A\\mathbf{x}=\\mathbf{b}$ puede no tener solución (si $\\mathbf{b} \\notin \\text{Col}(A)$) o tener infinitas (si $\\mathbf{b} \\in \\text{Col}(A)$). Nunca tiene solución única.\n\nPara matrices rectangulares $A \\in \\mathbb{R}^{m\\times n}$, el determinante no está definido, pero el rango sí: $\\text{rank}(A) \\leq \\min(m,n)$. La **deficiencia de rango** $\\min(m,n) - \\text{rank}(A)$ mide cuántas dimensiones colapsan."
+      },
+      {
+        label: "En Machine Learning",
+        body: "El rango es omnipresente en ML:\n\n**Sistemas sobredeterminados** ($m > n$): la matriz de diseño $X \\in \\mathbb{R}^{m\\times n}$ tiene $\\text{rank}(X) = n$ (rango completo) si y solo si $X^\\top X$ es invertible y la solución de mínimos cuadrados es única: $\\hat{\\boldsymbol{\\beta}} = (X^\\top X)^{-1}X^\\top\\mathbf{y}$.\n\n**Multicolinealidad**: si columnas de $X$ son casi linealmente dependientes, $\\text{rank}(X) < n$ numéricamente, $X^\\top X$ es casi singular ($\\det \\approx 0$), y la inversión amplifica errores. Ridge ($+\\lambda I$) regulariza elevando todos los eigenvalores.\n\n**Low-rank approximation**: en redes neuronales grandes (LLMs), las matrices de peso $W \\in \\mathbb{R}^{d\\times d}$ suelen tener rango efectivo $r \\ll d$. **LoRA** (Low-Rank Adaptation) explota esto:\n\n$$W \\approx W_0 + \\Delta W = W_0 + BA, \\quad B\\in\\mathbb{R}^{d\\times r},\\ A\\in\\mathbb{R}^{r\\times d},\\ r\\ll d$$\n\nreduciendo parámetros entrenables de $d^2$ a $2rd$. El determinante aparece en **modelos generativos con flujos normalizantes** (Normalizing Flows): el cambio de variable requiere $|\\det(J_f)|$ donde $J_f$ es el Jacobiano, y arquitecturas como RealNVP lo calculan eficientemente."
+      },
     ],
     code: `import numpy as np
+from numpy.linalg import det, matrix_rank, svd, inv
 
-# Test de independencia lineal via rango
-v1 = np.array([1, 2, 3])
-v2 = np.array([4, 5, 6])
-v3 = np.array([7, 8, 9])  # v3 = 2*v2 - v1 (LD)
+# ── 1. Determinante: casos n=2,3 y propiedades ─────────────────────────────
+A2 = np.array([[3., 1.],
+               [2., 4.]])
+print(f"det(A₂×₂) = {det(A2):.4f}")   # 3·4 - 1·2 = 10
 
-A = np.column_stack([v1, v2, v3])
-rank = np.linalg.matrix_rank(A)
-print(f"Rank = {rank}")  # 2 → LD
+A3 = np.array([[1., 2., 3.],
+               [0., 4., 5.],
+               [1., 0., 6.]])
+print(f"det(A₃×₃) = {det(A3):.4f}")   # expansión cofactores
 
-# Encontrar la combinación nula (kernel)
-U, S, Vt = np.linalg.svd(A)
-# Vectores del kernel corresponden a valores singulares ≈ 0
-kernel = Vt[rank:].T
-print(f"Kernel: {kernel}")  # combinación que da 0`,
-    related: ["Combinación lineal", "Base y dimensión", "Determinante", "SVD"],
-    hasViz: false,
-  },
-  {
-    id: 16, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Base y Dimensión",
-    tags: ["álgebra", "espacio vectorial"],
-    definition: "Una base de V es un conjunto de vectores linealmente independientes que generan V (span = V). La dimensión de V es el número de vectores en cualquier base — es invariante.",
-    formal: {
-      notation: "Sea $V$ espacio vectorial sobre $\\mathbb{F}$",
-      body: "B = \\{\\mathbf{b}_1,\\ldots,\\mathbf{b}_n\\} \\text{ es base} \\iff \\begin{cases} B \\text{ es LI} \\\\ \\text{span}(B) = V \\end{cases}",
-      geometric: "\\forall\\, \\mathbf{v} \\in V,\\; \\exists!\\;(\\alpha_1,\\ldots,\\alpha_n): \\mathbf{v} = \\sum_{i=1}^n \\alpha_i \\mathbf{b}_i \\quad \\text{(representación única)}",
-      properties: [
-        "\\dim(\\mathbb{R}^n) = n,\\quad \\dim(\\mathcal{M}_{m\\times n}) = mn",
-        "\\text{Toda base de } V \\text{ tiene el mismo número de elementos}",
-        "\\dim(\\text{col}(A)) + \\dim(\\ker(A)) = n \\quad \\text{(Teorema rango-nulidad)}",
-      ],
-    },
-    intuition: "La base es el 'sistema de coordenadas' mínimo para describir el espacio. Con $n$ vectores base, cualquier punto se describe de forma única con $n$ coordenadas. Cambiar de base es como cambiar de idioma — el objeto es el mismo, las palabras cambian.",
-    development: [
-      { label: "Bases canónicas y alternativas", body: "Base canónica de $\\mathbb{R}^n$: $\\{\\mathbf{e}_1,\\ldots,\\mathbf{e}_n\\}$ con $\\mathbf{e}_i = (0,\\ldots,1,\\ldots,0)^\\top$.\n\nBase ortogonal: vectores mutuamente perpendiculares.\nBase ortonormal: ortogonal + unitaria ($\\|\\mathbf{b}_i\\|=1$). Facilita cálculos enormemente." },
-      { label: "Teorema rango-nulidad", body: "Para $A \\in \\mathbb{R}^{m\\times n}$: $$\\text{rank}(A) + \\text{nullity}(A) = n$$ donde $\\text{nullity}(A) = \\dim(\\ker(A))$. Esto cuantifica la 'información perdida' por la transformación lineal $A$." },
-      { label: "Cambio de base", body: "Si $B = [\\mathbf{b}_1|\\cdots|\\mathbf{b}_n]$ es una base, las coordenadas de $\\mathbf{v}$ en $B$ son: $$[\\mathbf{v}]_B = B^{-1}\\mathbf{v}$$ Fundamental en PCA: los eigenvectores forman la nueva base donde los datos se expresan de forma más compacta." },
-    ],
-    code: `import numpy as np
+# Propiedades multiplicativas
+B2 = np.array([[2., -1.], [0., 3.]])
+print(f"det(A)·det(B) = {det(A2)*det(B2):.4f}")
+print(f"det(AB)       = {det(A2 @ B2):.4f}")     # deben ser iguales
 
-# Base canónica de R^3
-e1, e2, e3 = np.eye(3)
+# Escalar: det(αA) = αⁿ·det(A)
+alpha = 2.0
+n = 2
+print(f"det(αA) = {det(alpha*A2):.4f}")
+print(f"αⁿ·det(A) = {alpha**n * det(A2):.4f}")   # iguales
 
-# Base ortogonal alternativa (Gram-Schmidt)
-def gram_schmidt(vecs):
-    basis = []
-    for v in vecs:
-        w = v.copy().astype(float)
-        for b in basis:
-            w -= np.dot(w, b) * b
-        if np.linalg.norm(w) > 1e-10:
-            basis.append(w / np.linalg.norm(w))
-    return np.array(basis)
+# ── 2. Determinante como volumen orientado ─────────────────────────────────
+# Columnas de A2 forman un paralelogramo: área = |det|
+col1 = A2[:, 0]   # [3, 2]
+col2 = A2[:, 1]   # [1, 4]
+area_cross = abs(col1[0]*col2[1] - col1[1]*col2[0])
+print(f"\\n|det(A)| = {abs(det(A2)):.4f} = área paralelogramo = {area_cross:.4f}")
 
-V = np.array([[1,1,0],[1,0,1],[0,1,1]], dtype=float)
-B = gram_schmidt(V)
-print("Base ortonormal:")
-print(B)
-print(f"dim = {len(B)}")
+# Inversión de orientación
+A_swap = A2[:, [1, 0]]   # intercambiar columnas
+print(f"det tras swap cols: {det(A_swap):.4f}")   # cambia signo
 
-# Coordenadas en nueva base
-v = np.array([2, 3, 1], dtype=float)
-coords = B @ v  # proyecciones
-print(f"Coordenadas en B: {coords}")`,
-    related: ["Independencia lineal", "Cambio de base", "PCA", "Gram-Schmidt"],
-    hasViz: false,
-  },
-  {
-    id: 20, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Norma de un Vector (L1, L2, Max)",
-    tags: ["vectores", "métricas"],
-    definition: "Función que asigna a cada vector una longitud no negativa, satisfaciendo positividad, homogeneidad y desigualdad triangular. La familia $L_p$ generaliza distintas nociones de 'tamaño'.",
-    formal: {
-      notation: "Sea $\\mathbf{v} \\in \\mathbb{R}^n$, $p \\geq 1$",
-      body: "\\|\\mathbf{v}\\|_p = \\left(\\sum_{i=1}^n |v_i|^p\\right)^{1/p}",
-      geometric: "\\|\\mathbf{v}\\|_\\infty = \\lim_{p\\to\\infty}\\|\\mathbf{v}\\|_p = \\max_{i}|v_i|",
-      properties: [
-        "\\text{Positividad: } \\|\\mathbf{v}\\|_p \\geq 0,\\ \\|\\mathbf{v}\\|_p = 0 \\iff \\mathbf{v}=\\mathbf{0}",
-        "\\text{Homogeneidad: } \\|\\alpha\\mathbf{v}\\|_p = |\\alpha|\\|\\mathbf{v}\\|_p",
-        "\\text{Desig. triangular: } \\|\\mathbf{u}+\\mathbf{v}\\|_p \\leq \\|\\mathbf{u}\\|_p + \\|\\mathbf{v}\\|_p",
-        "\\|\\mathbf{v}\\|_\\infty \\leq \\|\\mathbf{v}\\|_2 \\leq \\|\\mathbf{v}\\|_1 \\leq \\sqrt{n}\\|\\mathbf{v}\\|_2",
-      ],
-    },
-    intuition: "$L_1$ = distancia de taxi en ciudad con cuadras (solo horizontal/vertical). $L_2$ = distancia en línea recta (vuelo de pájaro). $L_\\infty$ = el movimiento más grande en cualquier dirección. Cada norma define una 'bola unitaria' de forma diferente.",
-    development: [
-      { label: "Geometría de las bolas unitarias", body: "$L_1$: bola = rombo (diamante) en $\\mathbb{R}^2$, favorece vectores sparse.\n$L_2$: bola = círculo/esfera, isótropa.\n$L_\\infty$: bola = cuadrado/hipercubo.\n\nEsta geometría explica por qué regularización $L_1$ (Lasso) produce soluciones sparse y $L_2$ (Ridge) no." },
-      { label: "Regularización y normas", body: "En optimización: $$\\min_\\mathbf{w} \\mathcal{L}(\\mathbf{w}) + \\lambda\\|\\mathbf{w}\\|_p$$\n— $p=1$ (Lasso): solución sparse, selección automática de features.\n— $p=2$ (Ridge): shrinkage uniforme, estable con multicolinealidad.\n— $p=0$ (pseudonorma): NP-hard, cuenta entradas no nulas." },
-      { label: "Equivalencia de normas", body: "En $\\mathbb{R}^n$ finito-dimensional, todas las normas son equivalentes (definen la misma topología). Existen constantes $c_1, c_2 > 0$: $$c_1\\|\\mathbf{v}\\|_p \\leq \\|\\mathbf{v}\\|_q \\leq c_2\\|\\mathbf{v}\\|_p$$ Pero las constantes dependen de $n$ — en dimensión alta importa cuál usas." },
-    ],
-    code: `import numpy as np
-
-v = np.array([3.0, -4.0, 0.0, 1.0])
-
-norms = {
-    "L1": np.linalg.norm(v, ord=1),       # 8.0
-    "L2": np.linalg.norm(v, ord=2),       # 5.099
-    "Linf": np.linalg.norm(v, ord=np.inf),# 4.0
-    "L0": np.sum(v != 0),                  # 3 (pseudonorma)
+# ── 3. Rango: métodos de cálculo ───────────────────────────────────────────
+matrices = {
+    "Rango máximo (3×3)": np.array([[1.,2.,3.],[4.,5.,6.],[7.,8.,10.]]),
+    "Rango deficiente":   np.array([[1.,2.,3.],[4.,5.,6.],[7.,8., 9.]]),  # fila3=fila1+fila2
+    "Rectangular (4×2)":  np.random.default_rng(0).standard_normal((4,2)),
 }
-for name, val in norms.items():
-    print(f"{name}: {val:.3f}")
+for nombre, M in matrices.items():
+    r = matrix_rank(M)
+    m, n_ = M.shape
+    nullity = n_ - r
+    print(f"\\n{nombre}:")
+    print(f"  shape={M.shape}, rank={r}, nullity={nullity}")
+    print(f"  rank + nullity = {r+nullity} = n = {n_}  ✓")
+    if m == n_:
+        print(f"  det={det(M):.4f}  {'(invertible)' if abs(det(M))>1e-10 else '(singular)'}")
 
-# Normalizar a L2 unitario
-v_unit = v / np.linalg.norm(v)
-print(f"||v_unit||_2 = {np.linalg.norm(v_unit):.6f}")  # 1.0`,
-    related: ["Vector", "Distancia euclídea", "Regularización L1/L2", "Similitud coseno"],
-    hasViz: false,
+# ── 4. Rango via SVD (más estable numéricamente) ───────────────────────────
+def rank_svd(A: np.ndarray, tol: float = 1e-10) -> int:
+    """Rango numérico: número de valores singulares > tol."""
+    _, S, _ = svd(A, full_matrices=False)
+    return int(np.sum(S > tol))
+
+# Matriz casi singular (rango numérico = 1 con tol apropiada)
+eps = 1e-12
+A_almost = np.array([[1., 2.], [2., 4.+eps]])
+print(f"\\nMatrix casi singular:")
+print(f"  matrix_rank (tol default): {matrix_rank(A_almost)}")
+print(f"  rank_svd    (tol=1e-10):   {rank_svd(A_almost, tol=1e-10)}")
+print(f"  rank_svd    (tol=1e-15):   {rank_svd(A_almost, tol=1e-15)}")
+# El rango numérico depende de la tolerancia elegida
+
+# ── 5. Rango efectivo en matrices de peso de redes neuronales ──────────────
+rng = np.random.default_rng(42)
+
+# Simular matriz de peso de rango bajo (LoRA-style)
+d, r = 512, 8
+A_lora = rng.standard_normal((d, r))
+B_lora = rng.standard_normal((r, d))
+W_low  = A_lora @ B_lora          # rango real = 8, forma = (512, 512)
+
+_, S_W, _ = svd(W_low, full_matrices=False)
+rank_eff_1  = rank_svd(W_low, tol=1e-6)
+rank_eff_2  = rank_svd(W_low, tol=1e-10)
+var_top8    = np.sum(S_W[:8]**2) / np.sum(S_W**2)
+
+print(f"\\nMatriz LoRA W=AB, shape={W_low.shape}")
+print(f"  Rango efectivo (tol=1e-6):  {rank_eff_1}")
+print(f"  Rango efectivo (tol=1e-10): {rank_eff_2}")
+print(f"  Varianza en top-{r} singulares: {var_top8*100:.2f}%")
+print(f"  Params originales: {d*d:,}  →  LoRA: {d*r + r*d:,}  ({100*2*d*r/d**2:.1f}%)")
+
+# ── 6. Determinante y normalizing flows (Jacobiano) ────────────────────────
+# Transformación affine acoplada: y = Ax + b
+# Log-verosimilitud requiere log|det(J)| = log|det(A)|
+def log_det_triangular(L: np.ndarray) -> float:
+    """Para matrices triangulares: det = prod(diag) → log|det| = sum(log|diag|)"""
+    return float(np.sum(np.log(np.abs(np.diag(L)))))
+
+# Simular Jacobiano triangular (como en RealNVP / flujos de volumen)
+L = np.tril(rng.standard_normal((4, 4)))
+np.fill_diagonal(L, np.abs(np.diag(L)) + 0.1)  # diag positiva
+
+log_det_fast = log_det_triangular(L)    # O(n)
+log_det_full = np.log(abs(det(L)))      # O(n³)
+print(f"\\nlog|det(L)| triangular: {log_det_fast:.6f}")
+print(f"log|det(L)| completo:   {log_det_full:.6f}  (iguales ✓)")`,
+    related: ["Matriz y Tipos", "Eigenvalores y Eigenvectores", "Descomposición SVD", "Transformación Lineal", "Mínimos Cuadrados"],
+    hasViz: true,
+    vizType: "detRank",
   },
   {
-    id: 22, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Similitud Coseno",
-    tags: ["vectores", "métricas", "NLP"],
-    definition: "Medida de similitud entre dos vectores definida como el coseno del ángulo entre ellos. Invariante a la magnitud — mide orientación, no longitud. Ampliamente usada en NLP y sistemas de recomendación.",
-    formal: {
-      notation: "Sean $\\mathbf{u}, \\mathbf{v} \\in \\mathbb{R}^n \\setminus \\{\\mathbf{0}\\}$",
-      body: "\\text{cos\\_sim}(\\mathbf{u},\\mathbf{v}) = \\frac{\\mathbf{u}\\cdot\\mathbf{v}}{\\|\\mathbf{u}\\|_2\\,\\|\\mathbf{v}\\|_2} = \\cos\\theta \\in [-1, 1]",
-      geometric: "\\text{dist\\_coseno}(\\mathbf{u},\\mathbf{v}) = 1 - \\text{cos\\_sim}(\\mathbf{u},\\mathbf{v}) \\in [0, 2]",
-      properties: [
-        "\\text{cos\\_sim} = 1 \\iff \\mathbf{u} \\parallel \\mathbf{v} \\text{ (misma dirección)}",
-        "\\text{cos\\_sim} = 0 \\iff \\mathbf{u} \\perp \\mathbf{v} \\text{ (ortogonales)}",
-        "\\text{cos\\_sim} = -1 \\iff \\mathbf{u} \\parallel -\\mathbf{v} \\text{ (opuestos)}",
-        "\\text{No es una métrica: no satisface desigualdad triangular en forma general}",
-      ],
-    },
-    intuition: "Dos documentos pueden tener distinta longitud pero el mismo tema. La similitud coseno los detecta como similares porque sus vectores de palabras apuntan en la misma dirección, aunque uno sea más largo. Es como comparar la dirección de dos flechas, sin importar su longitud.",
-    development: [
-      { label: "En NLP y embeddings", body: "Dados embeddings $\\mathbf{e}_{\\text{rey}}, \\mathbf{e}_{\\text{reina}} \\in \\mathbb{R}^{300}$, su similitud coseno es alta (≈0.8). En búsqueda semántica: dada una query $\\mathbf{q}$, se rankean documentos por $\\text{cos\\_sim}(\\mathbf{q}, \\mathbf{d}_i)$." },
-      { label: "Relación con producto punto normalizado", body: "Si $\\|\\mathbf{u}\\|=\\|\\mathbf{v}\\|=1$ (vectores unitarios): $$\\text{cos\\_sim}(\\mathbf{u},\\mathbf{v}) = \\mathbf{u}\\cdot\\mathbf{v}$$ Por eso en transformers se normalizan los embeddings antes de calcular attention — el scaled dot-product $\\frac{QK^\\top}{\\sqrt{d_k}}$ es similitud coseno escalada." },
-      { label: "Cuándo NO usar coseno", body: "Si la magnitud importa (e.g., frecuencia de ocurrencia), coseno pierde información. Alternativas: distancia euclídea, distancia de Mahalanobis (considera correlaciones), o KL divergence si son distribuciones." },
-    ],
-    code: `import numpy as np
-
-def cosine_similarity(u, v):
-    return np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v))
-
-# Ejemplo: documentos como bag-of-words
-# Vocabulario: [ML, python, receta, cocina]
-doc1 = np.array([3, 2, 0, 0])  # sobre ML
-doc2 = np.array([2, 1, 0, 0])  # sobre ML (más corto)
-doc3 = np.array([0, 0, 2, 3])  # sobre cocina
-
-print(cosine_similarity(doc1, doc2))  # ≈ 1.0 (mismo tema)
-print(cosine_similarity(doc1, doc3))  # ≈ 0.0 (temas distintos)
-
-# Con sklearn
-from sklearn.metrics.pairwise import cosine_similarity as cs
-M = np.vstack([doc1, doc2, doc3])
-print(cs(M))  # matriz de similitudes`,
-    related: ["Producto punto", "Norma L2", "Embeddings", "Distancia euclídea"],
-    hasViz: false,
-  },
-  {
-    id: 23, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Ortogonalidad y Proyección Vectorial",
-    tags: ["geometría", "álgebra"],
-    definition: "Dos vectores son ortogonales si su producto punto es cero. La proyección ortogonal descompone un vector en componentes paralela y perpendicular a un subespacio dado — es la aproximación más cercana dentro del subespacio.",
-    formal: {
-      notation: "Sea $W \\subseteq \\mathbb{R}^n$ subespacio con base ortonormal $\\{\\mathbf{q}_1,\\ldots,\\mathbf{q}_k\\}$",
-      body: "\\text{proj}_W(\\mathbf{v}) = \\sum_{i=1}^k (\\mathbf{q}_i^\\top \\mathbf{v})\\,\\mathbf{q}_i = QQ^\\top\\mathbf{v}",
-      geometric: "\\mathbf{v} = \\underbrace{\\text{proj}_W(\\mathbf{v})}_{\\in W} + \\underbrace{(\\mathbf{v} - \\text{proj}_W(\\mathbf{v}))}_{\\in W^\\perp}",
-      properties: [
-        "\\|\\mathbf{v} - \\text{proj}_W(\\mathbf{v})\\| \\leq \\|\\mathbf{v} - \\mathbf{w}\\|\\; \\forall \\mathbf{w}\\in W \\text{ (mejor aprox.)}",
-        "\\text{proj}_W \\circ \\text{proj}_W = \\text{proj}_W \\text{ (idempotente)}",
-        "QQ^\\top \\text{ es la matriz de proyección sobre col}(Q)",
-      ],
-    },
-    intuition: "Proyectar es como encontrar tu 'sombra' sobre un plano cuando el sol cae perpendicular a él. La sombra es el punto del plano más cercano a ti. En mínimos cuadrados, proyectamos $\\mathbf{b}$ sobre el espacio columna de $A$ para encontrar la mejor solución aproximada.",
-    development: [
-      { label: "Mínimos cuadrados via proyección", body: "Sistema sobredeterminado $A\\mathbf{x}=\\mathbf{b}$ con $\\mathbf{b}\\notin\\text{col}(A)$. La solución de mínimos cuadrados proyecta $\\mathbf{b}$ sobre $\\text{col}(A)$: $$\\hat{\\mathbf{x}} = (A^\\top A)^{-1}A^\\top\\mathbf{b}$$ y $\\hat{\\mathbf{b}} = A\\hat{\\mathbf{x}} = A(A^\\top A)^{-1}A^\\top\\mathbf{b}$ es la proyección." },
-      { label: "Complemento ortogonal", body: "$W^\\perp = \\{\\mathbf{v}: \\mathbf{v}\\cdot\\mathbf{w}=0 \\;\\forall \\mathbf{w}\\in W\\}$\n\n$\\mathbb{R}^n = W \\oplus W^\\perp$ (descomposición directa ortogonal).\n$\\dim(W) + \\dim(W^\\perp) = n$.\n\nEl error residual en mínimos cuadrados $\\mathbf{r} = \\mathbf{b} - A\\hat{\\mathbf{x}}$ pertenece a $\\text{col}(A)^\\perp = \\ker(A^\\top)$." },
-      { label: "Proceso de Gram-Schmidt", body: "Ortogonalización de $\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\}$: $$\\mathbf{u}_j = \\mathbf{v}_j - \\sum_{i<j}\\frac{\\mathbf{u}_i^\\top\\mathbf{v}_j}{\\mathbf{u}_i^\\top\\mathbf{u}_i}\\mathbf{u}_i$$ Produce base ortogonal; dividir por normas da base ortonormal. Base de la factorización QR." },
-    ],
-    code: `import numpy as np
-
-# Proyección sobre subespacio
-def proyectar(v, Q):
-    """Q: columnas = base ortonormal del subespacio."""
-    return Q @ Q.T @ v
-
-# Ejemplo: proyección sobre el plano x+y+z=0
-# Base ortonormal del plano
-n = np.array([1,1,1]) / np.sqrt(3)  # normal al plano
-# Proyección sobre el complemento ortogonal de n
-def proj_sobre_plano(v, normal):
-    return v - np.dot(v, normal) * normal
-
-v = np.array([2.0, 1.0, 3.0])
-proj = proj_sobre_plano(v, n)
-print(f"Proyección: {proj}")
-print(f"Error (debe ser ortogonal): {np.dot(proj, n):.2e}")
-
-# Mínimos cuadrados
-A = np.array([[1,1],[1,2],[1,3]])
-b = np.array([1.0, 2.0, 2.0])
-x_hat = np.linalg.lstsq(A, b, rcond=None)[0]
-print(f"Solución LS: {x_hat}")`,
-    related: ["Producto punto", "Mínimos cuadrados", "Gram-Schmidt", "QR"],
-    hasViz: false,
-  },
-  {
-    id: 24, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Matriz y Tipos",
-    tags: ["matrices", "álgebra lineal"],
-    definition: "Arreglo rectangular de escalares de $m$ filas y $n$ columnas. Representa transformaciones lineales entre espacios vectoriales. Los tipos especiales tienen propiedades algebraicas y computacionales importantes.",
-    formal: {
-      notation: "Sea $A \\in \\mathbb{F}^{m\\times n}$, $A_{ij}$ el elemento en fila $i$, columna $j$",
-      body: "A = \\begin{pmatrix} a_{11} & \\cdots & a_{1n} \\\\ \\vdots & \\ddots & \\vdots \\\\ a_{m1} & \\cdots & a_{mn} \\end{pmatrix}",
-      geometric: "(AB)_{ij} = \\sum_{k=1}^p A_{ik}B_{kj} \\quad \\text{para } A\\in\\mathbb{R}^{m\\times p},\\, B\\in\\mathbb{R}^{p\\times n}",
-      properties: [
-        "\\text{Identidad: } I_n,\\; I_n A = A I_m = A",
-        "\\text{Simétrica: } A = A^\\top,\\; a_{ij} = a_{ji}",
-        "\\text{Ortogonal: } Q^\\top Q = QQ^\\top = I,\\; Q^{-1} = Q^\\top",
-        "\\text{Definida positiva: } \\mathbf{x}^\\top A\\mathbf{x} > 0 \\;\\forall \\mathbf{x}\\neq\\mathbf{0}",
-      ],
-    },
-    intuition: "Una matriz es una transformación lineal empaquetada: puede rotar, escalar, reflejar o comprimir el espacio. La identidad no hace nada. Las matrices ortogonales preservan longitudes y ángulos (rotaciones/reflexiones puras).",
-    development: [
-      { label: "Tipos fundamentales", body: "Diagonal $D$: $d_{ij}=0$ si $i\\neq j$ — escala cada eje independientemente.\nTriangular superior/inferior: solución por sustitución hacia atrás/adelante.\nSPD (simétrica definida positiva): aparece en covarianzas, Hessiana de funciones convexas, kernels.\nEsparsa: mayoría de entradas son cero — grafos, redes, NLP." },
-      { label: "Rango de una matriz", body: "$\\text{rank}(A) = \\dim(\\text{col}(A)) = \\dim(\\text{row}(A))$.\nRango máximo: $\\min(m,n)$. Rango deficiente $\\Rightarrow$ sistema singular.\n\n$\\text{rank}(AB) \\leq \\min(\\text{rank}(A), \\text{rank}(B))$\n$\\text{rank}(A + B) \\leq \\text{rank}(A) + \\text{rank}(B)$" },
-      { label: "Matrices en Deep Learning", body: "Pesos de una capa: $W \\in \\mathbb{R}^{d_{out}\\times d_{in}}$.\nAtención: $Q,K,V \\in \\mathbb{R}^{n\\times d_k}$.\nGram matrix: $G = X^\\top X \\in \\mathbb{R}^{d\\times d}$ — aparece en kernel methods y style transfer.\nBatch de datos: $X \\in \\mathbb{R}^{B\\times d}$ donde $B$ es el batch size." },
-    ],
-    code: `import numpy as np
-
-# Tipos de matrices
-n = 4
-I   = np.eye(n)                           # Identidad
-D   = np.diag([1, 2, 3, 4])              # Diagonal
-S   = np.array([[2,1],[1,3]])             # Simétrica SPD
-Q, _ = np.linalg.qr(np.random.randn(3,3))# Ortogonal
-
-# Verificaciones
-print("Simétrica:", np.allclose(S, S.T))
-print("Q ortogonal:", np.allclose(Q.T @ Q, np.eye(3)))
-print("SPD (eigvals > 0):", np.all(np.linalg.eigvalsh(S) > 0))
-
-# Operaciones
-A = np.random.randn(3, 4)
-B = np.random.randn(4, 2)
-C = A @ B                    # (3,4)@(4,2) = (3,2)
-print(f"rank(A) = {np.linalg.matrix_rank(A)}")`,
-    related: ["Determinante", "Inversa de matriz", "Eigenvalores", "SVD"],
-    hasViz: false,
-  },
-  {
-    id: 26, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Determinante y Rango",
-    tags: ["matrices", "álgebra"],
-    definition: "El determinante es un escalar asociado a una matriz cuadrada que mide el factor de cambio de volumen de la transformación lineal. El rango es la dimensión del espacio columna — cuántas dimensiones 'realmente' usa la transformación.",
-    formal: {
-      notation: "Sea $A \\in \\mathbb{R}^{n\\times n}$",
-      body: "\\det(A) = \\sum_{\\sigma \\in S_n} \\text{sgn}(\\sigma) \\prod_{i=1}^n a_{i,\\sigma(i)}",
-      geometric: "|\\det(A)| = \\text{volumen del paralelepípedo formado por las columnas de } A",
-      properties: [
-        "\\det(AB) = \\det(A)\\det(B)",
-        "\\det(A^\\top) = \\det(A)",
-        "\\det(A^{-1}) = 1/\\det(A)",
-        "A \\text{ invertible} \\iff \\det(A) \\neq 0 \\iff \\text{rank}(A) = n",
-      ],
-    },
-    intuition: "El determinante dice si la transformación aplasta el espacio (det=0: colapso a dimensión menor), lo refleja (det<0: inversión de orientación), o cuánto lo expande/contrae (|det|). Rank=1 significa toda la imagen cae en una recta.",
-    development: [
-      { label: "Cálculo eficiente", body: "Expansión por cofactores: $O(n!)$ — impracticable para $n>5$.\nEliminación gaussiana (LU): $O(n^3)$ — método estándar.\n\nPara matrices grandes en ML: raro calcular det directamente. Se usa $\\log|\\det(A)|$ para estabilidad numérica (e.g., en densidades gaussianas multivariadas)." },
-      { label: "Rango y sistemas lineales", body: "Sistema $A\\mathbf{x}=\\mathbf{b}$:\n— $\\text{rank}(A) = \\text{rank}([A|\\mathbf{b}]) = n$: solución única.\n— $\\text{rank}(A) = \\text{rank}([A|\\mathbf{b}]) < n$: infinitas soluciones.\n— $\\text{rank}(A) < \\text{rank}([A|\\mathbf{b}])$: sin solución." },
-      { label: "Log-determinante en probabilidad", body: "La densidad gaussiana multivariada: $$\\mathcal{N}(\\mathbf{x};\\boldsymbol{\\mu},\\Sigma) = \\frac{1}{(2\\pi)^{n/2}|\\det\\Sigma|^{1/2}}\\exp\\!\\left(-\\frac{1}{2}(\\mathbf{x}-\\boldsymbol{\\mu})^\\top\\Sigma^{-1}(\\mathbf{x}-\\boldsymbol{\\mu})\\right)$$ requiere $\\log\\det\\Sigma$ — calculado via Cholesky: $\\log\\det\\Sigma = 2\\sum_i \\log L_{ii}$." },
-    ],
-    code: `import numpy as np
-
-A = np.array([[2,1,0],[1,3,1],[0,1,4]], dtype=float)
-
-# Determinante
-det_A = np.linalg.det(A)
-print(f"det(A) = {det_A:.4f}")
-
-# Log-determinante (estable numéricamente)
-sign, logdet = np.linalg.slogdet(A)
-print(f"log|det(A)| = {logdet:.4f}")
-
-# Rango
-rank = np.linalg.matrix_rank(A)
-print(f"rank(A) = {rank}")
-
-# Determinante via LU
-from scipy.linalg import lu
-P, L, U = lu(A)
-det_via_lu = np.prod(np.diag(U)) * np.linalg.det(P)
-print(f"det via LU = {det_via_lu:.4f}")`,
-    related: ["Inversa de matriz", "Sistemas lineales", "Eigenvalores", "Factorización LU"],
-    hasViz: false,
-  },
-  {
-    id: 27, section: "Álgebra Lineal", sectionCode: "II",
+    id: 27,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
     name: "Inversa y Pseudoinversa (Moore-Penrose)",
-    tags: ["matrices", "álgebra"],
-    definition: "La inversa $A^{-1}$ existe solo para matrices cuadradas no singulares. La pseudoinversa de Moore-Penrose $A^+$ generaliza la inversa a matrices rectangulares y singulares — siempre existe.",
+    tags: ["álgebra lineal", "inversa", "pseudoinversa", "Moore-Penrose", "mínimos cuadrados", "SVD"],
+    definition: "La inversa $A^{-1}$ de una matriz cuadrada $A \\in \\mathbb{R}^{n\\times n}$ existe si y solo si $\\det(A) \\neq 0$, y satisface $AA^{-1} = A^{-1}A = I_n$. La pseudoinversa de Moore-Penrose $A^+ \\in \\mathbb{R}^{n\\times m}$ generaliza la inversa a matrices rectangulares o singulares: existe siempre, es única, y produce la solución de mínima norma al problema de mínimos cuadrados $\\min_{\\mathbf{x}} \\|A\\mathbf{x}-\\mathbf{b}\\|_2$. Se calcula canónicamente a través de SVD.",
     formal: {
-      notation: "Sea $A \\in \\mathbb{R}^{m\\times n}$ con SVD: $A = U\\Sigma V^\\top$",
-      body: "A^+ = V\\Sigma^+ U^\\top, \\quad \\Sigma^+_{ii} = \\begin{cases} 1/\\sigma_i & \\sigma_i > 0 \\\\ 0 & \\sigma_i = 0 \\end{cases}",
-      geometric: "AA^{-1} = A^{-1}A = I \\quad \\text{(inversa clásica, requiere } \\det(A)\\neq 0\\text{)}",
+      notation: "Sea $A \\in \\mathbb{R}^{m \\times n}$ con SVD $A = U\\Sigma V^\\top$",
+      body: "A^+ = V\\Sigma^+ U^\\top, \\quad \\Sigma^+ = \\text{diag}\\!\\left(\\frac{1}{\\sigma_1},\\ldots,\\frac{1}{\\sigma_r},0,\\ldots,0\\right) \\\\[10pt] \\hat{\\mathbf{x}} = A^+\\mathbf{b} = \\arg\\min_{\\mathbf{x}}\\|A\\mathbf{x}-\\mathbf{b}\\|_2 \\quad \\text{con } \\|\\hat{\\mathbf{x}}\\|_2 \\text{ mínima}",
+      geometric: "A^+ = \\lim_{\\delta\\to 0^+}(A^\\top A + \\delta I)^{-1}A^\\top = \\lim_{\\delta\\to 0^+} A^\\top(AA^\\top + \\delta I)^{-1}",
       properties: [
-        "A A^+ A = A \\quad \\text{(1a ecuación de Penrose)}",
-        "A^+ A A^+ = A^+ \\quad \\text{(2a ecuación de Penrose)}",
-        "(AA^+)^\\top = AA^+ \\quad \\text{(3a ecuación de Penrose)}",
-        "\\hat{\\mathbf{x}} = A^+\\mathbf{b} \\text{ es la solución de mínima norma de mínimos cuadrados}",
+        "\\text{Ecuaciones de Moore-Penrose: } AA^+A=A,\\; A^+AA^+=A^+,\\; (AA^+)^\\top=AA^+,\\; (A^+A)^\\top=A^+A",
+        "\\text{Si } A \\text{ invertible: } A^+ = A^{-1}; \\quad \\text{si rango completo col.: } A^+ = (A^\\top A)^{-1}A^\\top",
+        "\\text{Si rango completo fila: } A^+ = A^\\top(AA^\\top)^{-1}; \\quad \\|A^+\\|_2 = 1/\\sigma_{\\min}(A)",
       ],
     },
-    intuition: "Cuando no existe inversa exacta (sistema sobredeterminado o singular), la pseudoinversa da la 'mejor solución posible': mínimo error si hay más ecuaciones que incógnitas, o mínima norma si hay más incógnitas que ecuaciones.",
+    intuition: "La inversa exacta es la 'memoria perfecta': dada la salida $A\\mathbf{x} = \\mathbf{b}$, $A^{-1}$ recupera $\\mathbf{x}$ sin error. Pero la mayoría de transformaciones reales no son invertibles — colapsan dimensiones, son rectangulares o están mal condicionadas. La pseudoinversa es la 'mejor respuesta posible': si el sistema no tiene solución, $A^+\\mathbf{b}$ minimiza el residuo; si tiene infinitas soluciones, elige la de menor norma. Es como preguntar '¿cuál es el input más económico que explica mejor este output?'",
     development: [
-      { label: "Cuándo usar A⁺ vs A⁻¹", body: "$A$ cuadrada, $\\det(A)\\neq 0$: usar $A^{-1}$ (LU o Cholesky, más eficiente).\n$A$ rectangular ($m>n$, sobredeterminado): $A^+$ da solución LS.\n$A$ rectangular ($m<n$, subdeterminado): $A^+$ da solución de mínima norma $L_2$.\n$A$ singular: $A^+$ ignora el kernel, proyecta sobre el complemento." },
-      { label: "Conexión con mínimos cuadrados", body: "Para $A\\mathbf{x}=\\mathbf{b}$ sobredeterminado ($m>n$, rango completo): $$A^+ = (A^\\top A)^{-1}A^\\top \\quad \\text{(izquierda)}$$ Para subdeterminado ($m<n$, rango completo): $$A^+ = A^\\top(AA^\\top)^{-1} \\quad \\text{(derecha)}$$ La pseudoinversa unifica ambos casos." },
-      { label: "Estabilidad numérica", body: "Calcular $A^{-1}$ explícitamente es numéricamente inestable y raro en la práctica. En su lugar:\n— Resolver $A\\mathbf{x}=\\mathbf{b}$ via `np.linalg.solve` (LU internamente).\n— Para LS: `np.linalg.lstsq` (usa SVD, más estable que ecuaciones normales $(A^\\top A)^{-1}A^\\top\\mathbf{b}$)." },
+      {
+        label: "Inversa: existencia, cálculo y condicionamiento",
+        body: "Para $A \\in \\mathbb{R}^{n\\times n}$, la inversa $A^{-1}$ existe $\\iff \\det(A) \\neq 0 \\iff \\text{rank}(A) = n$. La fórmula explícita via **adjunta** es:\n\n$$A^{-1} = \\frac{1}{\\det(A)}\\text{adj}(A), \\quad \\text{adj}(A)_{ij} = (-1)^{i+j}M_{ji}$$\n\nprácticamente inútil para $n > 3$; en la práctica se usa eliminación gaussiana o factorización LU en $\\mathcal{O}(n^3)$.\n\nEl **número de condición** $\\kappa(A) = \\|A\\|\\|A^{-1}\\| = \\sigma_{\\max}/\\sigma_{\\min}$ mide la sensibilidad numérica: si $\\kappa(A) \\sim 10^k$, se pierden $k$ dígitos de precisión al resolver $A\\mathbf{x}=\\mathbf{b}$. Una matriz con $\\kappa \\gg 1$ está **mal condicionada** — casi singular aunque $\\det(A)\\neq 0$."
+      },
+      {
+        label: "Pseudoinversa vía SVD: construcción e interpretación",
+        body: "Dada la SVD completa $A = U\\Sigma V^\\top$ con $U \\in \\mathbb{R}^{m\\times m}$, $\\Sigma \\in \\mathbb{R}^{m\\times n}$, $V \\in \\mathbb{R}^{n\\times n}$ y valores singulares $\\sigma_1 \\geq \\cdots \\geq \\sigma_r > 0 = \\sigma_{r+1} = \\cdots$, la pseudoinversa es:\n\n$$A^+ = V\\Sigma^+ U^\\top$$\n\ndonde $\\Sigma^+$ invierte solo los valores singulares no nulos. Interpretativamente:\n- $V^\\top$: descompone $\\mathbf{b}$ en el sistema de coordenadas de $A$\n- $\\Sigma^+$: invierte el escalado (solo en las direcciones activas)\n- $U$: regresa al espacio original\n\nEn las $n-r$ direcciones del kernel de $A$, $\\Sigma^+$ pone cero — garantizando que $\\hat{\\mathbf{x}} = A^+\\mathbf{b}$ tiene componente nula en $\\ker(A)$, lo que minimiza $\\|\\hat{\\mathbf{x}}\\|_2$."
+      },
+      {
+        label: "Los cuatro casos de $A\\mathbf{x} = \\mathbf{b}$ y la pseudoinversa",
+        body: "La pseudoinversa unifica los cuatro casos posibles de un sistema lineal:\n\n**1. $A$ cuadrada e invertible** ($m=n$, rango $n$): solución única $\\hat{\\mathbf{x}} = A^{-1}\\mathbf{b} = A^+\\mathbf{b}$.\n\n**2. Sobredeterminado** ($m > n$, rango $n$): sin solución exacta en general; $\\hat{\\mathbf{x}} = (A^\\top A)^{-1}A^\\top\\mathbf{b} = A^+\\mathbf{b}$ minimiza $\\|A\\mathbf{x}-\\mathbf{b}\\|_2^2$. Es la solución de mínimos cuadrados — regresión lineal.\n\n**3. Subdeterminado** ($m < n$, rango $m$): infinitas soluciones; $\\hat{\\mathbf{x}} = A^\\top(AA^\\top)^{-1}\\mathbf{b} = A^+\\mathbf{b}$ minimiza $\\|\\mathbf{x}\\|_2$ entre todas las soluciones exactas.\n\n**4. Rango deficiente**: combinación de los anteriores — $A^+\\mathbf{b}$ minimiza $\\|A\\mathbf{x}-\\mathbf{b}\\|_2$ y entre todos los minimizadores elige el de menor $\\|\\mathbf{x}\\|_2$.\n\nEn todos los casos, la pseudoinversa da la solución óptima en el sentido $L^2$ de mínima norma."
+      },
+      {
+        label: "Pseudoinversa regularizada y conexión con Ridge",
+        body: "En la práctica, los valores singulares pequeños en $\\Sigma^+$ producen inestabilidad numérica: $1/\\sigma_r$ puede ser enorme si $\\sigma_r \\approx 0$. La **pseudoinversa de Tikhonov** regulariza:\n\n$$A^+_{\\lambda} = V\\Sigma^+_{\\lambda}U^\\top, \\quad (\\Sigma^+_{\\lambda})_{ii} = \\frac{\\sigma_i}{\\sigma_i^2 + \\lambda}$$\n\nEsta es exactamente la **regresión Ridge**: $(A^\\top A + \\lambda I)^{-1}A^\\top = V\\Sigma^+_{\\lambda}U^\\top$. Para $\\lambda \\to 0$ recuperamos $A^+$; para $\\lambda \\to \\infty$ la solución tiende a $\\mathbf{0}$ (máxima regularización).\n\nEl filtro $\\sigma_i/(\\sigma_i^2+\\lambda)$ atenúa las componentes con $\\sigma_i \\ll \\sqrt{\\lambda}$ (ruido) y preserva aquellas con $\\sigma_i \\gg \\sqrt{\\lambda}$ (señal), interpolando suavemente entre ignorar y invertir cada dirección."
+      },
+      {
+        label: "En Machine Learning",
+        body: "La pseudoinversa subyace a:\n\n**Regresión lineal**: $\\hat{\\boldsymbol{\\beta}} = X^+\\mathbf{y} = (X^\\top X)^{-1}X^\\top\\mathbf{y}$ cuando $X$ tiene rango completo. Numéricamente se computa via QR o SVD, nunca invirtiendo $X^\\top X$ directamente.\n\n**Inicialización de redes neuronales**: métodos como LSUV y pseudoinversa-based init calculan $W^+$ para establecer la ganancia inicial en cada capa.\n\n**Teoría de interpolación** (Neural Tangent Kernel): en el régimen sobreparametrizado, las redes neuronales entrenadas con GD convergen a la solución de mínima norma $\\hat{\\boldsymbol{\\theta}} = \\Phi^+\\mathbf{y}$ donde $\\Phi$ es la matriz del kernel, análoga a la pseudoinversa.\n\n**Atención y proyección**: en cada cabeza de atención, la proyección de valores $V = XW_V$ puede interpretarse como una transformación lineal cuya pseudoinversa caracteriza la reconstrucción óptima. En **RLHF y alignment**, las actualizaciones del modelo con KL-constraint producen soluciones que se asemejan a mínima-norma en el espacio de parámetros."
+      },
     ],
     code: `import numpy as np
+from numpy.linalg import svd, pinv, inv, cond, norm
 
-# Inversa clásica (cuadrada, no singular)
-A = np.array([[2.,1.],[1.,3.]])
-A_inv = np.linalg.inv(A)
-print(np.allclose(A @ A_inv, np.eye(2)))  # True
+# ── 1. Inversa clásica y número de condición ───────────────────────────────
+A = np.array([[3., 1., 0.],
+              [1., 4., 2.],
+              [0., 2., 5.]], dtype=float)
 
-# Pseudoinversa (Moore-Penrose)
-B = np.array([[1,2],[3,4],[5,6]])  # 3x2, sobredeterminado
-B_plus = np.linalg.pinv(B)        # 2x3
+A_inv = inv(A)
+print("A⁻¹ =\\n", A_inv.round(4))
+print(f"A·A⁻¹ = I: {np.allclose(A @ A_inv, np.eye(3))}")
+print(f"Número de condición κ(A) = {cond(A):.4f}")
 
-# B+ resuelve LS: min ||Bx - b||
-b = np.array([1., 2., 3.])
-x_hat = B_plus @ b
-print(f"Solución LS: {x_hat}")
-print(f"Residual: {np.linalg.norm(B @ x_hat - b):.4f}")
+# Matriz mal condicionada
+eps = 1e-10
+A_bad = np.array([[1., 1.], [1., 1.+eps]])
+print(f"\\nMatriz mal condicionada κ = {cond(A_bad):.2e}")
+print(f"det(A_bad) = {np.linalg.det(A_bad):.2e}")
 
-# Verificar ecuaciones de Penrose
-print(np.allclose(B @ B_plus @ B, B))      # 1a ecuación`,
-    related: ["SVD", "Sistemas lineales", "Mínimos cuadrados", "Eliminación gaussiana"],
-    hasViz: false,
+# ── 2. Pseudoinversa vía SVD (manual) ──────────────────────────────────────
+def pseudoinversa_svd(A: np.ndarray, tol: float = 1e-10) -> np.ndarray:
+    """
+    A⁺ = V Σ⁺ Uᵀ
+    Σ⁺: invierte singulares > tol, cero para el resto.
+    """
+    U, S, Vt = svd(A, full_matrices=False)
+    S_inv = np.where(S > tol, 1.0 / S, 0.0)
+    return Vt.T @ np.diag(S_inv) @ U.T
+
+# Verificar contra numpy
+A_rect = np.array([[1., 2., 3.],
+                   [4., 5., 6.]], dtype=float)   # (2×3): subdeterminado
+
+A_plus_manual = pseudoinversa_svd(A_rect)
+A_plus_numpy  = pinv(A_rect)
+print(f"\\nA⁺ manual vs numpy coinciden: {np.allclose(A_plus_manual, A_plus_numpy)}")
+print(f"A⁺ shape: {A_plus_numpy.shape}")   # (3×2)
+
+# Verificar las 4 ecuaciones de Moore-Penrose
+Ap = A_plus_numpy
+print("\\nEcuaciones de Moore-Penrose:")
+print(f"  A A⁺ A = A:       {np.allclose(A_rect @ Ap @ A_rect, A_rect)}")
+print(f"  A⁺ A A⁺ = A⁺:    {np.allclose(Ap @ A_rect @ Ap, Ap)}")
+print(f"  (A A⁺)ᵀ = A A⁺:  {np.allclose((A_rect@Ap).T, A_rect@Ap)}")
+print(f"  (A⁺ A)ᵀ = A⁺ A:  {np.allclose((Ap@A_rect).T, Ap@A_rect)}")
+
+# ── 3. Los cuatro casos de Ax = b ──────────────────────────────────────────
+rng = np.random.default_rng(42)
+
+# Caso 2: sobredeterminado (m > n) — mínimos cuadrados
+A_over = rng.standard_normal((10, 3))
+b_over = rng.standard_normal(10)
+x_ls   = pinv(A_over) @ b_over
+residuo = norm(A_over @ x_ls - b_over)
+print(f"\\nCaso sobredeterminado (10×3):")
+print(f"  ‖Ax-b‖ (mínimos cuadrados) = {residuo:.6f}")
+print(f"  ‖x‖ = {norm(x_ls):.6f}")
+
+# Caso 3: subdeterminado (m < n) — mínima norma
+A_sub = rng.standard_normal((3, 10))
+b_sub = rng.standard_normal(3)
+x_mn  = pinv(A_sub) @ b_sub
+print(f"\\nCaso subdeterminado (3×10):")
+print(f"  ‖Ax-b‖ = {norm(A_sub @ x_mn - b_sub):.2e}  (solución exacta)")
+print(f"  ‖x‖ mínima norma = {norm(x_mn):.6f}")
+
+# Comprobar que cualquier otra solución tiene mayor norma
+x_particular = A_sub.T @ inv(A_sub @ A_sub.T) @ b_sub  # misma sol
+print(f"  Misma sol: {np.allclose(x_mn, x_particular)}")
+
+# ── 4. Pseudoinversa regularizada (Tikhonov / Ridge) ──────────────────────
+def pseudoinversa_ridge(A: np.ndarray, lam: float) -> np.ndarray:
+    """
+    A⁺_λ = V diag(σᵢ/(σᵢ²+λ)) Uᵀ
+    Equivale a (AᵀA + λI)⁻¹Aᵀ para sistemas sobredeterminados.
+    """
+    U, S, Vt = svd(A, full_matrices=False)
+    S_reg = S / (S**2 + lam)
+    return Vt.T @ np.diag(S_reg) @ U.T
+
+# Comparar soluciones para distintos λ
+A_ill = np.array([[1., 1.000001], [1., 1.]])   # casi singular
+b_ill = np.array([2., 2.])
+
+print("\\nEfecto regularización en sistema casi singular:")
+for lam in [0.0, 1e-6, 1e-3, 0.1, 1.0]:
+    if lam == 0.0:
+        x = pinv(A_ill) @ b_ill
+    else:
+        x = pseudoinversa_ridge(A_ill, lam) @ b_ill
+    print(f"  λ={lam:.0e}: x={x.round(4)}, ‖x‖={norm(x):.2f}")
+
+# ── 5. Regresión lineal = pseudoinversa ────────────────────────────────────
+# y = Xβ + ε,  β̂ = X⁺y = (XᵀX)⁻¹Xᵀy
+x_data = np.linspace(0, 5, 30)
+y_true = 2.0*x_data + 1.5
+y_data = y_true + rng.standard_normal(30) * 0.8
+
+X_des = np.column_stack([np.ones(30), x_data])   # (30,2)
+beta_pinv  = pinv(X_des) @ y_data
+beta_lstsq = np.linalg.lstsq(X_des, y_data, rcond=None)[0]
+print(f"\\nRegresión — β̂ (pinv):  {beta_pinv.round(4)}")
+print(f"Regresión — β̂ (lstsq): {beta_lstsq.round(4)}")
+print(f"Residuo: {norm(X_des@beta_pinv - y_data):.4f}")`,
+    related: ["Determinante y Rango", "Descomposición SVD", "Mínimos Cuadrados", "Regularización Ridge", "Transformación Lineal"],
+    hasViz: true,
+    vizType: "pseudoinverse",
   },
   {
-    id: 28, section: "Álgebra Lineal", sectionCode: "II",
+    id: 28,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
     name: "Sistemas de Ecuaciones Lineales",
-    tags: ["álgebra", "sistemas"],
-    definition: "Conjunto de $m$ ecuaciones lineales en $n$ incógnitas. El análisis de existencia y unicidad de soluciones se determina completamente por el rango de la matriz del sistema y la matriz aumentada.",
+    tags: ["álgebra lineal", "sistemas lineales", "eliminación gaussiana", "consistencia", "rango", "mínimos cuadrados"],
+    definition: "Un sistema de ecuaciones lineales es un conjunto de $m$ ecuaciones en $n$ incógnitas que puede escribirse matricialmente como $A\\mathbf{x} = \\mathbf{b}$, con $A \\in \\mathbb{R}^{m \\times n}$, $\\mathbf{x} \\in \\mathbb{R}^n$ y $\\mathbf{b} \\in \\mathbb{R}^m$. El número, existencia y unicidad de soluciones están completamente determinados por la relación entre $\\text{rank}(A)$ y $\\text{rank}([A|\\mathbf{b}])$, sintetizada en el Teorema de Rouché-Frobenius. Resolver sistemas lineales es la operación computacional más fundamental en álgebra numérica.",
     formal: {
-      notation: "Sistema $A\\mathbf{x} = \\mathbf{b}$, $A \\in \\mathbb{R}^{m\\times n}$, $\\mathbf{b} \\in \\mathbb{R}^m$",
-      body: "\\begin{cases} a_{11}x_1 + \\cdots + a_{1n}x_n = b_1 \\\\ \\vdots \\\\ a_{m1}x_1 + \\cdots + a_{mn}x_n = b_m \\end{cases}",
-      geometric: "\\text{Sol. general} = \\mathbf{x}_p + \\ker(A) \\quad \\text{(particular + homogénea)}",
+      notation: "Sea $A \\in \\mathbb{R}^{m \\times n}$, $\\mathbf{x} \\in \\mathbb{R}^n$, $\\mathbf{b} \\in \\mathbb{R}^m$",
+      body: "A\\mathbf{x} = \\mathbf{b} \\text{ tiene solución} \\iff \\mathbf{b} \\in \\text{Col}(A) \\iff \\text{rank}(A) = \\text{rank}([A|\\mathbf{b}]) \\\\[10pt] \\text{Solución general: } \\mathbf{x} = \\hat{\\mathbf{x}}_p + \\mathbf{x}_h, \\quad \\mathbf{x}_h \\in \\ker(A)",
+      geometric: "\\ker(A) = \\{\\mathbf{x} \\in \\mathbb{R}^n : A\\mathbf{x} = \\mathbf{0}\\}, \\quad \\dim(\\ker(A)) = n - \\text{rank}(A)",
       properties: [
-        "\\text{Consistente} \\iff \\text{rank}(A) = \\text{rank}([A|\\mathbf{b}])",
-        "\\text{Solución única} \\iff \\text{rank}(A) = n",
-        "\\text{Infinitas soluciones} \\iff \\text{rank}(A) = \\text{rank}([A|\\mathbf{b}]) < n",
-        "\\text{Teorema de Rouché-Frobenius: clasifica todos los casos}",
+        "\\text{Sin solución: } \\text{rank}(A) < \\text{rank}([A|\\mathbf{b}]) \\quad (\\mathbf{b} \\notin \\text{Col}(A))",
+        "\\text{Solución única: } \\text{rank}(A) = \\text{rank}([A|\\mathbf{b}]) = n \\quad (\\ker(A) = \\{\\mathbf{0}\\})",
+        "\\text{Infinitas soluciones: } \\text{rank}(A) = \\text{rank}([A|\\mathbf{b}]) < n \\quad (\\dim(\\ker(A)) = n - \\text{rank}(A) \\geq 1)",
       ],
     },
-    intuition: "Cada ecuación define un hiperplano en $\\mathbb{R}^n$. La solución es la intersección de todos los hiperplanos. Si son paralelos (inconsistente): sin solución. Si coinciden (dependientes): infinitas. Si se cruzan en un punto: solución única.",
+    intuition: "Un sistema $A\\mathbf{x} = \\mathbf{b}$ pregunta: '¿puede $\\mathbf{b}$ expresarse como combinación lineal de las columnas de $A$?' Si la respuesta es no, el sistema es incompatible. Si sí, la solución existe; y si hay columnas redundantes (linealmente dependientes), hay infinitas maneras de combinarlas para obtener $\\mathbf{b}$ — infinitas soluciones. Geométricamente en $\\mathbb{R}^2$: dos ecuaciones son dos rectas; se pueden cruzar en un punto (única solución), ser paralelas (sin solución) o coincidir (infinitas soluciones).",
     development: [
-      { label: "Clasificación por rango", body: "Sea $r = \\text{rank}(A)$, $\\bar{r} = \\text{rank}([A|\\mathbf{b}])$:\n\n$r < \\bar{r}$: sin solución (inconsistente).\n$r = \\bar{r} = n$: solución única.\n$r = \\bar{r} < n$: infinitas soluciones, espacio afín de dim $n-r$." },
-      { label: "Métodos de resolución", body: "Eliminación gaussiana: $O(n^3)$, transforma en forma escalonada.\nFactorización LU: $O(n^3)$ pero reutilizable para múltiples $\\mathbf{b}$.\nFactorización de Cholesky: $O(n^3/3)$ si $A$ es SPD.\nMétodos iterativos (CG, GMRES): para sistemas grandes y esparsos, $O(kn^2)$ con $k\\ll n$." },
-      { label: "Solución en ML", body: "Ecuaciones normales de regresión lineal: $(X^\\top X)\\boldsymbol{\\beta} = X^\\top\\mathbf{y}$.\nSi $X^\\top X$ es singular (multicolinealidad): usar SVD/pseudoinversa o regularización ridge: $(X^\\top X + \\lambda I)\\boldsymbol{\\beta} = X^\\top\\mathbf{y}$ — siempre tiene solución única para $\\lambda > 0$." },
+      {
+        label: "Teorema de Rouché-Frobenius y clasificación",
+        body: "El **Teorema de Rouché-Frobenius** clasifica completamente los sistemas $A\\mathbf{x}=\\mathbf{b}$:\n\nSea $r = \\text{rank}(A)$ y $r' = \\text{rank}([A|\\mathbf{b}])$:\n\n- Si $r < r'$: **sistema incompatible** (sin solución). $\\mathbf{b}$ no está en el espacio columna de $A$.\n- Si $r = r' = n$: **sistema compatible determinado** (solución única). Kernel trivial.\n- Si $r = r' < n$: **sistema compatible indeterminado** (infinitas soluciones). El espacio de soluciones es un subespacio afín de dimensión $n - r$.\n\nLa solución general en el caso compatible se expresa como $\\mathbf{x} = \\mathbf{x}_p + \\ker(A)$, donde $\\mathbf{x}_p$ es cualquier solución particular y $\\ker(A)$ es el espacio nulo."
+      },
+      {
+        label: "Eliminación Gaussiana y factorización LU",
+        body: "La **eliminación gaussiana** transforma $A$ en forma escalonada reducida (RREF) mediante operaciones elementales de fila: (1) intercambio de filas, (2) escalado de fila, (3) suma de múltiplo de fila a otra. Estas operaciones equivalen a premultiplicar por matrices elementales invertibles, preservando el conjunto de soluciones.\n\nLa **factorización LU** (con pivoteo $PA = LU$) descompone $A$ en:\n- $P$: matriz de permutación\n- $L$: triangular inferior con $l_{ii}=1$\n- $U$: triangular superior\n\nResolver $A\\mathbf{x}=\\mathbf{b}$ se reduce entonces a dos sistemas triangulares $\\mathcal{O}(n^2)$ cada uno:\n\n$$L\\mathbf{y} = P\\mathbf{b} \\quad (\\text{sustitución hacia adelante})$$\n$$U\\mathbf{x} = \\mathbf{y} \\quad (\\text{sustitución hacia atrás})$$\n\nEl coste total es $\\mathcal{O}(n^3)$ para la factorización y $\\mathcal{O}(n^2)$ para cada resolución posterior."
+      },
+      {
+        label: "Condicionamiento y estabilidad numérica",
+        body: "Un sistema $A\\mathbf{x}=\\mathbf{b}$ está **mal condicionado** cuando pequeñas perturbaciones en $\\mathbf{b}$ o $A$ producen grandes cambios en $\\mathbf{x}$. El análisis de perturbaciones da:\n\n$$\\frac{\\|\\delta\\mathbf{x}\\|}{\\|\\mathbf{x}\\|} \\leq \\kappa(A) \\frac{\\|\\delta\\mathbf{b}\\|}{\\|\\mathbf{b}\\|}$$\n\ndonde $\\kappa(A) = \\|A\\|\\|A^{-1}\\| = \\sigma_{\\max}/\\sigma_{\\min}$ es el **número de condición**. Si $\\kappa(A) \\sim 10^k$, se pierden aproximadamente $k$ dígitos significativos en la solución.\n\nPrincipios de estabilidad numérica:\n- Usar **pivoteo parcial** (mayor elemento en columna) en eliminación gaussiana\n- Para sistemas sobredeterminados, preferir **factorización QR** sobre ecuaciones normales $(A^\\top A)^{-1}A^\\top$, ya que $\\kappa(A^\\top A) = \\kappa(A)^2$\n- Para sistemas mal condicionados: regularización de Tikhonov, SVD truncada"
+      },
+      {
+        label: "Sistemas sobredeterminados e indeterminados en ML",
+        body: "Los sistemas lineales en ML rara vez son cuadrados e invertibles. Los dos casos más comunes son:\n\n**Sobredeterminado** ($m \\gg n$, más ecuaciones que incógnitas): aparece en regresión donde $m$ muestras definen ecuaciones y $n$ parámetros son incógnitas. La solución de mínimos cuadrados $\\hat{\\mathbf{x}} = (A^\\top A)^{-1}A^\\top \\mathbf{b}$ minimiza $\\|A\\mathbf{x}-\\mathbf{b}\\|_2^2$ y equivale a proyectar $\\mathbf{b}$ sobre $\\text{Col}(A)$. Las **ecuaciones normales** $A^\\top A \\hat{\\mathbf{x}} = A^\\top \\mathbf{b}$ siempre tienen solución.\n\n**Sobreparametrizado** ($n \\gg m$, más incógnitas que ecuaciones): régimen moderno de LLMs y redes neuronales anchas. El sistema tiene infinitas soluciones exactas; el descenso de gradiente converge a la de **mínima norma** $\\hat{\\mathbf{x}} = A^\\top(AA^\\top)^{-1}\\mathbf{b}$ bajo ciertas condiciones de inicialización. Esto conecta con la **teoría de interpolación** y el **benign overfitting** en alta dimensión."
+      },
+      {
+        label: "En Machine Learning",
+        body: "Los sistemas lineales son el núcleo computacional de:\n\n**Propagación hacia atrás**: en cada capa, el cálculo de gradientes implica resolver sistemas de la forma $W\\boldsymbol{\\delta} = \\mathbf{g}$ implícitamente mediante multiplicación por $W^\\top$.\n\n**Procesos Gaussianos**: la predicción requiere resolver $(K + \\sigma^2 I)\\boldsymbol{\\alpha} = \\mathbf{y}$, donde $K$ es la matriz de kernel. El coste $\\mathcal{O}(n^3)$ es el cuello de botella que motiva aproximaciones sparse e inductivas.\n\n**Atención lineal**: variantes de atención que evitan $\\mathcal{O}(n^2)$ reformulan $\\text{softmax}(QK^\\top)V$ como un sistema lineal aproximado, explotando la estructura de bajo rango de la matriz de atención.\n\n**Optimizadores de segundo orden** (Newton, L-BFGS): cada paso resuelve $H\\boldsymbol{\\Delta\\theta} = -\\nabla\\mathcal{L}$ donde $H$ es la Hessiana. Para redes neuronales, $H \\in \\mathbb{R}^{p\\times p}$ con $p \\sim 10^9$ hace esto intractable directamente — motivando aproximaciones diagonales (Adam), Kronecker-factored (K-FAC) y métodos de Hessiana libre."
+      },
     ],
     code: `import numpy as np
-from scipy.linalg import solve, lu_factor, lu_solve
+from numpy.linalg import matrix_rank, solve, lstsq, cond
+from scipy.linalg import lu
 
-A = np.array([[2.,1.,-1.],[1.,3.,2.],[3.,0.,1.]])
-b = np.array([8., 13., 11.])
+# ── 1. Clasificación por Rouché-Frobenius ──────────────────────────────────
+def clasificar_sistema(A: np.ndarray, b: np.ndarray) -> str:
+    """
+    Clasifica Ax=b según el Teorema de Rouché-Frobenius.
+    """
+    Ab = np.column_stack([A, b])
+    r  = matrix_rank(A)
+    r_ = matrix_rank(Ab)
+    n  = A.shape[1]
+    if r < r_:
+        return f"Incompatible (sin solución): rank(A)={r} < rank([A|b])={r_}"
+    elif r == n:
+        return f"Compatible determinado (solución única): rank={r}=n={n}"
+    else:
+        return f"Compatible indeterminado (∞ soluciones): rank={r}<n={n}, dim ker={n-r}"
 
-# Método 1: solve directo (LU interno)
-x = solve(A, b)
-print(f"Solución: {x}")
-print(f"Verificación: {np.allclose(A @ x, b)}")
+# Tres casos canónicos en R^2
+casos = [
+    ("Sin solución",          np.array([[1.,2.],[2.,4.]]),    np.array([1.,3.])),
+    ("Solución única",        np.array([[2.,1.],[1.,3.]]),    np.array([5.,8.])),
+    ("Infinitas soluciones",  np.array([[1.,2.],[2.,4.]]),    np.array([3.,6.])),
+]
+for nombre, A, b in casos:
+    print(f"{nombre}:")
+    print(f"  {clasificar_sistema(A, b)}\\n")
 
-# Método 2: LU factorización (reutilizable)
-lu, piv = lu_factor(A)
-x1 = lu_solve((lu, piv), b)
-b2 = np.array([1., 2., 3.])
-x2 = lu_solve((lu, piv), b2)  # Mismo A, distinto b, gratis
+# ── 2. Eliminación Gaussiana (implementación didáctica) ────────────────────
+def eliminacion_gaussiana(A: np.ndarray, b: np.ndarray,
+                          verbose: bool = False) -> np.ndarray | None:
+    """
+    Resuelve Ax=b por eliminación gaussiana con pivoteo parcial.
+    Devuelve x si el sistema es compatible determinado, None si singular.
+    """
+    n = len(b)
+    M = np.column_stack([A.astype(float), b.astype(float)])
 
-# Método 3: ridge para sistema mal condicionado
-lam = 1e-4
-x_ridge = np.linalg.solve(A.T @ A + lam*np.eye(3), A.T @ b)`,
-    related: ["Eliminación gaussiana", "Factorización LU", "Inversa", "Mínimos cuadrados"],
-    hasViz: false,
+    for col in range(n):
+        # Pivoteo parcial: fila con mayor |elemento| en columna actual
+        pivot_row = col + np.argmax(np.abs(M[col:, col]))
+        M[[col, pivot_row]] = M[[pivot_row, col]]
+
+        if np.abs(M[col, col]) < 1e-12:
+            return None   # singular
+
+        # Eliminación
+        for row in range(col+1, n):
+            factor = M[row, col] / M[col, col]
+            M[row, col:] -= factor * M[col, col:]
+            if verbose:
+                print(f"  Eliminar fila {row} usando fila {col}, factor={factor:.4f}")
+
+    # Sustitución hacia atrás
+    x = np.zeros(n)
+    for i in range(n-1, -1, -1):
+        x[i] = (M[i, -1] - M[i, i+1:n] @ x[i+1:n]) / M[i, i]
+    return x
+
+A_sq = np.array([[2., 1., -1.],
+                 [-3.,-1.,  2.],
+                 [-2., 1.,  2.]])
+b_sq = np.array([8., -11., -3.])
+
+x_gauss = eliminacion_gaussiana(A_sq, b_sq, verbose=True)
+x_numpy  = solve(A_sq, b_sq)
+print(f"\\nSolución Gaussiana: {x_gauss.round(4)}")
+print(f"Solución numpy:     {x_numpy.round(4)}")
+print(f"Verificación Ax=b:  {np.allclose(A_sq @ x_gauss, b_sq)}")
+
+# ── 3. Factorización LU ────────────────────────────────────────────────────
+P_lu, L_lu, U_lu = lu(A_sq)
+print(f"\\nLU: PA=LU verificado: {np.allclose(P_lu @ A_sq, L_lu @ U_lu)}")
+
+# Resolver con LU: Ly=Pb, Ux=y
+y_lu = np.linalg.solve(L_lu, P_lu @ b_sq)
+x_lu = np.linalg.solve(U_lu, y_lu)
+print(f"Solución LU: {x_lu.round(4)}")
+
+# ── 4. Sistema sobredeterminado (mínimos cuadrados) ────────────────────────
+rng = np.random.default_rng(42)
+m, n = 50, 3
+A_over = rng.standard_normal((m, n))
+b_over = A_over @ np.array([1., -2., 0.5]) + 0.3*rng.standard_normal(m)
+
+# Método 1: ecuaciones normales (menos estable)
+ATA = A_over.T @ A_over
+ATb = A_over.T @ b_over
+x_normal = solve(ATA, ATb)
+
+# Método 2: lstsq (via SVD, más estable)
+x_lstsq, residual, rank, sv = lstsq(A_over, b_over, rcond=None)
+
+print(f"\\nSistema sobredeterminado ({m}×{n}):")
+print(f"  κ(A):     {cond(A_over):.2f}")
+print(f"  κ(AᵀA):  {cond(ATA):.2f}  (= κ(A)²)")
+print(f"  x (normal eq): {x_normal.round(4)}")
+print(f"  x (lstsq):     {x_lstsq.round(4)}")
+print(f"  ‖Ax-b‖:  {np.linalg.norm(A_over@x_lstsq-b_over):.4f}")
+
+# ── 5. Sistema sobreparametrizado (mínima norma) ───────────────────────────
+m2, n2 = 5, 20   # n >> m: infinitas soluciones
+A_sub = rng.standard_normal((m2, n2))
+b_sub = rng.standard_normal(m2)
+
+# Mínima norma: x = Aᵀ(AAᵀ)⁻¹b
+ATA2 = A_sub @ A_sub.T
+x_mn  = A_sub.T @ solve(ATA2, b_sub)
+
+# Pseudoinversa (equivalente)
+x_pinv = np.linalg.pinv(A_sub) @ b_sub
+
+print(f"\\nSistema sobreparametrizado ({m2}×{n2}):")
+print(f"  ‖x_mn - x_pinv‖ = {np.linalg.norm(x_mn - x_pinv):.2e}")
+print(f"  ‖Ax - b‖ = {np.linalg.norm(A_sub@x_mn - b_sub):.2e}  (solución exacta)")
+print(f"  ‖x_mn‖ = {np.linalg.norm(x_mn):.4f}  (mínima norma)")
+
+# Cualquier otra solución tiene mayor norma
+x_other = x_mn + rng.standard_normal(n2)*0.1
+# proyectar para que también sea solución
+x_other = x_other - A_sub.T @ solve(ATA2, A_sub @ x_other - b_sub)
+print(f"  ‖x_other‖ = {np.linalg.norm(x_other):.4f}  (> ‖x_mn‖ ✓)")
+
+# ── 6. Número de condición y estabilidad ───────────────────────────────────
+print("\\nEfecto del condicionamiento:")
+for kappa_target in [1, 10, 1e4, 1e8]:
+    U_, _, Vt_ = np.linalg.svd(rng.standard_normal((4,4)))
+    s_vals = np.array([kappa_target, kappa_target/2, 2, 1])
+    A_cond = U_ @ np.diag(s_vals) @ Vt_
+    x_true = np.ones(4)
+    b_true = A_cond @ x_true
+    b_pert = b_true + 1e-6 * rng.standard_normal(4)   # perturbación pequeña
+    x_pert = solve(A_cond, b_pert)
+    err_rel = np.linalg.norm(x_pert - x_true) / np.linalg.norm(x_true)
+    print(f"  κ≈{kappa_target:.0e}: error relativo en x = {err_rel:.2e}")`,
+    related: ["Determinante y Rango", "Inversa y Pseudoinversa", "Transformación Lineal", "Mínimos Cuadrados", "Eigenvalores y Eigenvectores"],
+    hasViz: true,
+    vizType: "linearSystems",
   },
   {
     id: 31, section: "Álgebra Lineal", sectionCode: "II",
@@ -3459,154 +3528,1521 @@ Z = np.einsum('bij,bjk->bik', X, Y)   # (8,3,5)`,
     hasViz: false,
   },
   {
-    id: 21, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Distancia Euclídea",
-    tags: ["métricas", "geometría"],
-    definition: "Distancia estándar entre dos puntos en $\\mathbb{R}^n$, generalización del teorema de Pitágoras. Inducida por la norma $L_2$. Base de algoritmos de clustering, kNN y kernels gaussianos.",
-    formal: {
-      notation: "Sean $\\mathbf{x}, \\mathbf{y} \\in \\mathbb{R}^n$",
-      body: "d(\\mathbf{x},\\mathbf{y}) = \\|\\mathbf{x}-\\mathbf{y}\\|_2 = \\sqrt{\\sum_{i=1}^n (x_i - y_i)^2}",
-      geometric: "d^2(\\mathbf{x},\\mathbf{y}) = \\|\\mathbf{x}\\|^2 - 2\\mathbf{x}\\cdot\\mathbf{y} + \\|\\mathbf{y}\\|^2",
-      properties: [
-        "\\text{Simetría: } d(\\mathbf{x},\\mathbf{y}) = d(\\mathbf{y},\\mathbf{x})",
-        "\\text{Desig. triangular: } d(\\mathbf{x},\\mathbf{z}) \\leq d(\\mathbf{x},\\mathbf{y}) + d(\\mathbf{y},\\mathbf{z})",
-        "d(\\mathbf{x},\\mathbf{y}) = 0 \\iff \\mathbf{x} = \\mathbf{y}",
-        "\\text{Maldición de la dimensión: } \\mathbb{E}[d] \\sim \\sqrt{n} \\text{ crece con la dim}",
-      ],
-    },
-    intuition: "En $\\mathbb{R}^2$: distancia en línea recta entre dos puntos. En dimensión alta, los puntos tienden a estar todos a distancias similares entre sí (concentración de la medida), haciendo que la distancia euclídea sea menos informativa.",
-    development: [
-      { label: "Maldición de la dimensión", body: "En $\\mathbb{R}^n$ con puntos uniformes en $[0,1]^n$: $$\\frac{d_{\\max} - d_{\\min}}{d_{\\min}} \\to 0 \\text{ cuando } n \\to \\infty$$ Todos los puntos se vuelven equidistantes. kNN y clustering euclídeo pierden poder discriminativo en $d > 100$." },
-      { label: "Cálculo eficiente", body: "Para matrices $X \\in \\mathbb{R}^{n\\times d}$, $Y \\in \\mathbb{R}^{m\\times d}$, la matriz de distancias al cuadrado: $$D_{ij}^2 = \\|\\mathbf{x}_i - \\mathbf{y}_j\\|^2 = \\|\\mathbf{x}_i\\|^2 - 2\\mathbf{x}_i\\cdot\\mathbf{y}_j + \\|\\mathbf{y}_j\\|^2$$ Expandir como $\\|X\\|^2 - 2XY^\\top + \\|Y\\|^2$ (operaciones matriciales, $O(nmd)$ pero vectorizado)." },
-      { label: "Distancia de Mahalanobis", body: "Generalización que incorpora la covarianza $\\Sigma$: $$d_M(\\mathbf{x},\\mathbf{y}) = \\sqrt{(\\mathbf{x}-\\mathbf{y})^\\top\\Sigma^{-1}(\\mathbf{x}-\\mathbf{y})}$$ Invariante a transformaciones lineales. Si $\\Sigma = I$: euclídea. Más apropiada cuando features tienen distintas escalas o correlaciones." },
-    ],
-    code: `import numpy as np
-
-x = np.array([1., 2., 3.])
-y = np.array([4., 0., -1.])
-
-# Distancia euclídea
-d = np.linalg.norm(x - y)
-print(f"d(x,y) = {d:.4f}")
-
-# Matriz de distancias entre conjuntos de puntos
-def dist_matrix(X, Y):
-    """O(nmd) vectorizado."""
-    X2 = np.sum(X**2, axis=1, keepdims=True)
-    Y2 = np.sum(Y**2, axis=1, keepdims=True)
-    return np.sqrt(np.maximum(X2 - 2*X@Y.T + Y2.T, 0))
-
-X = np.random.randn(50, 10)
-Y = np.random.randn(30, 10)
-D = dist_matrix(X, Y)
-print(f"Matriz distancias: {D.shape}")   # (50, 30)
-
-# Distancia de Mahalanobis
-from scipy.spatial.distance import mahalanobis
-Sigma = np.cov(X.T)
-d_mah = mahalanobis(X[0], X[1], np.linalg.inv(Sigma))`,
-    related: ["Norma L2", "Similitud coseno", "kNN", "Clustering"],
-    hasViz: false,
-  },
-  {
-    id: 29, section: "Álgebra Lineal", sectionCode: "II",
+    id: 29,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
     name: "Eliminación Gaussiana",
-    tags: ["sistemas lineales", "algoritmos"],
-    definition: "Algoritmo para resolver sistemas lineales $A\\mathbf{x}=\\mathbf{b}$ transformando la matriz aumentada en forma escalonada reducida mediante operaciones elementales de fila. Base de la factorización LU.",
+    tags: ["álgebra lineal", "eliminación gaussiana", "factorización LU", "pivoteo", "sistemas lineales", "álgebra numérica"],
+    definition: "La eliminación gaussiana es el algoritmo canónico para resolver sistemas lineales $A\\mathbf{x}=\\mathbf{b}$, calcular determinantes e invertir matrices. Transforma la matriz aumentada $[A|\\mathbf{b}]$ en forma escalonada (row echelon form) mediante operaciones elementales de fila que preservan el conjunto de soluciones. Con sustitución hacia atrás, se obtiene la solución en $\\mathcal{O}(n^3)$ operaciones aritméticas. Su versión estabilizada con pivoteo parcial es el caballo de batalla de la álgebra lineal numérica.",
     formal: {
-      notation: "Operaciones elementales de fila: $R_i \\leftrightarrow R_j$, $R_i \\leftarrow \\alpha R_i$, $R_i \\leftarrow R_i + \\beta R_j$",
-      body: "[A|\\mathbf{b}] \\xrightarrow{\\text{elim.}} [U|\\mathbf{c}] \\quad \\text{(forma escalonada superior)}",
-      geometric: "A = LU \\quad \\text{(factorización LU)}",
+      notation: "Sea $A \\in \\mathbb{R}^{n \\times n}$ y la matriz aumentada $[A|\\mathbf{b}] \\in \\mathbb{R}^{n \\times (n+1)}$",
+      body: "\\text{Eliminación: } a_{ij}^{(k+1)} = a_{ij}^{(k)} - \\frac{a_{ik}^{(k)}}{a_{kk}^{(k)}} a_{kj}^{(k)}, \\quad i > k,\\ j \\geq k \\\\[10pt] \\text{Multiplicador: } m_{ik} = \\frac{a_{ik}^{(k)}}{a_{kk}^{(k)}}, \\quad a_{kk}^{(k)} \\neq 0 \\text{ (pivote)}",
+      geometric: "PA = LU, \\quad L = \\begin{pmatrix}1&&\\\\m_{21}&1&\\\\m_{31}&m_{32}&1\\end{pmatrix}, \\quad U = \\begin{pmatrix}u_{11}&u_{12}&u_{13}\\\\&u_{22}&u_{23}\\\\&&u_{33}\\end{pmatrix}",
       properties: [
-        "\\text{Costo computacional: } O(n^3/3) \\text{ multiplicaciones}",
-        "\\text{Pivoteo parcial: intercambiar filas para estabilidad numérica}",
-        "\\text{PA} = LU \\text{ con pivoteo (P = matriz de permutación)}",
-        "\\text{Sustitución hacia atrás: } O(n^2) \\text{ para resolver } U\\mathbf{x}=\\mathbf{c}",
+        "\\text{Coste: } \\frac{2n^3}{3} + \\mathcal{O}(n^2) \\text{ flops para factorización; } 2n^2 \\text{ para sustitución}",
+        "\\text{Pivoteo parcial: intercambiar fila con } \\max_{i \\geq k}|a_{ik}^{(k)}|, \\text{ garantiza } |m_{ik}| \\leq 1",
+        "\\det(A) = (-1)^s \\prod_{k=1}^n u_{kk}, \\quad s = \\text{número de intercambios de filas}",
       ],
     },
-    intuition: "Eliminación gaussiana es como limpiar un sistema de ecuaciones: usar una ecuación para eliminar una incógnita de todas las demás, repetir hasta tener una sola incógnita, y luego deshacer el camino (sustitución hacia atrás).",
+    intuition: "La eliminación gaussiana es la generalización del método de sustitución escolar a $n$ dimensiones. En cada paso, se toma una ecuación (la del pivote) y se usa para eliminar una incógnita del resto de ecuaciones — exactamente como al despejar $x$ en la primera ecuación y sustituir en las demás. Al terminar, la matriz tiene forma de escalera triangular: la última ecuación tiene una sola incógnita, la penúltima dos, y así sucesivamente. La sustitución hacia atrás recorre la escalera de abajo arriba.",
     development: [
-      { label: "Pivoteo y estabilidad numérica", body: "Sin pivoteo: el pivote puede ser cero (error) o muy pequeño (inestabilidad numérica — amplificación de errores de redondeo).\n\nPivoteo parcial: elegir la fila con máximo $|a_{ij}|$ como pivote. Estándar en la práctica.\nPivoteo completo: máximo en toda la submatriz — muy estable pero $O(n^3)$ búsquedas." },
-      { label: "Factorización LU", body: "La eliminación gaussiana es equivalente a factorizar $PA = LU$:\n— $L$: triangular inferior, $l_{ij}$ son los multiplicadores usados.\n— $U$: triangular superior, la forma escalonada.\n\nVentaja: con $A = LU$ fijo, resolver $A\\mathbf{x}=\\mathbf{b}$ para múltiples $\\mathbf{b}$ cuesta solo $O(n^2)$ por $\\mathbf{b}$." },
-      { label: "Caso SPD: Cholesky", body: "Si $A$ es simétrica definida positiva: $A = LL^\\top$ donde $L$ es triangular inferior.\nMás eficiente: solo $O(n^3/6)$ operaciones, siempre estable sin pivoteo.\nUso: regresión lineal con regularización, factor de riesgo, distribuciones gaussianas." },
+      {
+        label: "El algoritmo: tres operaciones elementales de fila",
+        body: "Toda la eliminación gaussiana se construye sobre tres **operaciones elementales de fila** (ERO), cada una representable como premultiplicación por una matriz invertible:\n\n1. $R_i \\leftrightarrow R_j$ (intercambio): representada por una matriz de permutación $P_{ij}$ con $\\det = -1$.\n2. $R_i \\leftarrow \\alpha R_i$ (escalado, $\\alpha \\neq 0$): matriz diagonal con $\\alpha$ en posición $i$.\n3. $R_i \\leftarrow R_i - m R_j$ (eliminación): matriz identidad con $-m$ en posición $(i,j)$.\n\nLa operación fundamental de eliminación (tipo 3) en el paso $k$:\n\n$$a_{ij}^{(k+1)} = a_{ij}^{(k)} - \\underbrace{\\frac{a_{ik}^{(k)}}{a_{kk}^{(k)}}}_{m_{ik}} a_{kj}^{(k)}, \\quad i = k+1,\\ldots,n, \\quad j = k,\\ldots,n+1$$\n\nAl final de los $n-1$ pasos de eliminación, la matriz está en forma escalonada superior (REF), y la solución se obtiene por **sustitución hacia atrás**."
+      },
+      {
+        label: "Factorización LU y por qué es superior a resolver directamente",
+        body: "La eliminación gaussiana produce implícitamente la **factorización LU**: $A = LU$ donde $L$ es triangular inferior con $l_{ii}=1$ y entradas $l_{ij} = m_{ij}$ (los multiplicadores), y $U$ es la forma escalonada resultante.\n\nLa ventaja crucial aparece cuando hay **múltiples lados derechos** $\\mathbf{b}_1, \\mathbf{b}_2, \\ldots$: la factorización $A = LU$ se computa una vez en $\\mathcal{O}(n^3)$, y cada sistema $A\\mathbf{x}_k = \\mathbf{b}_k$ se resuelve en $\\mathcal{O}(n^2)$:\n\n$$L\\mathbf{y}_k = \\mathbf{b}_k \\quad \\text{(sustitución hacia adelante)}$$\n$$U\\mathbf{x}_k = \\mathbf{y}_k \\quad \\text{(sustitución hacia atrás)}$$\n\nEsto es esencial en, por ejemplo, inversión de matrices ($n$ lados derechos = columnas de $I$), o entrenamiento con validación cruzada donde se resuelve el mismo sistema con diferentes $\\mathbf{b}$."
+      },
+      {
+        label: "Pivoteo: necesidad y tipos",
+        body: "Sin pivoteo, la eliminación gaussiana falla si el pivote $a_{kk}^{(k)} = 0$, y es numéricamente inestable si es muy pequeño. Existen tres estrategias:\n\n**Pivoteo parcial** (estándar): en el paso $k$, intercambiar la fila $k$ con la fila $i^* = \\arg\\max_{i\\geq k}|a_{ik}^{(k)}|$. Garantiza $|m_{ik}| \\leq 1$, controlando la amplificación de errores de redondeo. Produce $PA = LU$ con $\\|L\\|_\\infty \\leq 1$.\n\n**Pivoteo completo**: busca el máximo en toda la submatriz restante — más estable pero $\\mathcal{O}(n^3)$ adicional para la búsqueda, raramente necesario en la práctica.\n\n**Sin pivoteo**: válido para matrices **definidas positivas** (SPD) donde la estabilidad está garantizada por la estructura. La factorización de **Cholesky** $A = LL^\\top$ explota la simetría, costando la mitad: $\\frac{n^3}{3}$ flops."
+      },
+      {
+        label: "Análisis de coste y formas escalonadas",
+        body: "El coste de la eliminación gaussiana:\n\n- **Fase de eliminación**: en el paso $k$, se actualizan $(n-k)^2$ entradas. Total:\n\n$$\\sum_{k=1}^{n-1}(n-k)^2 \\approx \\frac{n^3}{3} \\text{ multiplicaciones} + \\frac{n^3}{3} \\text{ sumas} = \\frac{2n^3}{3} \\text{ flops}$$\n\n- **Sustitución hacia atrás**: $\\sum_{k=1}^n k = \\frac{n(n+1)}{2} \\approx n^2$ flops.\n\nLa **forma escalonada reducida** (RREF) va un paso más allá: además de zeros bajo cada pivote, también los elimina encima, y normaliza los pivotes a 1. Requiere $\\mathcal{O}(n^3)$ adicional. En la práctica numérica se usa REF + sustitución hacia atrás (equivalente pero más eficiente)."
+      },
+      {
+        label: "En Machine Learning",
+        body: "La eliminación gaussiana y la factorización LU son el sustrato de operaciones de ML que parecen de alto nivel:\n\n**Regresión Ridge**: $(X^\\top X + \\lambda I)\\hat{\\boldsymbol{\\beta}} = X^\\top\\mathbf{y}$. La matriz del sistema es SPD, lo que permite usar **Cholesky** en vez de LU, reduciendo el coste a la mitad y garantizando estabilidad.\n\n**Procesos Gaussianos**: la predicción requiere $(K + \\sigma^2 I)^{-1}\\mathbf{y}$. En la práctica se factoriza $K + \\sigma^2 I = LL^\\top$ y se resuelven dos sistemas triangulares. El cuello de botella $\\mathcal{O}(n^3)$ en $n$ puntos de entrenamiento limita los GPs a $n \\lesssim 10^4$.\n\n**Redes neuronales — capas lineales**: el forward pass $\\mathbf{h} = W\\mathbf{x}$ es multiplicación matricial, no resolución de sistemas. Pero en **implicit layers** (DEQ, Neural ODEs), el estado de equilibrio $\\mathbf{z}^* = f(\\mathbf{z}^*, \\mathbf{x})$ se encuentra resolviendo un sistema lineal en cada forward pass.\n\n**Optimización de segundo orden**: Newton y Gauss-Newton resuelven $H\\boldsymbol{\\delta} = -\\mathbf{g}$ en cada paso. Para problemas pequeños se usa Cholesky; para problemas grandes se usan métodos iterativos (CG, LSQR) que evitan factorizar explícitamente."
+      },
     ],
     code: `import numpy as np
-from scipy.linalg import lu, solve_triangular
 
-A = np.array([[2.,1.,-1.],[4.,3.,1.],[2.,2.,2.]])
-b = np.array([8., 14., 12.])
+# ── 1. Eliminación Gaussiana con pivoteo parcial (implementación completa) ──
+def eliminacion_gaussiana_lu(A: np.ndarray) -> tuple:
+    """
+    Factorización PA = LU con pivoteo parcial.
+    Devuelve (P, L, U, n_swaps) donde n_swaps sirve para det.
+    Coste: O(2n³/3) flops.
+    """
+    n = A.shape[0]
+    U = A.astype(float).copy()
+    L = np.eye(n)
+    P = np.eye(n)
+    n_swaps = 0
 
-# Eliminación gaussiana manual (ilustrativa)
-def gauss_eliminacion(A, b):
+    for k in range(n - 1):
+        # Pivoteo parcial: fila con máximo |elemento| en columna k
+        idx = k + np.argmax(np.abs(U[k:, k]))
+        if idx != k:
+            U[[k, idx]] = U[[idx, k]]       # intercambiar filas en U
+            P[[k, idx]] = P[[idx, k]]       # reflejar en P
+            if k > 0:                        # ajustar L ya construida
+                L[[k, idx], :k] = L[[idx, k], :k]
+            n_swaps += 1
+
+        if np.abs(U[k, k]) < 1e-14:
+            raise ValueError(f"Pivote nulo en paso {k}: matriz singular")
+
+        # Eliminación: calcular multiplicadores y actualizar
+        for i in range(k + 1, n):
+            m_ik = U[i, k] / U[k, k]       # multiplicador
+            L[i, k] = m_ik                  # guardar en L
+            U[i, k:] -= m_ik * U[k, k:]    # eliminar
+
+    return P, L, U, n_swaps
+
+
+def resolver_lu(P, L, U, b: np.ndarray) -> np.ndarray:
+    """
+    Resuelve Ax=b usando la factorización PA=LU previamente calculada.
+    1) Ly = Pb  (sustitución hacia adelante) — O(n²)
+    2) Ux = y   (sustitución hacia atrás)    — O(n²)
+    """
     n = len(b)
-    Ab = np.hstack([A.astype(float), b[:,None]])
-    for col in range(n):
-        # Pivoteo parcial
-        max_row = col + np.argmax(np.abs(Ab[col:, col]))
-        Ab[[col, max_row]] = Ab[[max_row, col]]
-        for row in range(col+1, n):
-            factor = Ab[row, col] / Ab[col, col]
-            Ab[row] -= factor * Ab[col]
-    # Sustitución hacia atrás
+    Pb = P @ b
+
+    # Sustitución hacia adelante: Ly = Pb
+    y = np.zeros(n)
+    for i in range(n):
+        y[i] = Pb[i] - L[i, :i] @ y[:i]
+
+    # Sustitución hacia atrás: Ux = y
     x = np.zeros(n)
-    for i in range(n-1, -1, -1):
-        x[i] = (Ab[i,-1] - Ab[i,i+1:n] @ x[i+1:]) / Ab[i,i]
+    for i in range(n - 1, -1, -1):
+        x[i] = (y[i] - U[i, i+1:] @ x[i+1:]) / U[i, i]
+
     return x
 
-x = gauss_eliminacion(A, b)
-print(f"Solución: {x}")
 
-# scipy: PA=LU
-P, L, U = lu(A)
-y = solve_triangular(L, P@b, lower=True)
-x2 = solve_triangular(U, y)
-print(np.allclose(x, x2))`,
-    related: ["Sistemas lineales", "Factorización LU", "Cholesky", "Inversa"],
-    hasViz: false,
+# ── 2. Verificación con sistema 4×4 ───────────────────────────────────────
+A = np.array([[2.,  1., -1.,  3.],
+              [-4., -2., 2., -1.],
+              [1.,  3.,  2.,  2.],
+              [3.,  1., -3.,  1.]], dtype=float)
+b = np.array([7., -5., 9., 4.])
+
+P, L, U, n_swaps = eliminacion_gaussiana_lu(A)
+
+print("P =\\n", P.astype(int))
+print("L =\\n", L.round(4))
+print("U =\\n", U.round(4))
+print(f"PA = LU verificado: {np.allclose(P @ A, L @ U)}")
+
+x_sol = resolver_lu(P, L, U, b)
+print(f"\\nSolución x = {x_sol.round(6)}")
+print(f"Verificación Ax = b: {np.allclose(A @ x_sol, b)}")
+
+# ── 3. Determinante via LU ─────────────────────────────────────────────────
+# det(A) = (-1)^s * prod(diag(U))
+det_lu    = (-1)**n_swaps * np.prod(np.diag(U))
+det_numpy = np.linalg.det(A)
+print(f"\\ndet(A) via LU:    {det_lu:.6f}")
+print(f"det(A) via numpy: {det_numpy:.6f}")
+
+# ── 4. Inversión de matriz: n lados derechos ───────────────────────────────
+def invertir_lu(A: np.ndarray) -> np.ndarray:
+    """
+    A⁻¹ resolviendo A·[x₁|...|xₙ] = I columna a columna.
+    Una sola factorización LU, n sustituciones O(n²) cada una.
+    Total: O(n³) factorización + O(n³) sustituciones.
+    """
+    n = A.shape[0]
+    P, L, U, _ = eliminacion_gaussiana_lu(A)
+    A_inv = np.zeros((n, n))
+    for j in range(n):
+        e_j = np.eye(n)[:, j]          # j-ésima columna de I
+        A_inv[:, j] = resolver_lu(P, L, U, e_j)
+    return A_inv
+
+A_inv_lu    = invertir_lu(A)
+A_inv_numpy = np.linalg.inv(A)
+print(f"\\nInversión via LU correcta: {np.allclose(A_inv_lu, A_inv_numpy)}")
+print(f"‖A·A⁻¹ - I‖_F = {np.linalg.norm(A @ A_inv_lu - np.eye(4)):.2e}")
+
+# ── 5. Análisis de coste: LU vs iterativo ─────────────────────────────────
+import time
+
+rng = np.random.default_rng(0)
+
+print("\\nCoste empírico — resolver Ax=b repetidamente:")
+print(f"{'n':>6} | {'LU directo':>12} | {'Factoriza+Sust':>14} | {'speedup':>8}")
+print("-" * 50)
+
+for n in [50, 100, 200, 500]:
+    A_n = rng.standard_normal((n, n))
+    A_n = A_n @ A_n.T + n * np.eye(n)   # SPD
+    b_n = rng.standard_normal(n)
+    B_n = rng.standard_normal((n, 20))  # 20 lados derechos
+
+    # Método 1: resolver directamente 20 veces
+    t0 = time.perf_counter()
+    for j in range(20):
+        np.linalg.solve(A_n, B_n[:, j])
+    t1 = time.perf_counter()
+    t_direct = t1 - t0
+
+    # Método 2: factorizar una vez, sustituir 20 veces
+    import scipy.linalg as sla
+    t2 = time.perf_counter()
+    lu_obj = sla.lu_factor(A_n)
+    for j in range(20):
+        sla.lu_solve(lu_obj, B_n[:, j])
+    t3 = time.perf_counter()
+    t_lu = t3 - t2
+
+    print(f"{n:>6} | {t_direct*1000:>10.2f}ms | {t_lu*1000:>12.2f}ms | {t_direct/t_lu:>7.2f}×")
+
+# ── 6. Cholesky para matrices SPD (mitad del coste) ───────────────────────
+import scipy.linalg as sla
+
+A_spd = rng.standard_normal((6, 6))
+A_spd = A_spd @ A_spd.T + 6*np.eye(6)   # Garantizar SPD
+b_spd = rng.standard_normal(6)
+
+L_ch = sla.cholesky(A_spd, lower=True)   # A = LLᵀ
+x_ch = sla.cho_solve((L_ch, True), b_spd)
+x_lu_ref = np.linalg.solve(A_spd, b_spd)
+
+print(f"\\nCholesky vs LU para SPD:")
+print(f"  ‖x_chol - x_lu‖ = {np.linalg.norm(x_ch - x_lu_ref):.2e}")
+print(f"  LLᵀ = A verificado: {np.allclose(L_ch @ L_ch.T, A_spd)}")`,
+    related: ["Sistemas de Ecuaciones Lineales", "Determinante y Rango", "Inversa y Pseudoinversa", "Transformación Lineal", "Eigenvalores y Eigenvectores"],
+    hasViz: true,
+    vizType: "gaussianElimination",
   },
   {
-    id: 30, section: "Álgebra Lineal", sectionCode: "II",
+    id: 30,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
     name: "Factorización LU",
-    tags: ["matrices", "factorización", "algoritmos"],
-    definition: "Descompone $A = LU$ (o $PA=LU$ con pivoteo) en producto de matriz triangular inferior $L$ y superior $U$. Permite resolver sistemas lineales eficientemente para múltiples vectores del lado derecho.",
+    tags: ["álgebra lineal", "factorización LU", "triangular", "pivoteo", "determinante", "álgebra numérica"],
+    definition: "La factorización LU descompone una matriz cuadrada $A \\in \\mathbb{R}^{n\\times n}$ en el producto $A = LU$ de una matriz triangular inferior $L$ (con $l_{ii}=1$) y una triangular superior $U$. Con pivoteo parcial se obtiene $PA = LU$, donde $P$ es una matriz de permutación. Es la forma algebraicamente explícita de la eliminación gaussiana: $L$ almacena los multiplicadores y $U$ es la forma escalonada. Su valor principal es amortizar el coste $\\mathcal{O}(n^3)$ de la factorización cuando se resuelven múltiples sistemas con la misma matriz $A$.",
     formal: {
-      notation: "Sea $A \\in \\mathbb{R}^{n\\times n}$ no singular",
-      body: "PA = LU, \\quad L = \\begin{pmatrix} 1 & & \\\\ l_{21} & 1 & \\\\ \\vdots & \\ddots & 1 \\end{pmatrix},\\quad U = \\begin{pmatrix} u_{11} & \\cdots & u_{1n} \\\\ & \\ddots & \\vdots \\\\ & & u_{nn} \\end{pmatrix}",
-      geometric: "A\\mathbf{x}=\\mathbf{b} \\Rightarrow L\\mathbf{y}=P\\mathbf{b} \\text{ (forward)},\\; U\\mathbf{x}=\\mathbf{y} \\text{ (backward)}",
+      notation: "Sea $A \\in \\mathbb{R}^{n \\times n}$ no singular",
+      body: "PA = LU \\\\[8pt] L = \\begin{pmatrix} 1 & & & \\\\ m_{21} & 1 & & \\\\ m_{31} & m_{32} & 1 & \\\\ \\vdots & & \\ddots & 1 \\end{pmatrix}, \\quad U = \\begin{pmatrix} u_{11} & u_{12} & \\cdots & u_{1n} \\\\ & u_{22} & \\cdots & u_{2n} \\\\ & & \\ddots & \\vdots \\\\ & & & u_{nn} \\end{pmatrix}",
+      geometric: "\\det(A) = (-1)^s \\prod_{i=1}^n u_{ii}, \\quad A^{-1} = U^{-1}L^{-1}P",
       properties: [
-        "\\det(A) = \\det(P)^{-1}\\prod_i u_{ii} \\quad \\text{(producto diagonal de U)}",
-        "\\text{Factorizar: } O(n^3/3);\\quad \\text{Resolver: } O(n^2) \\text{ por } \\mathbf{b}",
-        "l_{ij} = a_{ij}^{(j)} / a_{jj}^{(j)} \\quad \\text{(multiplicadores de eliminación)}",
+        "\\text{Existencia sin pivoteo: todos los menores principales de } A \\text{ son no nulos}",
+        "\\text{Coste: } \\frac{2n^3}{3} \\text{ flops (factorización)} + \\mathcal{O}(n^2) \\text{ por cada sistema posterior}",
+        "\\text{Cholesky } A=LL^\\top \\text{: variante para } A \\succ 0 \\text{ simétrica, cuesta } \\frac{n^3}{3} \\text{ flops}",
       ],
     },
-    intuition: "LU separa el trabajo duro (factorizar $A$, costoso) del trabajo fácil (resolver con $L$ y $U$, barato). Si necesitas resolver el mismo sistema con 1000 vectores $\\mathbf{b}$ distintos, factorizas una vez y resuelves 1000 veces en $O(n^2)$ cada una.",
+    intuition: "Piensa en $LU$ como un 'recibo de trabajo' de la eliminación gaussiana. $U$ es el resultado final (la forma escalonada), y $L$ es el registro de todos los pasos intermedios — exactamente los multiplicadores usados para eliminar. Separar $A = LU$ es como descomponer una transformación compleja en dos pasos simples: primero aplicar $L$ (triangular inferior, fácil de invertir hacia adelante) y luego $U$ (triangular superior, fácil de invertir hacia atrás). La clave: si necesitas resolver $A\\mathbf{x} = \\mathbf{b}$ para muchos $\\mathbf{b}$ distintos, calculas $LU$ una sola vez y luego cada solución cuesta solo $\\mathcal{O}(n^2)$.",
     development: [
-      { label: "Algoritmo de Doolittle", body: "Construcción explícita elemento a elemento:\n$$u_{kj} = a_{kj} - \\sum_{s=1}^{k-1} l_{ks}u_{sj}, \\quad j \\geq k$$\n$$l_{ik} = \\frac{1}{u_{kk}}\\left(a_{ik} - \\sum_{s=1}^{k-1} l_{is}u_{sk}\\right), \\quad i > k$$\nNormalización: $l_{kk} = 1$ (Doolittle) o $u_{kk}=1$ (Crout)." },
-      { label: "Cuándo usar LU vs otras factorizaciones", body: "LU ($PA=LU$): propósito general, $A$ cuadrada.\nCholesky ($A=LL^\\top$): $A$ SPD, el doble de eficiente.\nQR ($A=QR$): overdetermined systems (LS), más estable numéricamente.\nSVD ($A=U\\Sigma V^\\top$): máxima estabilidad, más costoso, matrices singulares." },
-      { label: "Aplicaciones directas", body: "Cálculo de determinante: $\\det(A) = \\text{sign}(P)\\cdot u_{11}\\cdots u_{nn}$.\nCálculo de $A^{-1}$: resolver $LU\\mathbf{x}_i = \\mathbf{e}_i$ para cada columna de $I$.\nGaussian process inference: resolver sistemas con matriz de kernel.\nAnálisis de circuitos, FEM, y sistemas de control." },
+      {
+        label: "Construcción de L y U: dónde viven los multiplicadores",
+        body: "En la eliminación gaussiana, el multiplicador $m_{ik} = a_{ik}^{(k)}/a_{kk}^{(k)}$ es el factor por el cual se escala la fila pivote antes de restarla de la fila $i$. Una observación crucial: estos multiplicadores **pueden almacenarse en las posiciones que se anulan** en $U$ — exactamente los lugares sub-diagonales donde se produce la eliminación.\n\nEste insight conduce a la factorización $A = LU$ donde:\n\n$$l_{ij} = \\begin{cases} 1 & i = j \\\\ m_{ij} & i > j \\\\ 0 & i < j \\end{cases}, \\qquad u_{ij} = \\begin{cases} a_{ij}^{(j)} & i \\leq j \\\\ 0 & i > j \\end{cases}$$\n\nLa verificación $LU = A$ se demuestra observando que cada paso de eliminación equivale a premultiplicar por una **matriz de Gauss** $M_k = I - \\mathbf{m}_k \\mathbf{e}_k^\\top$, y que el producto $M_1^{-1} M_2^{-1} \\cdots M_{n-1}^{-1} = L$ por la estructura especial de las matrices de Gauss."
+      },
+      {
+        label: "Algoritmo de Doolittle y variantes",
+        body: "La **factorización de Doolittle** ($l_{ii}=1$) calcula $L$ y $U$ directamente sin realizar la eliminación explícitamente, usando las relaciones de recurrencia:\n\n**Para $U$ (fila $i$, columnas $j \\geq i$):**\n$$u_{ij} = a_{ij} - \\sum_{k=1}^{i-1} l_{ik}\\, u_{kj}$$\n\n**Para $L$ (columna $j$, filas $i > j$):**\n$$l_{ij} = \\frac{1}{u_{jj}}\\left(a_{ij} - \\sum_{k=1}^{j-1} l_{ik}\\, u_{kj}\\right)$$\n\nLa **factorización de Crout** ($u_{ii}=1$) elige el otro convenio de normalización. La **factorización de Cholesky** $A = LL^\\top$ existe y es única cuando $A$ es simétrica definida positiva, con:\n\n$$l_{ii} = \\sqrt{a_{ii} - \\sum_{k=1}^{i-1} l_{ik}^2}, \\qquad l_{ij} = \\frac{1}{l_{jj}}\\left(a_{ij} - \\sum_{k=1}^{j-1} l_{ik}\\, l_{jk}\\right), \\quad i > j$$\n\nCholesky es numéricamente superior para SPD: es automáticamente estable sin pivoteo y cuesta $\\frac{n^3}{3}$ flops."
+      },
+      {
+        label: "Pivoteo parcial: PA = LU y estabilidad",
+        body: "Sin pivoteo, la factorización LU puede fallar (pivote nulo) o ser numéricamente inestable (pivote muy pequeño amplifica errores de redondeo). El **pivoteo parcial** garantiza estabilidad controlando el crecimiento:\n\nEn cada paso $k$, se elige como pivote el elemento de mayor magnitud en la columna $k$ desde la fila $k$ hacia abajo, intercambiando filas para colocarlo en posición $(k,k)$. Esto produce:\n\n$$PA = LU$$\n\ndonde $P$ es el producto de todas las matrices de permutación usadas. Una propiedad clave del pivoteo parcial es que garantiza $|l_{ij}| \\leq 1$, lo que controla el **factor de crecimiento**:\n\n$$\\rho = \\frac{\\max_{ij} |u_{ij}|}{\\max_{ij} |a_{ij}|}$$\n\nTeóricamente $\\rho \\leq 2^{n-1}$, pero en la práctica $\\rho$ rara vez supera $n$. El **pivoteo completo** ($PAQ = LU$) es más robusto pero raramente necesario."
+      },
+      {
+        label: "Aplicaciones: resolver, invertir y calcular det",
+        body: "La factorización $PA = LU$ habilita tres operaciones fundamentales en $\\mathcal{O}(n^2)$ una vez factorizada:\n\n**Resolver $A\\mathbf{x} = \\mathbf{b}$**: $PA\\mathbf{x} = P\\mathbf{b} \\Rightarrow LU\\mathbf{x} = P\\mathbf{b}$. Primero $L\\mathbf{y} = P\\mathbf{b}$ (sustitución hacia adelante), luego $U\\mathbf{x} = \\mathbf{y}$ (sustitución hacia atrás). Coste total por sistema: $2n^2$ flops tras factorizar.\n\n**Determinante**: $\\det(A) = (-1)^s \\prod_{i=1}^n u_{ii}$ donde $s$ es el número de intercambios de filas. Solo se necesita la diagonal de $U$.\n\n**Inversión**: resolver $A X = I$ equivale a $n$ sistemas con lados derechos $\\mathbf{e}_1, \\ldots, \\mathbf{e}_n$. Con LU prefactorizada: $n$ sustituciones de $\\mathcal{O}(n^2)$ = $\\mathcal{O}(n^3)$ total. En la práctica, raramente se invierte explícitamente — se resuelven sistemas en su lugar."
+      },
+      {
+        label: "En Machine Learning",
+        body: "La factorización LU/Cholesky subyace a operaciones de ML que parecen de alto nivel:\n\n**Regresión con regularización Ridge**: las ecuaciones normales $(X^\\top X + \\lambda I)\\hat{\\boldsymbol{\\beta}} = X^\\top \\mathbf{y}$ tienen lado izquierdo SPD cuando $\\lambda > 0$. Se factoriza con Cholesky una vez en $\\mathcal{O}(n^3)$ y se reutiliza para distintos $\\lambda$ o $\\mathbf{y}$.\n\n**Procesos Gaussianos**: la predicción $\\boldsymbol{\\mu}_* = K_{*}(K + \\sigma^2 I)^{-1}\\mathbf{y}$ y la incertidumbre $\\Sigma_* = K_{**} - K_*(K+\\sigma^2 I)^{-1}K_*^\\top$ requieren Cholesky de la matriz de kernel $K + \\sigma^2 I \\in \\mathbb{R}^{n\\times n}$. El cuello de botella $\\mathcal{O}(n^3)$ limita los GPs exactos.\n\n**Optimización de segundo orden**: Newton's method resuelve $(\\nabla^2 \\mathcal{L})\\boldsymbol{\\delta} = -\\nabla\\mathcal{L}$ en cada iteración. Para Hesianas SPD (funciones convexas), Cholesky provee factorización estable. **K-FAC** (Kronecker-Factored Approximate Curvature) aproxima la Hessiana como producto de Kronecker, habilitando Cholesky eficiente en los factores pequeños.\n\n**Attention con kernel**: variantes de atención con kernels positivos (Performers, Random Features) reformulan $\\text{softmax}(QK^\\top)V \\approx \\phi(Q)\\phi(K)^\\top V$ donde $\\phi(K)^\\top V$ se puede prefactorizar — análogo al papel de LU para múltiples lados derechos."
+      },
     ],
     code: `import numpy as np
-from scipy.linalg import lu_factor, lu_solve, lu
+import scipy.linalg as sla
+import time
 
-A = np.array([[3.,1.,2.],[6.,4.,5.],[9.,7.,11.]])
+# ── 1. Factorización LU de Doolittle (implementación desde cero) ──────────
+def lu_doolittle(A: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray, int]:
+    """
+    Factorización PA = LU con pivoteo parcial.
+    Devuelve (P, L, U, n_swaps).
+    L almacena los multiplicadores, U la forma escalonada.
+    """
+    n = A.shape[0]
+    U = A.astype(float).copy()
+    L = np.eye(n, dtype=float)
+    piv = np.arange(n)           # registro de permutaciones
+    n_swaps = 0
 
-# Factorización PA = LU
-P, L, U = lu(A)
-print("L:", L.round(3))
-print("U:", U.round(3))
-print("PA=LU:", np.allclose(P@A, L@U))
+    for k in range(n - 1):
+        # ── Pivoteo parcial ───────────────────────────────────────────────
+        idx = k + np.argmax(np.abs(U[k:, k]))
+        if idx != k:
+            U[[k, idx]]       = U[[idx, k]]           # intercambiar filas U
+            L[[k, idx], :k]   = L[[idx, k], :k]       # intercambiar L ya construida
+            piv[[k, idx]]     = piv[[idx, k]]          # registrar permutación
+            n_swaps += 1
 
-# Para resolver múltiples sistemas (modo eficiente)
-lu_factored = lu_factor(A)  # factoriza una vez
+        if np.abs(U[k, k]) < 1e-14:
+            raise ValueError(f"Pivote nulo en columna {k}")
 
-for b in [np.array([1.,2.,3.]), np.array([4.,5.,6.])]:
-    x = lu_solve(lu_factored, b)  # O(n^2) por solución
-    print(f"x={x.round(3)}, check={np.allclose(A@x, b)}")
+        # ── Eliminación: calcular multiplicadores y actualizar ─────────────
+        for i in range(k + 1, n):
+            L[i, k] = U[i, k] / U[k, k]    # multiplicador m_ik → entra en L
+            U[i, k:] -= L[i, k] * U[k, k:] # eliminación en U
 
-# Determinante via LU
-sign, logdet = np.linalg.slogdet(A)
-print(f"det(A) = {sign * np.exp(logdet):.4f}")`,
-    related: ["Eliminación gaussiana", "Cholesky", "Sistemas lineales", "Inversa"],
-    hasViz: false,
+    # Construir P desde el registro de permutaciones
+    P = np.eye(n)[piv]
+    return P, L, U, n_swaps
+
+
+# ── 2. Resolución de sistemas via LU ──────────────────────────────────────
+def sustitucion_adelante(L: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Resuelve Ly = b con L triangular inferior (l_ii = 1). O(n²)."""
+    n = len(b)
+    y = np.zeros(n)
+    for i in range(n):
+        y[i] = b[i] - L[i, :i] @ y[:i]
+    return y
+
+def sustitucion_atras(U: np.ndarray, y: np.ndarray) -> np.ndarray:
+    """Resuelve Ux = y con U triangular superior. O(n²)."""
+    n = len(y)
+    x = np.zeros(n)
+    for i in range(n - 1, -1, -1):
+        x[i] = (y[i] - U[i, i+1:] @ x[i+1:]) / U[i, i]
+    return x
+
+def resolver_lu(P, L, U, b):
+    """Ax = b → PAx = Pb → LUx = Pb. Dos sustituciones O(n²)."""
+    y = sustitucion_adelante(L, P @ b)
+    return sustitucion_atras(U, y)
+
+
+# ── 3. Verificación con sistema 4×4 ───────────────────────────────────────
+A = np.array([[2.,  1., -1.,  0.],
+              [4.,  3.,  1.,  2.],
+              [-2., 1.,  5.,  1.],
+              [0.,  2.,  2.,  3.]], dtype=float)
+b_vec = np.array([1., 5., 3., 7.])
+
+P, L, U, ns = lu_doolittle(A)
+
+print("── Factorización PA = LU ──────────────────────────────")
+print(f"P =\\n{P.astype(int)}")
+print(f"L =\\n{L.round(4)}")
+print(f"U =\\n{U.round(4)}")
+print(f"\\nPA = LU verificado: {np.allclose(P @ A, L @ U)}")
+print(f"Intercambios de filas: {ns}")
+
+x_sol  = resolver_lu(P, L, U, b_vec)
+x_ref  = np.linalg.solve(A, b_vec)
+print(f"\\nSolución propia:  {x_sol.round(6)}")
+print(f"Solución numpy:   {x_ref.round(6)}")
+print(f"Residuo ‖Ax-b‖:   {np.linalg.norm(A @ x_sol - b_vec):.2e}")
+
+# ── 4. Determinante y multiplicadores en L ────────────────────────────────
+det_lu    = (-1)**ns * np.prod(np.diag(U))
+det_numpy = np.linalg.det(A)
+print(f"\\ndet(A) via LU:    {det_lu:.6f}")
+print(f"det(A) via numpy: {det_numpy:.6f}")
+print(f"|L[i,j]| ≤ 1 (pivoteo parcial): {np.all(np.abs(L) <= 1.0 + 1e-10)}")
+
+# ── 5. Amortización del coste: múltiples lados derechos ───────────────────
+rng = np.random.default_rng(42)
+n_size = 300
+A_big  = rng.standard_normal((n_size, n_size))
+A_big  = A_big @ A_big.T + n_size * np.eye(n_size)  # SPD para estabilidad
+B_many = rng.standard_normal((n_size, 50))           # 50 lados derechos
+
+# Método 1: np.linalg.solve (refactoriza cada vez)
+t0 = time.perf_counter()
+for j in range(50):
+    np.linalg.solve(A_big, B_many[:, j])
+t1 = time.perf_counter()
+
+# Método 2: prefactorizar con scipy LU, resolver 50 veces en O(n²)
+t2 = time.perf_counter()
+lu_factor = sla.lu_factor(A_big)          # O(n³) — solo una vez
+for j in range(50):
+    sla.lu_solve(lu_factor, B_many[:, j]) # O(n²) cada vez
+t3 = time.perf_counter()
+
+print(f"\\n── Amortización (n={n_size}, 50 sistemas) ──")
+print(f"  50× np.solve (refactoriza): {(t1-t0)*1e3:.1f} ms")
+print(f"  lu_factor + 50× lu_solve:  {(t3-t2)*1e3:.1f} ms")
+print(f"  Speedup: {(t1-t0)/(t3-t2):.1f}×")
+
+# ── 6. Cholesky para matrices SPD ──────────────────────────────────────────
+A_spd = A_big.copy()
+
+t4 = time.perf_counter()
+L_ch = sla.cholesky(A_spd, lower=True)          # O(n³/3)
+b_ch = rng.standard_normal(n_size)
+x_ch = sla.cho_solve((L_ch, True), b_ch)
+t5 = time.perf_counter()
+
+t6 = time.perf_counter()
+_, L_lu_sp, U_lu_sp = sla.lu(A_spd)
+x_lu_sp = np.linalg.solve(A_spd, b_ch)
+t7 = time.perf_counter()
+
+print(f"\\n── Cholesky vs LU (matriz SPD, n={n_size}) ──")
+print(f"  Cholesky: {(t5-t4)*1e3:.2f} ms")
+print(f"  LU:       {(t7-t6)*1e3:.2f} ms")
+print(f"  Cholesky speedup: ~{(t7-t6)/(t5-t4):.1f}×  (teórico: 2×)")
+print(f"  LLᵀ = A verificado: {np.allclose(L_ch @ L_ch.T, A_spd)}")
+
+# ── 7. Factor de crecimiento (estabilidad numérica) ───────────────────────
+print("\\n── Factor de crecimiento ρ = max|u_ij| / max|a_ij| ──")
+for nombre, M in [
+    ("bien cond.",   rng.standard_normal((8,8))),
+    ("Hilbert 8×8",  np.array([[1/(i+j+1) for j in range(8)] for i in range(8)])),
+]:
+    _, _, U_m, _ = lu_doolittle(M + 1e-3*np.eye(8) if "Hilbert" in nombre else M)
+    rho = np.max(np.abs(U_m)) / (np.max(np.abs(M)) + 1e-15)
+    kap = np.linalg.cond(M)
+    print(f"  {nombre:15s}: ρ={rho:.2f},  κ(A)={kap:.2e}")`,
+    related: ["Eliminación Gaussiana", "Sistemas de Ecuaciones Lineales", "Determinante y Rango", "Inversa y Pseudoinversa", "Descomposición SVD"],
+    hasViz: true,
+    vizType: "luFactorization",
   },
+  {
+    id: 16,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Base y Dimensión",
+    tags: ["álgebra lineal", "espacio vectorial", "independencia lineal", "rango", "subespacio"],
+    definition: "Una base de un espacio vectorial V es un conjunto linealmente independiente de vectores que genera (span) a V. La dimensión de V es el número de elementos de cualquier base de V, y es un invariante del espacio: todas las bases tienen la misma cardinalidad.",
+    formal: {
+      notation: "Sea $V$ un espacio vectorial sobre un campo $\\mathbb{F}$",
+      body: "\\mathcal{B} = \\{\\mathbf{v}_1, \\mathbf{v}_2, \\ldots, \\mathbf{v}_n\\} \\subset V \\text{ es base de } V \\iff \\begin{cases} \\text{(i) L.I.: } \\sum_{i=1}^n \\alpha_i \\mathbf{v}_i = \\mathbf{0} \\Rightarrow \\alpha_i = 0 \\ \\forall i \\\\ \\text{(ii) Generador: } \\forall \\mathbf{u} \\in V,\\ \\exists\\, \\alpha_i \\in \\mathbb{F} : \\mathbf{u} = \\sum_{i=1}^n \\alpha_i \\mathbf{v}_i \\end{cases}",
+      geometric: "\\dim(V) = n \\iff \\exists \\text{ base } \\mathcal{B} \\text{ con } |\\mathcal{B}| = n \\quad (\\text{toda base de } V \\text{ tiene exactamente } n \\text{ elementos})",
+      properties: [
+        "\\text{Unicidad de coordenadas: } \\forall \\mathbf{u} \\in V,\\ \\exists! (\\alpha_1, \\ldots, \\alpha_n) \\in \\mathbb{F}^n : \\mathbf{u} = \\sum_{i=1}^n \\alpha_i \\mathbf{v}_i",
+        "\\text{Invarianza: si } \\mathcal{B},\\mathcal{B}' \\text{ son bases de } V \\Rightarrow |\\mathcal{B}| = |\\mathcal{B}'| = \\dim(V)",
+        "\\text{Rango-nulidad: } \\dim(\\text{Im}(T)) + \\dim(\\ker(T)) = \\dim(V) \\text{ para } T: V \\to W \\text{ lineal}",
+      ],
+    },
+    intuition: "Piensa en una base como el conjunto mínimo de 'ingredientes' con los que puedes reconstruir cualquier elemento del espacio, sin redundancias. En $\\mathbb{R}^2$, los vectores $\\mathbf{e}_1=(1,0)$ y $\\mathbf{e}_2=(0,1)$ son una base: con escalas y sumas alcanzas cualquier punto del plano, y ninguno de los dos es 'redundante' (no puedes obtener uno a partir del otro). La dimensión cuenta cuántos ingredientes distintos necesitas — es el grado de libertad intrínseco del espacio.",
+    development: [
+      {
+        label: "Independencia lineal y generación",
+        body: "Un conjunto $\\{\\mathbf{v}_1, \\ldots, \\mathbf{v}_k\\}$ es **linealmente independiente** (L.I.) si la única combinación lineal que produce el vector cero es la trivial:\n\n$$\\alpha_1 \\mathbf{v}_1 + \\cdots + \\alpha_k \\mathbf{v}_k = \\mathbf{0} \\implies \\alpha_i = 0 \\ \\forall i$$\n\nEquivalentemente, ningún vector del conjunto puede escribirse como combinación lineal de los demás. El **span** o espacio generado se define como:\n\n$$\\text{span}(\\mathbf{v}_1, \\ldots, \\mathbf{v}_k) = \\left\\{ \\sum_{i=1}^k \\alpha_i \\mathbf{v}_i \\ : \\ \\alpha_i \\in \\mathbb{F} \\right\\}$$\n\nSi adicionalmente $\\text{span}(\\mathcal{B}) = V$, decimos que $\\mathcal{B}$ es un **sistema generador** de $V$. Una base es el conjunto mínimo generador, o equivalentemente el conjunto L.I. maximal."
+      },
+      {
+        label: "Base estándar y cambio de base",
+        body: "La **base canónica** de $\\mathbb{R}^n$ es $\\mathcal{E} = \\{\\mathbf{e}_1, \\ldots, \\mathbf{e}_n\\}$ donde $\\mathbf{e}_i$ tiene un $1$ en la posición $i$ y ceros en el resto. Dada otra base $\\mathcal{B} = \\{\\mathbf{b}_1, \\ldots, \\mathbf{b}_n\\}$, la **matriz de cambio de base** $P_{\\mathcal{E} \\to \\mathcal{B}}$ transforma coordenadas:\n\n$$[\\mathbf{v}]_{\\mathcal{E}} = P \\cdot [\\mathbf{v}]_{\\mathcal{B}}, \\quad P = \\begin{bmatrix} | & & | \\\\ \\mathbf{b}_1 & \\cdots & \\mathbf{b}_n \\\\ | & & | \\end{bmatrix}$$\n\nEl cambio inverso se obtiene con $P^{-1}$, que existe porque las columnas de $P$ son L.I. (forman una base). Este mecanismo es fundamental en diagonalización y en PCA."
+      },
+      {
+        label: "Dimensión de subespacios y el Teorema del Rango",
+        body: "Para una transformación lineal $T: V \\to W$ con $\\dim(V) = n$, el **Teorema Rango-Nulidad** establece:\n\n$$\\text{rank}(T) + \\text{nullity}(T) = n$$\n\ndonde $\\text{rank}(T) = \\dim(\\text{Im}(T))$ y $\\text{nullity}(T) = \\dim(\\ker(T))$.\n\nPara una matriz $A \\in \\mathbb{R}^{m \\times n}$, el **rango columna** (dimensión del espacio columna) coincide siempre con el **rango fila** (dimensión del espacio fila). Esto es un teorema no trivial: $\\text{rank}(A) = \\text{rank}(A^\\top)$. El rango determina la invertibilidad: $A$ es invertible $\\iff \\text{rank}(A) = n \\iff \\ker(A) = \\{\\mathbf{0}\\}$."
+      },
+      {
+        label: "En Machine Learning",
+        body: "La dimensión es ubicua en ML. La **maldición de la dimensionalidad** describe cómo el volumen del espacio crece exponencialmente con $\\dim$: para llenar un hipercubo $[0,1]^d$ con densidad comparable a $[0,1]^1$ se necesitan muestras del orden $\\mathcal{O}(N^d)$.\n\nEn **PCA**, se busca una base ortogonal $\\{\\mathbf{u}_1, \\ldots, \\mathbf{u}_k\\}$ con $k < d$ tal que el subespacio de dimensión $k$ maximice la varianza proyectada:\n\n$$\\mathbf{u}_i = \\arg\\max_{\\|\\mathbf{u}\\|=1,\\ \\mathbf{u} \\perp \\mathbf{u}_j\\ \\forall j<i} \\text{Var}(\\mathbf{u}^\\top X)$$\n\nLos vectores encontrados son los **eigenvectores** de la matriz de covarianza $\\Sigma$. El **rango** de una matriz de datos $X \\in \\mathbb{R}^{n \\times d}$ determina la dimensión intrínseca de los datos: si $\\text{rank}(X) = r \\ll d$, los datos yacen en un subespacio de dimensión $r$ — base del funcionamiento de **low-rank approximation** y **embeddings**."
+      },
+    ],
+    code: `import numpy as np
+from numpy.linalg import matrix_rank, svd
+
+# ── 1. Verificar independencia lineal ──────────────────────────────────────
+def es_linealmente_independiente(vectores: np.ndarray) -> bool:
+    """
+    Verifica si las columnas de la matriz son L.I.
+    Un conjunto es L.I. <=> el rango es igual al número de vectores.
+    """
+    return matrix_rank(vectores) == vectores.shape[1]
+
+# Ejemplo: base canónica de R^3
+E = np.eye(3)
+print("Base canónica L.I.:", es_linealmente_independiente(E))  # True
+
+# Conjunto linealmente dependiente (tercera columna = suma de las dos primeras)
+dep = np.array([[1, 0, 1],
+                [0, 1, 1],
+                [0, 0, 0]], dtype=float)
+print("Conjunto dependiente:", es_linealmente_independiente(dep))  # False
+
+# ── 2. Rango de una matriz ─────────────────────────────────────────────────
+A = np.array([[1, 2, 3],
+              [4, 5, 6],
+              [7, 8, 9]], dtype=float)
+
+rango = matrix_rank(A)
+print(f"Rango de A: {rango}")           # 2 — filas/columnas dependientes
+print(f"Nulidad de A: {3 - rango}")     # 1 — por Teorema Rango-Nulidad
+
+# ── 3. Encontrar una base del espacio columna (Col(A)) ─────────────────────
+def base_espacio_columna(A: np.ndarray, tol: float = 1e-10):
+    """Devuelve columnas de A que forman una base de Col(A) via pivotes de SVD."""
+    U, S, Vt = svd(A)
+    r = np.sum(S > tol)
+    # Las primeras r columnas de U forman una base ortonormal de Col(A)
+    return U[:, :r]
+
+base_col = base_espacio_columna(A)
+print(f"Base ortonormal del espacio columna (dim={base_col.shape[1]}):")
+print(base_col.round(4))
+
+# ── 4. Cambio de base ──────────────────────────────────────────────────────
+# Base B = {(1,1), (1,-1)} normalizada de R^2
+b1 = np.array([1, 1]) / np.sqrt(2)
+b2 = np.array([1, -1]) / np.sqrt(2)
+P = np.column_stack([b1, b2])   # Matriz de cambio de base (columnas = vectores de B)
+
+v_std = np.array([3.0, 1.0])   # Vector en base estándar
+v_B   = np.linalg.solve(P, v_std)  # Coordenadas en base B
+print(f"v en base estándar: {v_std}")
+print(f"v en base B:        {v_B.round(4)}")
+print(f"Reconstrucción:     {P @ v_B}")  # Debe recuperar v_std
+
+# ── 5. Dimensión intrínseca (varianza explicada) ───────────────────────────
+rng = np.random.default_rng(42)
+# Datos en R^10 pero concentrados en un subespacio de dimensión 3
+low_rank = rng.standard_normal((200, 3)) @ rng.standard_normal((3, 10))
+low_rank += 0.01 * rng.standard_normal((200, 10))  # ruido pequeño
+
+_, S_lr, _ = svd(low_rank, full_matrices=False)
+var_explicada = np.cumsum(S_lr**2) / np.sum(S_lr**2)
+dim_95 = np.searchsorted(var_explicada, 0.95) + 1
+print(f"Dimensión intrínseca (95% varianza): {dim_95}")  # ≈ 3`,
+    related: ["Independencia Lineal", "Espacio Vectorial", "Transformación Lineal", "Descomposición SVD", "PCA"],
+    hasViz: true,
+    vizType: "baseDimension",
+  },
+  {
+    id: 17,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Operaciones entre Vectores (Suma y Escalar)",
+    tags: ["álgebra lineal", "vectores", "espacio vectorial", "combinación lineal", "geometría"],
+    definition: "Las dos operaciones fundamentales en un espacio vectorial son la suma vectorial y el producto por escalar. La suma de dos vectores combina sus componentes entrada a entrada; el producto por escalar estira o contrae (y eventualmente invierte) un vector sin alterar su dirección. Estas dos operaciones, junto con sus ocho axiomas, definen la estructura de espacio vectorial.",
+    formal: {
+      notation: "Sean $\\mathbf{u}, \\mathbf{v} \\in \\mathbb{R}^n$ y $\\alpha, \\beta \\in \\mathbb{R}$",
+      body: "\\text{Suma: } (\\mathbf{u} + \\mathbf{v})_i = u_i + v_i \\quad \\forall i \\in \\{1,\\ldots,n\\} \\\\[8pt] \\text{Escalar: } (\\alpha\\,\\mathbf{v})_i = \\alpha\\, v_i \\quad \\forall i \\in \\{1,\\ldots,n\\}",
+      geometric: "\\mathbf{u} + \\mathbf{v} = \\mathbf{v} + \\mathbf{u} \\quad (\\text{regla del paralelogramo}), \\qquad \\alpha(\\mathbf{u}+\\mathbf{v}) = \\alpha\\mathbf{u} + \\alpha\\mathbf{v}",
+      properties: [
+        "\\text{Conmutatividad: } \\mathbf{u} + \\mathbf{v} = \\mathbf{v} + \\mathbf{u}",
+        "\\text{Distributividad mixta: } (\\alpha + \\beta)\\mathbf{v} = \\alpha\\mathbf{v} + \\beta\\mathbf{v}",
+        "\\text{Combinación lineal: } \\sum_{i=1}^k \\alpha_i\\,\\mathbf{v}_i \\in V \\text{ (cerradura bajo ambas operaciones)}",
+      ],
+    },
+    intuition: "Imagina que $\\mathbf{u}$ y $\\mathbf{v}$ son desplazamientos en el plano. Sumarlos equivale a recorrer primero $\\mathbf{u}$ y luego $\\mathbf{v}$ — el resultado es el diagonal del paralelogramo que forman. Multiplicar por $\\alpha = 2$ duplica la distancia recorrida en la misma dirección; $\\alpha = -1$ la invierte. Con solo estas dos operaciones, puedes alcanzar cualquier punto del espacio combinando vectores base — eso es exactamente una combinación lineal.",
+    development: [
+      {
+        label: "Axiomas del espacio vectorial",
+        body: "Las dos operaciones deben satisfacer **ocho axiomas** para que $(V, +, \\cdot)$ sea espacio vectorial sobre $\\mathbb{F}$. Para la suma: (A1) cerradura, (A2) conmutatividad, (A3) asociatividad, (A4) existencia del neutro $\\mathbf{0}$, (A5) existencia del inverso $-\\mathbf{v}$. Para el escalar: (E1) cerradura, (E2) compatibilidad $\\alpha(\\beta\\mathbf{v}) = (\\alpha\\beta)\\mathbf{v}$, (E3-E4) doble distributividad:\n\n$$(\\alpha + \\beta)\\mathbf{v} = \\alpha\\mathbf{v} + \\beta\\mathbf{v}, \\qquad \\alpha(\\mathbf{u}+\\mathbf{v}) = \\alpha\\mathbf{u}+\\alpha\\mathbf{v}$$\n\nEstos axiomas garantizan que la geometría se comporta coherentemente. Nótese que aplican no solo a $\\mathbb{R}^n$ sino a espacios de funciones, matrices, polinomios, etc."
+      },
+      {
+        label: "Interpretación geométrica: regla del paralelogramo",
+        body: "En $\\mathbb{R}^2$ y $\\mathbb{R}^3$, la suma vectorial tiene una interpretación inmediata: colocando el origen de $\\mathbf{v}$ en la punta de $\\mathbf{u}$ (método cabeza-cola), $\\mathbf{u}+\\mathbf{v}$ apunta del origen a la punta de $\\mathbf{v}$. Equivalentemente, es la **diagonal del paralelogramo** formado por $\\mathbf{u}$ y $\\mathbf{v}$.\n\nPara el escalar, $\\alpha > 1$ estira, $0 < \\alpha < 1$ contrae, $\\alpha < 0$ invierte la dirección, y $\\alpha = 0$ colapsa al origen. El conjunto $\\{\\alpha\\mathbf{v} : \\alpha \\in \\mathbb{R}\\}$ es una **recta** que pasa por el origen — el subespacio generado por un único vector."
+      },
+      {
+        label: "Combinación lineal y subespacio generado",
+        body: "Una **combinación lineal** de vectores $\\mathbf{v}_1, \\ldots, \\mathbf{v}_k$ es cualquier expresión:\n\n$$\\mathbf{w} = \\sum_{i=1}^k \\alpha_i \\mathbf{v}_i, \\quad \\alpha_i \\in \\mathbb{F}$$\n\nEl conjunto de todas las combinaciones lineales posibles forma el **span** o envoltura lineal, que es el subespacio más pequeño que contiene a todos los $\\mathbf{v}_i$. La cerradura bajo $+$ y $\\cdot$ es exactamente lo que hace que el span sea un subespacio: si $\\mathbf{w}_1, \\mathbf{w}_2 \\in \\text{span}\\{\\mathbf{v}_i\\}$, entonces $\\alpha\\mathbf{w}_1 + \\beta\\mathbf{w}_2 \\in \\text{span}\\{\\mathbf{v}_i\\}$."
+      },
+      {
+        label: "En Machine Learning",
+        body: "Estas operaciones son el tejido computacional de todo ML. El **forward pass** de una red neuronal es, en esencia, una cascada de combinaciones lineales seguidas de no-linealidades:\n\n$$\\mathbf{h}^{(l)} = \\sigma\\!\\left(W^{(l)}\\mathbf{h}^{(l-1)} + \\mathbf{b}^{(l)}\\right) = \\sigma\\!\\left(\\sum_j w^{(l)}_{ij}\\, h^{(l-1)}_j + b^{(l)}_i\\right)$$\n\nEl **descenso por gradiente** actualiza parámetros con una suma escalada: $\\boldsymbol{\\theta} \\leftarrow \\boldsymbol{\\theta} - \\eta\\,\\nabla_{\\boldsymbol{\\theta}}\\mathcal{L}$, donde $\\eta$ es el escalar (tasa de aprendizaje). Los **embeddings** son vectores cuya suma captura significado: en word2vec, $\\mathbf{v}_{\\text{rey}} - \\mathbf{v}_{\\text{hombre}} + \\mathbf{v}_{\\text{mujer}} \\approx \\mathbf{v}_{\\text{reina}}$, un ejemplo célebre de aritmética vectorial semántica."
+      },
+    ],
+    code: `import numpy as np
+
+# ── 1. Operaciones básicas ─────────────────────────────────────────────────
+u = np.array([2.0, 1.0, -1.0])
+v = np.array([1.0, 3.0,  2.0])
+
+suma    = u + v          # Suma vectorial entrada a entrada
+escalar = 2.5 * v        # Producto por escalar
+resta   = u - v          # Equivalente a u + (-1)*v
+
+print(f"u + v        = {suma}")
+print(f"2.5 · v      = {escalar}")
+print(f"u - v        = {resta}")
+
+# ── 2. Verificación de axiomas ─────────────────────────────────────────────
+alpha, beta = 3.0, -1.5
+
+# Conmutatividad
+assert np.allclose(u + v, v + u), "Falla conmutatividad"
+
+# Distributividad escalar-vector
+assert np.allclose((alpha + beta) * v, alpha * v + beta * v), "Falla dist. escalar"
+
+# Distributividad escalar-suma
+assert np.allclose(alpha * (u + v), alpha * u + alpha * v), "Falla dist. suma"
+
+print("Todos los axiomas verificados ✓")
+
+# ── 3. Combinación lineal ──────────────────────────────────────────────────
+def combinacion_lineal(vectores: list[np.ndarray],
+                       escalares: list[float]) -> np.ndarray:
+    """
+    Calcula sum_i alpha_i * v_i.
+    vectores : lista de arrays de igual forma
+    escalares: coeficientes correspondientes
+    """
+    return sum(a * v for a, v in zip(escalares, vectores))
+
+# Expresar w como combinación de la base canónica
+e1 = np.array([1., 0., 0.])
+e2 = np.array([0., 1., 0.])
+e3 = np.array([0., 0., 1.])
+w  = np.array([4., -2., 7.])
+
+w_reconstruido = combinacion_lineal([e1, e2, e3], [4., -2., 7.])
+print(f"w reconstruido = {w_reconstruido}")   # [4. -2. 7.]
+print(f"Error = {np.linalg.norm(w - w_reconstruido):.2e}")  # ~0
+
+# ── 4. Aritmética de embeddings (word2vec style) ───────────────────────────
+# Embeddings sintéticos de dimensión 4 (en la práctica, 100-1536 dims)
+rng = np.random.default_rng(0)
+vocab = {w: rng.standard_normal(4) for w in ["rey", "reina", "hombre", "mujer"]}
+
+# rey - hombre + mujer ≈ reina
+analogia = vocab["rey"] - vocab["hombre"] + vocab["mujer"]
+cosenos = {
+    w: analogia @ vocab[w] / (np.linalg.norm(analogia) * np.linalg.norm(vocab[w]))
+    for w in vocab
+}
+print("\\nSimilitudes coseno con (rey - hombre + mujer):")
+for word, sim in sorted(cosenos.items(), key=lambda x: -x[1]):
+    print(f"  {word:8s}: {sim:+.4f}")
+# Con embeddings reales entrenados, 'reina' obtendría la mayor similitud`,
+    related: ["Espacio Vectorial", "Producto Punto", "Norma de un Vector", "Combinación Lineal", "Base y Dimensión"],
+    hasViz: true,
+    vizType: "vectorOps",
+  },
+  {
+    id: 19,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Producto Cruzado",
+    tags: ["álgebra lineal", "vectores", "geometría", "R3", "determinante", "normal"],
+    definition: "El producto cruzado (o producto vectorial) es una operación binaria definida exclusivamente en $\\mathbb{R}^3$ que toma dos vectores y produce un tercer vector ortogonal a ambos. Su magnitud es igual al área del paralelogramo formado por los vectores originales, y su dirección sigue la regla de la mano derecha. Es antisimétrico y bilineal, pero no asociativo.",
+    formal: {
+      notation: "Sean $\\mathbf{u}, \\mathbf{v} \\in \\mathbb{R}^3$",
+      body: "\\mathbf{u} \\times \\mathbf{v} = \\det\\begin{pmatrix} \\mathbf{e}_1 & \\mathbf{e}_2 & \\mathbf{e}_3 \\\\ u_1 & u_2 & u_3 \\\\ v_1 & v_2 & v_3 \\end{pmatrix} = \\begin{pmatrix} u_2 v_3 - u_3 v_2 \\\\ u_3 v_1 - u_1 v_3 \\\\ u_1 v_2 - u_2 v_1 \\end{pmatrix}",
+      geometric: "\\|\\mathbf{u} \\times \\mathbf{v}\\| = \\|\\mathbf{u}\\|\\,\\|\\mathbf{v}\\|\\sin\\theta, \\quad \\theta = \\angle(\\mathbf{u},\\mathbf{v}) \\in [0, \\pi]",
+      properties: [
+        "\\text{Antisimetría: } \\mathbf{u} \\times \\mathbf{v} = -(\\mathbf{v} \\times \\mathbf{u})",
+        "\\text{Identidad de Lagrange: } \\|\\mathbf{u} \\times \\mathbf{v}\\|^2 = \\|\\mathbf{u}\\|^2\\|\\mathbf{v}\\|^2 - (\\mathbf{u}\\cdot\\mathbf{v})^2",
+        "\\text{Triple escalar: } \\mathbf{u}\\cdot(\\mathbf{v}\\times\\mathbf{w}) = \\det[\\mathbf{u},\\mathbf{v},\\mathbf{w}] = \\text{Vol(paralelepípedo)}",
+      ],
+    },
+    intuition: "Piensa en el producto cruzado como una 'brújula de perpendicularidad': dados dos vectores que definen un plano, $\\mathbf{u} \\times \\mathbf{v}$ apunta en la única dirección que es ortogonal a ese plano. La magnitud te dice cuánta área 'abarca' el par de vectores — si son paralelos ($\\sin\\theta = 0$) el área es cero; si son perpendiculares ($\\sin\\theta = 1$) el área es máxima. La regla de la mano derecha fija la orientación: dedos de $\\mathbf{u}$ hacia $\\mathbf{v}$, el pulgar señala $\\mathbf{u} \\times \\mathbf{v}$.",
+    development: [
+      {
+        label: "Expansión por cofactores y fórmula explícita",
+        body: "La definición formal vía determinante simbólico se expande por cofactores a lo largo de la primera fila:\n\n$$\\mathbf{u} \\times \\mathbf{v} = \\mathbf{e}_1(u_2v_3 - u_3v_2) - \\mathbf{e}_2(u_1v_3 - u_3v_1) + \\mathbf{e}_3(u_1v_2 - u_2v_1)$$\n\nEl signo alternado $+, -, +$ proviene de la expansión de cofactores. Una regla mnemotécnica es la **regla de Sarrus** o la disposición cíclica de índices: $(1,2,3) \\to (2,3,1) \\to (3,1,2)$, donde cada componente es la diferencia de los productos en sentido horario y antihorario:\n\n$$(\\mathbf{u}\\times\\mathbf{v})_k = u_i v_j - u_j v_i, \\quad (i,j,k) \\text{ permutación par de } (1,2,3)$$"
+      },
+      {
+        label: "Propiedades algebraicas y no-asociatividad",
+        body: "El producto cruzado es **bilineal** y **antisimétrico**, pero **no asociativo** — esto lo distingue radicalmente del producto punto:\n\n$$\\mathbf{u}\\times(\\mathbf{v}\\times\\mathbf{w}) \\neq (\\mathbf{u}\\times\\mathbf{v})\\times\\mathbf{w}$$\n\nEn cambio, satisface la **identidad de Jacobi**: $\\mathbf{u}\\times(\\mathbf{v}\\times\\mathbf{w}) + \\mathbf{v}\\times(\\mathbf{w}\\times\\mathbf{u}) + \\mathbf{w}\\times(\\mathbf{u}\\times\\mathbf{v}) = \\mathbf{0}$, que convierte a $(\\mathbb{R}^3, \\times)$ en un **álgebra de Lie**.\n\nLa **fórmula BAC-CAB** permite expandir el triple vectorial:\n\n$$\\mathbf{u}\\times(\\mathbf{v}\\times\\mathbf{w}) = \\mathbf{v}(\\mathbf{u}\\cdot\\mathbf{w}) - \\mathbf{w}(\\mathbf{u}\\cdot\\mathbf{v})$$"
+      },
+      {
+        label: "Interpretación geométrica: área y volumen",
+        body: "La magnitud $\\|\\mathbf{u}\\times\\mathbf{v}\\| = \\|\\mathbf{u}\\|\\|\\mathbf{v}\\|\\sin\\theta$ es exactamente el **área del paralelogramo** con lados $\\mathbf{u}$ y $\\mathbf{v}$, y por tanto la mitad del área del triángulo que forman:\n\n$$A_{\\triangle} = \\frac{1}{2}\\|\\mathbf{u}\\times\\mathbf{v}\\|$$\n\nEl **producto escalar triple** extiende esto al volumen con signo del paralelepípedo definido por tres vectores:\n\n$$V = |\\mathbf{u}\\cdot(\\mathbf{v}\\times\\mathbf{w})| = |\\det[\\mathbf{u}\\mid\\mathbf{v}\\mid\\mathbf{w}]|$$\n\nEsto conecta directamente con el determinante: $\\det A \\neq 0 \\iff$ las filas/columnas de $A$ son linealmente independientes $\\iff$ el paralelepípedo tiene volumen no nulo."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "Aunque el producto cruzado es estrictamente de $\\mathbb{R}^3$, sus ideas se generalizan ampliamente. En **geometría diferencial y redes neuronales 3D** (PointNet, NeRF, Gaussian Splatting), el producto cruzado computa **normales a superficies** a partir de dos vectores tangentes, esenciales para iluminación y shading diferenciable.\n\nEn **robótica y visión por computadora**, la representación de rotaciones mediante el **álgebra de Lie** $\\mathfrak{so}(3)$ usa la matriz antisimétrica asociada al producto cruzado:\n\n$$[\\mathbf{u}]_\\times = \\begin{pmatrix} 0 & -u_3 & u_2 \\\\ u_3 & 0 & -u_1 \\\\ -u_2 & u_1 & 0 \\end{pmatrix}, \\quad \\mathbf{u}\\times\\mathbf{v} = [\\mathbf{u}]_\\times\\,\\mathbf{v}$$\n\nEsta representación aparece en la optimización de poses de cámara (SLAM, bundle adjustment) y en **Lie group networks** que respetan simetrías geométricas."
+      },
+    ],
+    code: `import numpy as np
+
+# ── 1. Producto cruzado manual y verificación ──────────────────────────────
+def producto_cruzado(u: np.ndarray, v: np.ndarray) -> np.ndarray:
+    """
+    Calcula u × v para vectores en R^3.
+    Equivalente a np.cross(u, v), implementado explícitamente.
+    """
+    assert u.shape == v.shape == (3,), "Solo definido en R^3"
+    return np.array([
+        u[1]*v[2] - u[2]*v[1],   # componente x
+        u[2]*v[0] - u[0]*v[2],   # componente y
+        u[0]*v[1] - u[1]*v[0],   # componente z
+    ])
+
+u = np.array([1., 0., 0.])   # e1
+v = np.array([0., 1., 0.])   # e2
+w = producto_cruzado(u, v)
+print(f"e1 × e2 = {w}")       # Debe ser e3 = [0, 0, 1]
+
+# Verificación numérica vs. np.cross
+u2 = np.array([2., 3., -1.])
+v2 = np.array([1., -2.,  4.])
+assert np.allclose(producto_cruzado(u2, v2), np.cross(u2, v2))
+print("Concordancia con np.cross ✓")
+
+# ── 2. Propiedades geométricas ─────────────────────────────────────────────
+cross = np.cross(u2, v2)
+
+# Ortogonalidad: u·(u×v) = 0 y v·(u×v) = 0
+print(f"u·(u×v) = {u2 @ cross:.2e}")   # ~0
+print(f"v·(u×v) = {v2 @ cross:.2e}")   # ~0
+
+# Magnitud = área del paralelogramo
+theta = np.arccos(np.clip(u2 @ v2 / (np.linalg.norm(u2)*np.linalg.norm(v2)), -1, 1))
+area_paralelo = np.linalg.norm(u2) * np.linalg.norm(v2) * np.sin(theta)
+print(f"||u×v||     = {np.linalg.norm(cross):.6f}")
+print(f"||u||·||v||·sin θ = {area_paralelo:.6f}")  # Iguales
+
+# ── 3. Área de triángulo con vértices arbitrarios ─────────────────────────
+def area_triangulo(A, B, C):
+    """Área del triángulo ABC en R^3 vía producto cruzado."""
+    AB = B - A
+    AC = C - A
+    return 0.5 * np.linalg.norm(np.cross(AB, AC))
+
+A = np.array([0., 0., 0.])
+B = np.array([3., 0., 0.])
+C = np.array([0., 4., 0.])
+print(f"Área triángulo (3-4-5): {area_triangulo(A, B, C):.4f}")  # 6.0
+
+# ── 4. Matriz antisimétrica [u]× (álgebra de Lie so(3)) ───────────────────
+def skew_symmetric(u: np.ndarray) -> np.ndarray:
+    """Devuelve la matriz antisimétrica [u]× tal que [u]×·v = u × v."""
+    return np.array([
+        [ 0,    -u[2],  u[1]],
+        [ u[2],  0,    -u[0]],
+        [-u[1],  u[0],  0   ]
+    ])
+
+u3 = np.array([1., 2., 3.])
+v3 = np.array([4., 5., 6.])
+U_skew = skew_symmetric(u3)
+
+cross_direct = np.cross(u3, v3)
+cross_matrix = U_skew @ v3
+print(f"u×v directo  = {cross_direct}")
+print(f"[u]×·v       = {cross_matrix}")   # Idéntico
+print(f"Antisimetría: U + U^T = \\n{U_skew + U_skew.T}")  # Matriz cero
+
+# ── 5. Volumen de paralelepípedo (triple escalar) ──────────────────────────
+a = np.array([1., 0., 0.])
+b = np.array([0., 2., 0.])
+c = np.array([0., 0., 3.])
+vol = abs(a @ np.cross(b, c))
+print(f"Volumen paralelepípedo = {vol:.4f}")  # 6.0 = 1×2×3`,
+    related: ["Producto Punto", "Determinante", "Norma de un Vector", "Transformaciones Lineales", "Álgebras de Lie"],
+    hasViz: true,
+    vizType: "crossProduct",
+  },
+  {
+    id: 20,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Norma de un Vector (L1, L2, Lp, L∞)",
+    tags: ["álgebra lineal", "normas", "regularización", "distancia", "optimización", "geometría"],
+    definition: "Una norma es una función $\\|\\cdot\\|: V \\to \\mathbb{R}_{\\geq 0}$ que asigna a cada vector una 'longitud' no negativa, satisfaciendo tres axiomas: positividad definida, homogeneidad absoluta y desigualdad triangular. La familia $L^p$ parametriza un continuo de normas indexadas por $p \\geq 1$, interpolando entre la norma Manhattan ($p=1$), Euclidiana ($p=2$) y la norma máximo ($p \\to \\infty$).",
+    formal: {
+      notation: "Sea $\\mathbf{x} \\in \\mathbb{R}^n$ y $p \\in [1, \\infty]$",
+      body: "\\|\\mathbf{x}\\|_p = \\left(\\sum_{i=1}^n |x_i|^p\\right)^{\\!1/p}, \\quad p \\in [1,\\infty) \\\\[10pt] \\|\\mathbf{x}\\|_\\infty = \\lim_{p\\to\\infty}\\|\\mathbf{x}\\|_p = \\max_{1 \\leq i \\leq n} |x_i|",
+      geometric: "B_p = \\{\\mathbf{x} \\in \\mathbb{R}^n : \\|\\mathbf{x}\\|_p \\leq 1\\} \\quad \\text{(bola unitaria de radio 1 en norma } L^p\\text{)}",
+      properties: [
+        "\\text{Positividad: } \\|\\mathbf{x}\\|_p \\geq 0,\\ \\|\\mathbf{x}\\|_p = 0 \\iff \\mathbf{x} = \\mathbf{0}",
+        "\\text{Homogeneidad: } \\|\\alpha\\mathbf{x}\\|_p = |\\alpha|\\,\\|\\mathbf{x}\\|_p \\quad \\forall \\alpha \\in \\mathbb{R}",
+        "\\text{Desigualdad triangular: } \\|\\mathbf{x}+\\mathbf{y}\\|_p \\leq \\|\\mathbf{x}\\|_p + \\|\\mathbf{y}\\|_p \\quad (\\text{Minkowski})",
+      ],
+    },
+    intuition: "Cada norma $L^p$ mide 'distancia' de una manera distinta. $L^1$ (Manhattan) cuenta la distancia real caminando en una cuadrícula: solo movimientos horizontales y verticales. $L^2$ (Euclidiana) es la distancia en línea recta — el vuelo del cuervo. $L^\\infty$ solo mira el movimiento más grande, ignorando los demás. La forma de la bola unitaria revela la geometría: un rombo en $L^1$, un círculo en $L^2$, un cuadrado en $L^\\infty$. Conforme $p$ crece, la bola se 'infla' de rombo hacia cuadrado.",
+    development: [
+      {
+        label: "Las tres normas canónicas y sus fórmulas",
+        body: "Para $\\mathbf{x} = (x_1, \\ldots, x_n)^\\top \\in \\mathbb{R}^n$, las tres normas más usadas en ML son:\n\n$$\\|\\mathbf{x}\\|_1 = \\sum_{i=1}^n |x_i| \\qquad \\text{(Manhattan / Taxicab)}$$\n\n$$\\|\\mathbf{x}\\|_2 = \\sqrt{\\sum_{i=1}^n x_i^2} = \\sqrt{\\mathbf{x}^\\top\\mathbf{x}} \\qquad \\text{(Euclidiana)}$$\n\n$$\\|\\mathbf{x}\\|_\\infty = \\max_i |x_i| \\qquad \\text{(Chebyshev / máximo)}$$\n\nSe cumple la cadena de desigualdades para todo $\\mathbf{x} \\in \\mathbb{R}^n$:\n\n$$\\|\\mathbf{x}\\|_\\infty \\leq \\|\\mathbf{x}\\|_2 \\leq \\|\\mathbf{x}\\|_1 \\leq \\sqrt{n}\\,\\|\\mathbf{x}\\|_2 \\leq n\\,\\|\\mathbf{x}\\|_\\infty$$"
+      },
+      {
+        label: "Equivalencia de normas y bolas unitarias",
+        body: "En $\\mathbb{R}^n$ de dimensión finita, **todas las normas son equivalentes**: para cualesquiera dos normas $\\|\\cdot\\|_a$ y $\\|\\cdot\\|_b$, existen constantes $0 < c \\leq C < \\infty$ tales que:\n\n$$c\\,\\|\\mathbf{x}\\|_a \\leq \\|\\mathbf{x}\\|_b \\leq C\\,\\|\\mathbf{x}\\|_a \\quad \\forall\\mathbf{x}$$\n\nEsto implica que inducen la misma topología (mismas sucesiones convergentes). Sin embargo, sus **geometrías difieren dramáticamente**: la bola unitaria $B_p = \\{\\mathbf{x}: \\|\\mathbf{x}\\|_p \\leq 1\\}$ tiene forma de rombo ($p=1$), disco ($p=2$) o cuadrado ($p=\\infty$) en $\\mathbb{R}^2$, y esto afecta directamente qué soluciones se favorecen en optimización.\n\nNótese que para $p < 1$ la función $\\|\\cdot\\|_p$ **no es norma** (viola la desigualdad triangular), aunque se usa en optimización sparse como cuasi-norma."
+      },
+      {
+        label: "Norma dual y desigualdad de Hölder",
+        body: "A cada norma $L^p$ le corresponde una **norma dual** $L^q$ donde $\\frac{1}{p} + \\frac{1}{q} = 1$ (con $q = \\infty$ si $p=1$ y viceversa). La **desigualdad de Hölder** generaliza Cauchy-Schwarz:\n\n$$|\\mathbf{x}^\\top\\mathbf{y}| \\leq \\|\\mathbf{x}\\|_p \\cdot \\|\\mathbf{y}\\|_q, \\quad \\frac{1}{p}+\\frac{1}{q}=1$$\n\nPara $p=q=2$ recuperamos Cauchy-Schwarz. La norma dual tiene interpretación variacional:\n\n$$\\|\\mathbf{x}\\|_p = \\max_{\\|\\mathbf{y}\\|_q \\leq 1} \\mathbf{x}^\\top\\mathbf{y}$$\n\nEsto conecta normas con **programas lineales** y **funciones de soporte** en geometría convexa."
+      },
+      {
+        label: "En Machine Learning / Regularización",
+        body: "La elección de norma en regularización determina la **estructura de la solución**. Dado un problema de minimización $\\min_{\\boldsymbol{\\theta}} \\mathcal{L}(\\boldsymbol{\\theta}) + \\lambda\\|\\boldsymbol{\\theta}\\|_p^p$:\n\n**Ridge** ($p=2$): $\\lambda\\|\\boldsymbol{\\theta}\\|_2^2$ penaliza pesos grandes, solución analítica $\\hat{\\boldsymbol{\\theta}} = (X^\\top X + \\lambda I)^{-1}X^\\top\\mathbf{y}$, coeficientes shrinkage pero raramente exactamente cero.\n\n**Lasso** ($p=1$): $\\lambda\\|\\boldsymbol{\\theta}\\|_1$ produce soluciones **sparse** (muchos $\\theta_i = 0$ exactamente) porque la bola $L^1$ tiene esquinas que 'atrapan' la solución en los ejes coordenados.\n\n**Elastic Net**: combinación $\\alpha\\|\\boldsymbol{\\theta}\\|_1 + (1-\\alpha)\\|\\boldsymbol{\\theta}\\|_2^2$. En **redes neuronales**, la norma $L^2$ sobre pesos equivale a **weight decay**: $\\nabla\\mathcal{L}_{\\text{reg}} = \\nabla\\mathcal{L} + 2\\lambda\\boldsymbol{\\theta}$, que contrae los pesos en cada actualización."
+      },
+    ],
+    code: `import numpy as np
+from numpy.linalg import norm
+
+# ── 1. Normas Lp para p finito ─────────────────────────────────────────────
+def norma_lp(x: np.ndarray, p: float) -> float:
+    """Norma Lp generalizada. p debe ser >= 1."""
+    if p == np.inf:
+        return np.max(np.abs(x))
+    return np.sum(np.abs(x)**p)**(1/p)
+
+x = np.array([3.0, -4.0, 0.0, 2.0])
+
+print(f"x = {x}")
+print(f"‖x‖₁  = {norma_lp(x, 1):.4f}")    # 9.0  (3+4+0+2)
+print(f"‖x‖₂  = {norma_lp(x, 2):.4f}")    # 5.385
+print(f"‖x‖₃  = {norma_lp(x, 3):.4f}")    # 4.497
+print(f"‖x‖∞  = {norma_lp(x, np.inf):.4f}") # 4.0
+
+# Verificación contra numpy
+assert np.isclose(norma_lp(x, 2), norm(x, 2))
+assert np.isclose(norma_lp(x, 1), norm(x, 1))
+assert np.isclose(norma_lp(x, np.inf), norm(x, np.inf))
+print("Verificado contra numpy.linalg.norm ✓")
+
+# ── 2. Cadena de desigualdades ─────────────────────────────────────────────
+n = len(x)
+l1, l2, linf = norm(x,1), norm(x,2), norm(x,np.inf)
+print(f"\\n‖x‖∞ ≤ ‖x‖₂ ≤ ‖x‖₁ ≤ √n·‖x‖₂:")
+print(f"  {linf:.3f} ≤ {l2:.3f} ≤ {l1:.3f} ≤ {np.sqrt(n)*l2:.3f}")
+assert linf <= l2 <= l1 <= np.sqrt(n)*l2 + 1e-10
+
+# ── 3. Desigualdad de Hölder ───────────────────────────────────────────────
+y = np.array([1.0, -2.0, 3.0, -1.0])
+for p, q in [(1, np.inf), (2, 2), (3, 1.5)]:
+    lhs = abs(x @ y)
+    rhs = norm(x, p) * norm(y, q)
+    print(f"p={p}, q={q}: |x·y|={lhs:.4f} ≤ ‖x‖_p·‖y‖_q={rhs:.4f}  {'✓' if lhs <= rhs+1e-9 else '✗'}")
+
+# ── 4. Regularización L1 vs L2 (Lasso vs Ridge simplificado) ──────────────
+from numpy.linalg import lstsq
+
+rng = np.random.default_rng(42)
+n_samples, n_features = 50, 20
+X = rng.standard_normal((n_samples, n_features))
+# Solo 3 coeficientes son relevantes
+true_w = np.zeros(n_features)
+true_w[[2, 7, 15]] = [3.0, -2.5, 1.8]
+y_data = X @ true_w + 0.5*rng.standard_normal(n_samples)
+
+# Ridge analítico
+lam = 1.0
+w_ridge = np.linalg.solve(X.T@X + lam*np.eye(n_features), X.T@y_data)
+
+# Lasso vía subgradiente proximal (iteraciones simples)
+def lasso_proximal(X, y, lam, n_iter=500, lr=0.001):
+    w = np.zeros(X.shape[1])
+    for _ in range(n_iter):
+        grad = -X.T @ (y - X@w) / len(y)
+        w = w - lr*grad
+        # Operador proximal L1: soft-thresholding
+        w = np.sign(w) * np.maximum(np.abs(w) - lr*lam, 0)
+    return w
+
+w_lasso = lasso_proximal(X, y_data, lam=0.5)
+
+print(f"\\nRidge  — coefs no cero: {np.sum(np.abs(w_ridge) > 0.01)}/{n_features}")
+print(f"Lasso  — coefs no cero: {np.sum(np.abs(w_lasso) > 0.01)}/{n_features}")
+print(f"Coefs detectados por Lasso (idx): {np.where(np.abs(w_lasso) > 0.01)[0]}")
+
+# ── 5. Normalización de vectores ───────────────────────────────────────────
+def normalizar(x: np.ndarray, p: float = 2) -> np.ndarray:
+    """Proyecta x sobre la bola unitaria Lp."""
+    n = norma_lp(x, p)
+    return x / n if n > 1e-12 else x
+
+v = np.array([3.0, 4.0])
+print(f"\\nv normalizado L2: {normalizar(v, 2)}  ‖·‖₂={norm(normalizar(v,2),2):.4f}")
+print(f"v normalizado L1: {normalizar(v, 1)}  ‖·‖₁={norm(normalizar(v,1),1):.4f}")`,
+    related: ["Producto Punto", "Distancia y Similitud", "Regularización Ridge y Lasso", "Espacio Vectorial", "Producto Cruzado"],
+    hasViz: true,
+    vizType: "normBalls",
+  },
+  {
+    id: 21,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Distancia Euclidiana",
+    tags: ["álgebra lineal", "distancia", "métrica", "geometría", "similitud", "kNN"],
+    definition: "La distancia euclidiana entre dos puntos $\\mathbf{x}, \\mathbf{y} \\in \\mathbb{R}^n$ es la longitud del segmento que los une, obtenida como la norma $L^2$ de su diferencia. Es el caso $p=2$ de la familia de distancias de Minkowski y constituye la noción más natural de distancia en espacios de dimensión finita, generalización directa del teorema de Pitágoras a $n$ dimensiones.",
+    formal: {
+      notation: "Sean $\\mathbf{x}, \\mathbf{y} \\in \\mathbb{R}^n$",
+      body: "d_2(\\mathbf{x}, \\mathbf{y}) = \\|\\mathbf{x} - \\mathbf{y}\\|_2 = \\sqrt{\\sum_{i=1}^n (x_i - y_i)^2} = \\sqrt{(\\mathbf{x}-\\mathbf{y})^\\top(\\mathbf{x}-\\mathbf{y})}",
+      geometric: "d_2(\\mathbf{x},\\mathbf{y})^2 = \\|\\mathbf{x}\\|_2^2 + \\|\\mathbf{y}\\|_2^2 - 2\\,\\mathbf{x}^\\top\\mathbf{y} \\quad (\\text{ley del coseno generalizada})",
+      properties: [
+        "\\text{No negatividad: } d_2(\\mathbf{x},\\mathbf{y}) \\geq 0,\\ d_2(\\mathbf{x},\\mathbf{y})=0 \\iff \\mathbf{x}=\\mathbf{y}",
+        "\\text{Simetría: } d_2(\\mathbf{x},\\mathbf{y}) = d_2(\\mathbf{y},\\mathbf{x})",
+        "\\text{Desigualdad triangular: } d_2(\\mathbf{x},\\mathbf{z}) \\leq d_2(\\mathbf{x},\\mathbf{y}) + d_2(\\mathbf{y},\\mathbf{z})",
+      ],
+    },
+    intuition: "La distancia euclidiana es la respuesta al vuelo del cuervo: la ruta más corta posible entre dos puntos en el espacio. En $\\mathbb{R}^2$ es simplemente Pitágoras: $d = \\sqrt{\\Delta x^2 + \\Delta y^2}$. En $\\mathbb{R}^n$ acumula la discrepancia en cada dimensión elevada al cuadrado — lo que significa que diferencias grandes pesan desproporcionadamente más que diferencias pequeñas. Esta sensibilidad cuadrática la hace intuitiva en baja dimensión, pero problemática en alta dimensión donde todas las distancias convergen.",
+    development: [
+      {
+        label: "Derivación desde Pitágoras y generalización",
+        body: "En $\\mathbb{R}^2$, el teorema de Pitágoras da la longitud de la hipotenusa: $d = \\sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}$. La generalización a $\\mathbb{R}^3$ añade un término: $d = \\sqrt{\\Delta x^2 + \\Delta y^2 + \\Delta z^2}$, aplicando Pitágoras dos veces. En $\\mathbb{R}^n$ la extensión es directa:\n\n$$d_2(\\mathbf{x},\\mathbf{y}) = \\sqrt{\\sum_{i=1}^n (x_i - y_i)^2}$$\n\nLa **ley del coseno generalizada** permite descomponer el cuadrado de la distancia en normas individuales más un término de interacción:\n\n$$d_2(\\mathbf{x},\\mathbf{y})^2 = \\|\\mathbf{x}\\|^2 + \\|\\mathbf{y}\\|^2 - 2\\mathbf{x}^\\top\\mathbf{y}$$\n\nEsta identidad conecta distancia, norma y producto punto, y es la base de muchos algoritmos de ML."
+      },
+      {
+        label: "Axiomas de métrica y espacio métrico",
+        body: "Una función $d: X \\times X \\to \\mathbb{R}_{\\geq 0}$ es una **métrica** si satisface cuatro axiomas:\n\n1. $d(x,y) \\geq 0$ y $d(x,y)=0 \\iff x=y$ (positividad)\n2. $d(x,y) = d(y,x)$ (simetría)\n3. $d(x,z) \\leq d(x,y) + d(y,z)$ (triangular)\n\nLa distancia euclidiana satisface los tres. El par $(\\mathbb{R}^n, d_2)$ es un **espacio métrico completo** (espacio de Hilbert de dimensión finita). La desigualdad triangular tiene una versión inversa útil:\n\n$$|d(x,z) - d(y,z)| \\leq d(x,y)$$\n\nque garantiza que la función distancia es **Lipschitz continua** con constante 1 en cada argumento."
+      },
+      {
+        label: "Maldición de la dimensionalidad y concentración",
+        body: "En alta dimensión, la distancia euclidiana pierde poder discriminativo. Para puntos uniformes en $[0,1]^d$, la distancia al vecino más cercano y al más lejano satisfacen:\n\n$$\\frac{d_{\\max} - d_{\\min}}{d_{\\min}} \\to 0 \\quad \\text{cuando } d \\to \\infty$$\n\nEste fenómeno de **concentración de la medida** implica que todas las distancias son aproximadamente iguales para $d$ grande. Más precisamente, para $\\mathbf{x} \\sim \\mathcal{N}(\\mathbf{0}, I_d)$:\n\n$$\\frac{\\|\\mathbf{x}\\|_2}{\\sqrt{d}} \\xrightarrow{p} 1 \\quad (d \\to \\infty)$$\n\nEs decir, los puntos gaussianos se concentran en la superficie de una esfera de radio $\\sqrt{d}$. En la práctica esto motiva el uso de **reducción de dimensionalidad** (PCA, UMAP) antes de aplicar métricas euclidianas."
+      },
+      {
+        label: "En Machine Learning",
+        body: "La distancia euclidiana es el corazón de decenas de algoritmos:\n\n**k-NN**: clasifica $\\mathbf{x}$ según las $k$ muestras de entrenamiento con menor $d_2(\\mathbf{x}, \\mathbf{x}_i)$. Su complejidad $\\mathcal{O}(nd)$ por consulta motiva estructuras como KD-trees y ball trees.\n\n**K-Means**: asigna cada punto al centroide más cercano en $L^2$ y actualiza centroides como medias. El paso de asignación minimiza $\\sum_k \\sum_{\\mathbf{x}\\in C_k} d_2(\\mathbf{x}, \\boldsymbol{\\mu}_k)^2$.\n\n**Distancia de Mahalanobis**: corrige la isotropía euclidiana usando la covarianza de los datos:\n\n$$d_M(\\mathbf{x},\\mathbf{y}) = \\sqrt{(\\mathbf{x}-\\mathbf{y})^\\top \\Sigma^{-1} (\\mathbf{x}-\\mathbf{y})}$$\n\nEs invariante a transformaciones lineales y equivale a $d_2$ en el espacio blanqueado $\\Sigma^{-1/2}\\mathbf{x}$. En **redes siamesas** y **metric learning**, el objetivo de entrenamiento es aprender una métrica $d_\\theta$ tal que puntos similares estén cerca y disímiles lejos."
+      },
+    ],
+    code: `import numpy as np
+from numpy.linalg import norm
+
+# ── 1. Distancia euclidiana: implementaciones ──────────────────────────────
+def dist_euclidiana(x: np.ndarray, y: np.ndarray) -> float:
+    """d₂(x,y) = ‖x - y‖₂. Equivalente a np.linalg.norm(x-y)."""
+    return np.sqrt(np.sum((x - y)**2))
+
+x = np.array([1.0, 2.0, 3.0])
+y = np.array([4.0, 0.0, -1.0])
+
+d_manual = dist_euclidiana(x, y)
+d_numpy  = norm(x - y)
+d_ley_coseno = np.sqrt(norm(x)**2 + norm(y)**2 - 2*(x @ y))
+
+print(f"d₂(x,y) manual      = {d_manual:.6f}")
+print(f"d₂(x,y) numpy       = {d_numpy:.6f}")
+print(f"d₂(x,y) ley coseno  = {d_ley_coseno:.6f}")
+assert np.allclose(d_manual, d_numpy, d_ley_coseno)
+
+# ── 2. Matriz de distancias (todos contra todos) ───────────────────────────
+def matriz_distancias(X: np.ndarray) -> np.ndarray:
+    """
+    Calcula D donde D[i,j] = d₂(xᵢ, xⱼ) para X ∈ ℝ^{n×d}.
+    Usa la identidad: ‖xᵢ-xⱼ‖² = ‖xᵢ‖² + ‖xⱼ‖² - 2 xᵢ·xⱼ
+    Vectorizado: O(n²d) pero sin bucles Python.
+    """
+    normas_sq = np.sum(X**2, axis=1, keepdims=True)  # (n,1)
+    G = X @ X.T                                        # Gram matrix (n,n)
+    D_sq = normas_sq + normas_sq.T - 2*G
+    np.fill_diagonal(D_sq, 0)  # eliminar errores numéricos
+    return np.sqrt(np.maximum(D_sq, 0))
+
+rng = np.random.default_rng(42)
+X = rng.standard_normal((5, 3))
+D = matriz_distancias(X)
+print(f"\\nMatriz de distancias (5 puntos en R³):")
+print(D.round(4))
+print(f"Simétrica: {np.allclose(D, D.T)}")  # True
+
+# ── 3. Verificación axiomas de métrica ─────────────────────────────────────
+i, j, k = 0, 1, 2
+print(f"\\nAxiomas de métrica:")
+print(f"  No negatividad:    d(x,y) = {D[i,j]:.4f} ≥ 0  ✓")
+print(f"  Simetría:          d(i,j)={D[i,j]:.4f} == d(j,i)={D[j,i]:.4f}  ✓")
+print(f"  Triangular:        d(i,k)={D[i,k]:.4f} ≤ d(i,j)+d(j,k)={D[i,j]+D[j,k]:.4f}  ✓")
+
+# ── 4. Concentración en alta dimensión ────────────────────────────────────
+print("\\nConcentración de la medida (N=2000 puntos gaussianos):")
+for d_dim in [2, 10, 50, 200, 1000]:
+    pts = rng.standard_normal((2000, d_dim))
+    D_mat = matriz_distancias(pts)
+    np.fill_diagonal(D_mat, np.inf)
+    d_min = D_mat.min(axis=1).mean()
+    np.fill_diagonal(D_mat, 0)
+    d_max = D_mat.max(axis=1).mean()
+    contraste = (d_max - d_min) / d_min
+    radio_teorico = np.sqrt(d_dim)  # concentración en esfera √d
+    print(f"  d={d_dim:4d}: d_min={d_min:.2f}, d_max={d_max:.2f}, "
+          f"contraste={contraste:.3f}, ‖x‖≈{radio_teorico:.1f}")
+
+# ── 5. Distancia de Mahalanobis ────────────────────────────────────────────
+def dist_mahalanobis(x: np.ndarray, y: np.ndarray,
+                     Sigma: np.ndarray) -> float:
+    """d_M(x,y) = √[(x-y)ᵀ Σ⁻¹ (x-y)]. Invariante a escalado."""
+    diff = x - y
+    Sigma_inv = np.linalg.inv(Sigma)
+    return np.sqrt(diff @ Sigma_inv @ diff)
+
+# Datos con correlación fuerte entre dim 0 y 1
+Sigma = np.array([[4.0, 3.5, 0.0],
+                  [3.5, 4.0, 0.0],
+                  [0.0, 0.0, 1.0]])
+a = np.array([2.0, 2.0, 0.0])
+b = np.array([0.0, 0.0, 0.0])
+
+print(f"\\nd₂(a,b)  = {norm(a-b):.4f}  (ignora correlación)")
+print(f"d_M(a,b) = {dist_mahalanobis(a, b, Sigma):.4f}  (corrige por Σ)")
+# a y b están correlacionados → Mahalanobis < Euclidiana`,
+    related: ["Norma de un Vector", "Producto Punto", "Similitud Coseno", "K-Means", "k-NN"],
+    hasViz: true,
+    vizType: "euclideanDistance",
+  },
+  {
+    id: 22,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Similitud Coseno",
+    tags: ["álgebra lineal", "similitud", "producto punto", "embeddings", "NLP", "recuperación de información"],
+    definition: "La similitud coseno entre dos vectores no nulos $\\mathbf{x}, \\mathbf{y} \\in \\mathbb{R}^n$ es el coseno del ángulo que forman, obtenido normalizando su producto punto por el producto de sus normas $L^2$. Toma valores en $[-1, 1]$: $1$ indica vectores paralelos con igual orientación, $0$ indica ortogonalidad, y $-1$ indica antiparalelismo. A diferencia de la distancia euclidiana, es invariante a la magnitud de los vectores y mide exclusivamente su orientación relativa.",
+    formal: {
+      notation: "Sean $\\mathbf{x}, \\mathbf{y} \\in \\mathbb{R}^n \\setminus \\{\\mathbf{0}\\}$",
+      body: "\\text{sim}_{\\cos}(\\mathbf{x},\\mathbf{y}) = \\cos\\theta = \\frac{\\mathbf{x}^\\top\\mathbf{y}}{\\|\\mathbf{x}\\|_2\\,\\|\\mathbf{y}\\|_2} = \\frac{\\sum_{i=1}^n x_i y_i}{\\sqrt{\\sum_{i=1}^n x_i^2}\\,\\sqrt{\\sum_{i=1}^n y_i^2}}",
+      geometric: "\\text{sim}_{\\cos}(\\mathbf{x},\\mathbf{y}) = \\hat{\\mathbf{x}}^\\top\\hat{\\mathbf{y}}, \\quad \\hat{\\mathbf{x}} = \\frac{\\mathbf{x}}{\\|\\mathbf{x}\\|_2} \\quad (\\text{producto punto de versores})",
+      properties: [
+        "\\text{Rango: } \\text{sim}_{\\cos} \\in [-1,1], \\text{ con } {=}1 \\iff \\mathbf{y}=\\alpha\\mathbf{x},\\ \\alpha>0",
+        "\\text{Invarianza de escala: } \\text{sim}_{\\cos}(\\alpha\\mathbf{x}, \\beta\\mathbf{y}) = \\text{sgn}(\\alpha\\beta)\\,\\text{sim}_{\\cos}(\\mathbf{x},\\mathbf{y}),\\ \\alpha,\\beta\\neq 0",
+        "\\text{Distancia coseno: } d_{\\cos}(\\mathbf{x},\\mathbf{y}) = 1 - \\text{sim}_{\\cos}(\\mathbf{x},\\mathbf{y}) \\in [0,2]",
+      ],
+    },
+    intuition: "Imagina dos flechas saliendo del origen: la similitud coseno solo mira hacia dónde apuntan, no qué tan largas son. Un documento con 1000 palabras y otro con 10, si hablan del mismo tema, apuntan en la misma dirección y tendrán similitud coseno $\\approx 1$, aunque su distancia euclidiana sea enorme. Es como comparar dos personas por su orientación en el espacio, no por su altura. En NLP, cada palabra o documento es un vector de frecuencias; el coseno captura similitud semántica independientemente del volumen del texto.",
+    development: [
+      {
+        label: "Derivación desde el producto punto",
+        body: "El **producto punto** satisface la identidad geométrica $\\mathbf{x}^\\top\\mathbf{y} = \\|\\mathbf{x}\\|\\|\\mathbf{y}\\|\\cos\\theta$, donde $\\theta \\in [0,\\pi]$ es el ángulo entre los vectores. Despejando:\n\n$$\\cos\\theta = \\frac{\\mathbf{x}^\\top\\mathbf{y}}{\\|\\mathbf{x}\\|\\|\\mathbf{y}\\|}$$\n\nEsta expresión normaliza el producto punto dividiéndolo por las magnitudes, obteniendo una cantidad adimensional en $[-1,1]$. Geométricamente equivale a proyectar ambos vectores sobre la esfera unitaria $S^{n-1}$ y calcular su producto punto como versores $\\hat{\\mathbf{x}}^\\top\\hat{\\mathbf{y}}$.\n\nLa **desigualdad de Cauchy-Schwarz** garantiza que el cociente es válido y acotado:\n\n$$|\\mathbf{x}^\\top\\mathbf{y}| \\leq \\|\\mathbf{x}\\|\\|\\mathbf{y}\\| \\implies \\cos\\theta \\in [-1,1]$$"
+      },
+      {
+        label: "Relación con distancia euclidiana y correlación de Pearson",
+        body: "Para vectores **normalizados** $\\hat{\\mathbf{x}}, \\hat{\\mathbf{y}} \\in S^{n-1}$, la distancia euclidiana al cuadrado y la similitud coseno se relacionan por:\n\n$$\\|\\hat{\\mathbf{x}} - \\hat{\\mathbf{y}}\\|_2^2 = 2(1 - \\cos\\theta) = 2\\,d_{\\cos}(\\mathbf{x},\\mathbf{y})$$\n\nEsto implica que en vectores ya normalizados, **ordenar por similitud coseno es equivalente a ordenar por distancia euclidiana**. Esta equivalencia es explotada en sistemas de búsqueda aproximada (ANN) como FAISS, que usa distancias euclidianas internamente con vectores pre-normalizados.\n\nLa **correlación de Pearson** es la similitud coseno aplicada a vectores centrados. Si $\\tilde{\\mathbf{x}} = \\mathbf{x} - \\bar{x}\\mathbf{1}$:\n\n$$r_{xy} = \\text{sim}_{\\cos}(\\tilde{\\mathbf{x}}, \\tilde{\\mathbf{y}}) = \\frac{\\tilde{\\mathbf{x}}^\\top\\tilde{\\mathbf{y}}}{\\|\\tilde{\\mathbf{x}}\\|\\|\\tilde{\\mathbf{y}}\\|}$$"
+      },
+      {
+        label: "No es métrica y distancia coseno",
+        body: "La similitud coseno **no es una métrica**: no satisface la desigualdad triangular en general. Sin embargo, la **distancia coseno** $d_{\\cos} = 1 - \\text{sim}_{\\cos} \\in [0,2]$ tampoco es una métrica estricta (viola triangular en casos degenerados).\n\nEn cambio, la **distancia angular** sí es métrica:\n\n$$d_{\\text{ang}}(\\mathbf{x},\\mathbf{y}) = \\frac{\\arccos(\\text{sim}_{\\cos}(\\mathbf{x},\\mathbf{y}))}{\\pi} \\in [0,1]$$\n\nEsta distinción importa en práctica: HNSW y otros índices ANN asumen que la función de distancia satisface la desigualdad triangular para podar el grafo de búsqueda eficientemente. Usar $1 - \\cos\\theta$ directamente puede producir resultados subóptimos en estos índices."
+      },
+      {
+        label: "En Machine Learning / NLP y Embeddings",
+        body: "La similitud coseno es la métrica estándar en **recuperación de información** y **embeddings semánticos**:\n\n**TF-IDF y Bag-of-Words**: documentos representados como vectores de frecuencias en un vocabulario de dimensión $|V| \\sim 10^4{-}10^6$. El coseno captura similitud temática neutralizando la longitud del documento.\n\n**Word y sentence embeddings**: en espacios de embeddings densos ($d \\sim 768{-}4096$), el coseno mide similitud semántica. El sistema de búsqueda semántica más simple es:\n\n$$\\text{top-}k = \\underset{i}{\\text{arg top-}k}\\; \\frac{\\mathbf{q}^\\top\\mathbf{e}_i}{\\|\\mathbf{q}\\|\\|\\mathbf{e}_i\\|}$$\n\n**Atención en Transformers**: el mecanismo de atención $\\text{softmax}(QK^\\top/\\sqrt{d_k})V$ computa similitudes entre queries y keys; el factor $1/\\sqrt{d_k}$ escala el producto punto para mantener varianza constante, evitando que el softmax sature en zonas de gradiente cero. Es una similitud coseno aproximada (sin normalización por norma, pero con regularización estadística).\n\n**Contrastive learning** (SimCLR, CLIP): el objetivo entrena embeddings para maximizar $\\text{sim}_{\\cos}$ entre pares positivos y minimizarla entre negativos."
+      },
+    ],
+    code: `import numpy as np
+from numpy.linalg import norm
+
+# ── 1. Similitud coseno: implementaciones ──────────────────────────────────
+def similitud_coseno(x: np.ndarray, y: np.ndarray,
+                     eps: float = 1e-10) -> float:
+    """
+    sim_cos(x,y) = x·y / (‖x‖·‖y‖).
+    eps evita división por cero con vectores nulos.
+    """
+    return (x @ y) / (norm(x) * norm(y) + eps)
+
+x = np.array([1.0,  2.0, 3.0])
+y = np.array([2.0,  4.0, 6.0])   # paralelo a x (escala 2)
+z = np.array([-1.0, 0.0, 1.0])   # oblicuo
+
+print(f"sim_cos(x, y) = {similitud_coseno(x,y):.6f}")  # 1.0 exacto (paralelos)
+print(f"sim_cos(x, z) = {similitud_coseno(x,z):.6f}")  # < 1
+
+# ── 2. Invarianza a escala ─────────────────────────────────────────────────
+for alpha, beta in [(1,1), (5,1), (1,100), (-1,1), (0.01,1000)]:
+    s = similitud_coseno(alpha*x, beta*z)
+    s0 = similitud_coseno(x, z)
+    print(f"α={alpha:6}, β={beta:4}: sim={s:+.6f}  (ref={s0:+.6f})")
+# Siempre igual en módulo, signo depende de sgn(α·β)
+
+# ── 3. Relación con distancia euclidiana en vectores normalizados ──────────
+def normalizar(v): return v / norm(v)
+
+xh, zh = normalizar(x), normalizar(z)
+dist_euclid_sq  = norm(xh - zh)**2
+dist_coseno_x2  = 2*(1 - similitud_coseno(x, z))
+print(f"\\n‖x̂-ẑ‖² = {dist_euclid_sq:.6f}")
+print(f"2(1-cos) = {dist_coseno_x2:.6f}")
+print(f"Son iguales: {np.isclose(dist_euclid_sq, dist_coseno_x2)}")
+
+# ── 4. Correlación de Pearson = similitud coseno de vectores centrados ─────
+rng = np.random.default_rng(42)
+a = rng.standard_normal(50)
+b = 0.8*a + 0.6*rng.standard_normal(50)  # correlación ~0.8
+
+def pearson(a, b):
+    return np.corrcoef(a, b)[0,1]
+
+def coseno_centrado(a, b):
+    a_c = a - a.mean()
+    b_c = b - b.mean()
+    return similitud_coseno(a_c, b_c)
+
+print(f"\\nCorrelación Pearson:           {pearson(a,b):.6f}")
+print(f"Similitud coseno (centrada):   {coseno_centrado(a,b):.6f}")
+# Idénticos
+
+# ── 5. Búsqueda por similitud coseno (mini sistema RAG) ───────────────────
+documentos = [
+    "El aprendizaje automático optimiza modelos con datos",
+    "Las redes neuronales aprenden representaciones jerárquicas",
+    "El álgebra lineal es la base del machine learning",
+    "Python es el lenguaje más usado en ciencia de datos",
+    "Los transformers usan atención para procesar secuencias",
+]
+
+# Embedding sintético: bag-of-words simplificado (TF crudo)
+vocab_words = list(set(" ".join(documentos).lower().split()))
+vocab = {w: i for i, w in enumerate(vocab_words)}
+
+def vectorizar(texto: str, vocab: dict) -> np.ndarray:
+    vec = np.zeros(len(vocab))
+    for w in texto.lower().split():
+        if w in vocab:
+            vec[vocab[w]] += 1
+    return vec
+
+doc_vecs = np.array([vectorizar(d, vocab) for d in documentos])
+doc_vecs_norm = doc_vecs / (norm(doc_vecs, axis=1, keepdims=True) + 1e-10)
+
+consulta = "redes neuronales y aprendizaje profundo"
+q_vec  = vectorizar(consulta, vocab)
+q_norm = q_vec / (norm(q_vec) + 1e-10)
+
+similitudes = doc_vecs_norm @ q_norm   # similitud coseno vectorizada
+ranking = np.argsort(similitudes)[::-1]
+
+print(f"\\nConsulta: '{consulta}'")
+print("Ranking por similitud coseno:")
+for idx in ranking:
+    print(f"  {similitudes[idx]:.4f}  {documentos[idx]}")
+
+# ── 6. Distancia angular (métrica) ────────────────────────────────────────
+def dist_angular(x, y):
+    cos = np.clip(similitud_coseno(x, y), -1, 1)
+    return np.arccos(cos) / np.pi
+
+print(f"\\nDistancia angular(x,z) = {dist_angular(x,z):.4f} ∈ [0,1]")`,
+    related: ["Producto Punto", "Norma de un Vector", "Distancia Euclidiana", "Embeddings", "Mecanismo de Atención"],
+    hasViz: true,
+    vizType: "cosineSimilarity",
+  },
+  {
+    id: 23,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Ortogonalidad y Proyección Vectorial",
+    tags: ["álgebra lineal", "ortogonalidad", "proyección", "descomposición", "gram-schmidt", "PCA"],
+    definition: "Dos vectores son ortogonales si su producto punto es cero, lo que geométricamente equivale a un ángulo de 90° entre ellos. La proyección ortogonal de un vector $\\mathbf{v}$ sobre un subespacio $W$ es el único vector $\\hat{\\mathbf{v}} \\in W$ que minimiza la distancia $\\|\\mathbf{v} - \\hat{\\mathbf{v}}\\|_2$, descomponiendo $\\mathbf{v}$ en una componente dentro de $W$ y otra perpendicular a $W$. Esta descomposición es el fundamento geométrico de mínimos cuadrados, PCA y la mayoría de métodos de reducción dimensional.",
+    formal: {
+      notation: "Sean $\\mathbf{u}, \\mathbf{v} \\in \\mathbb{R}^n$ y $W \\subseteq \\mathbb{R}^n$ subespacio",
+      body: "\\mathbf{u} \\perp \\mathbf{v} \\iff \\mathbf{u}^\\top\\mathbf{v} = 0 \\\\[10pt] \\text{proj}_W(\\mathbf{v}) = P_W\\mathbf{v}, \\quad P_W = Q Q^\\top \\\\[6pt] \\text{donde las columnas de } Q \\in \\mathbb{R}^{n \\times k} \\text{ forman una base ortonormal de } W",
+      geometric: "\\text{proj}_{\\mathbf{u}}(\\mathbf{v}) = \\frac{\\mathbf{u}^\\top\\mathbf{v}}{\\mathbf{u}^\\top\\mathbf{u}}\\,\\mathbf{u} = (\\hat{\\mathbf{u}}^\\top\\mathbf{v})\\,\\hat{\\mathbf{u}} \\qquad (W = \\text{span}\\{\\mathbf{u}\\})",
+      properties: [
+        "\\text{Idempotencia: } P_W^2 = P_W \\quad (\\text{proyectar dos veces no cambia nada})",
+        "\\text{Simetría: } P_W^\\top = P_W \\quad (P_W \\text{ es matriz simétrica})",
+        "\\text{Complemento: } P_{W^\\perp} = I - P_W, \\quad \\mathbf{v} = P_W\\mathbf{v} + P_{W^\\perp}\\mathbf{v}",
+      ],
+    },
+    intuition: "Imagina que $\\mathbf{v}$ es una flecha en el espacio y $W$ es el suelo. La proyección ortogonal $\\hat{\\mathbf{v}}$ es exactamente la sombra que deja $\\mathbf{v}$ con luz vertical: el punto del suelo más cercano a la punta de la flecha. El vector residual $\\mathbf{v} - \\hat{\\mathbf{v}}$ es la 'altura' de la flecha, perpendicular al suelo. Esta descomposición es óptima en el sentido de mínimos cuadrados: ningún otro punto del suelo está más cerca de la punta de $\\mathbf{v}$.",
+    development: [
+      {
+        label: "Ortogonalidad: definición y consecuencias",
+        body: "Dos vectores $\\mathbf{u}, \\mathbf{v} \\in \\mathbb{R}^n$ son **ortogonales** ($\\mathbf{u} \\perp \\mathbf{v}$) si y solo si $\\mathbf{u}^\\top\\mathbf{v} = 0$. Para vectores no nulos esto equivale a $\\cos\\theta = 0 \\Rightarrow \\theta = 90°$.\n\nUna consecuencia inmediata es el **teorema de Pitágoras generalizado**: si $\\mathbf{u} \\perp \\mathbf{v}$, entonces:\n\n$$\\|\\mathbf{u} + \\mathbf{v}\\|^2 = \\|\\mathbf{u}\\|^2 + \\|\\mathbf{v}\\|^2$$\n\nUn conjunto $\\{\\mathbf{q}_1,\\ldots,\\mathbf{q}_k\\}$ es **ortonormal** si $\\mathbf{q}_i^\\top\\mathbf{q}_j = \\delta_{ij}$, es decir, cada par es ortogonal y cada vector tiene norma 1. Un conjunto ortonormal es automáticamente linealmente independiente, y una matriz $Q$ con columnas ortonormales satisface $Q^\\top Q = I_k$ (aunque $QQ^\\top \\neq I_n$ si $k < n$)."
+      },
+      {
+        label: "Proyección sobre un vector y sobre un subespacio",
+        body: "La **proyección de $\\mathbf{v}$ sobre $\\mathbf{u}$** (subespacio de dimensión 1) se obtiene resolviendo $\\min_{\\alpha} \\|\\mathbf{v} - \\alpha\\mathbf{u}\\|^2$, cuya solución es:\n\n$$\\hat{\\mathbf{v}} = \\frac{\\mathbf{u}^\\top\\mathbf{v}}{\\mathbf{u}^\\top\\mathbf{u}}\\mathbf{u} = \\frac{\\mathbf{u}\\mathbf{u}^\\top}{\\mathbf{u}^\\top\\mathbf{u}}\\mathbf{v} = P_{\\mathbf{u}}\\mathbf{v}$$\n\nPara un subespacio $W$ de dimensión $k$ con base ortonormal $Q = [\\mathbf{q}_1 \\mid \\cdots \\mid \\mathbf{q}_k]$, la **matriz de proyección** es:\n\n$$P_W = QQ^\\top = \\sum_{i=1}^k \\mathbf{q}_i\\mathbf{q}_i^\\top$$\n\nSi la base no es ortonormal sino $A = [\\mathbf{a}_1 \\mid \\cdots \\mid \\mathbf{a}_k]$, la fórmula general es:\n\n$$P_W = A(A^\\top A)^{-1}A^\\top$$\n\nque requiere que $A$ tenga columnas linealmente independientes. Esta es exactamente la **solución de mínimos cuadrados** $\\hat{\\mathbf{x}} = (A^\\top A)^{-1}A^\\top\\mathbf{b}$."
+      },
+      {
+        label: "Proceso de Gram-Schmidt y factorización QR",
+        body: "El **proceso de Gram-Schmidt** convierte una base arbitraria $\\{\\mathbf{a}_1,\\ldots,\\mathbf{a}_k\\}$ en una base ortonormal $\\{\\mathbf{q}_1,\\ldots,\\mathbf{q}_k\\}$ del mismo subespacio, restando iterativamente las proyecciones sobre los vectores ya ortonormalizados:\n\n$$\\mathbf{u}_j = \\mathbf{a}_j - \\sum_{i=1}^{j-1} (\\mathbf{q}_i^\\top\\mathbf{a}_j)\\,\\mathbf{q}_i, \\qquad \\mathbf{q}_j = \\frac{\\mathbf{u}_j}{\\|\\mathbf{u}_j\\|}$$\n\nEste proceso produce la **factorización QR**: $A = QR$, donde $Q$ tiene columnas ortonormales y $R$ es triangular superior con entradas $r_{ij} = \\mathbf{q}_i^\\top\\mathbf{a}_j$. La factorización QR es numéricamente más estable que calcular $(A^\\top A)^{-1}$ directamente para mínimos cuadrados, y es la base de algoritmos de eigenvalores (QR iteration)."
+      },
+      {
+        label: "En Machine Learning / PCA y Mínimos Cuadrados",
+        body: "La proyección ortogonal es el núcleo geométrico de los dos algoritmos más fundamentales en ML:\n\n**Mínimos Cuadrados**: dado $A\\mathbf{x} \\approx \\mathbf{b}$ con $A \\in \\mathbb{R}^{m\\times n}$, $m > n$, la solución $\\hat{\\mathbf{x}} = (A^\\top A)^{-1}A^\\top\\mathbf{b}$ es la proyección de $\\mathbf{b}$ sobre $\\text{Col}(A)$. El residuo $\\mathbf{b} - A\\hat{\\mathbf{x}}$ es ortogonal a cada columna de $A$, lo que se expresa como las **ecuaciones normales**: $A^\\top(\\mathbf{b} - A\\hat{\\mathbf{x}}) = \\mathbf{0}$.\n\n**PCA**: busca la dirección $\\mathbf{u}_1 \\in S^{n-1}$ que maximiza la varianza de las proyecciones $\\{\\mathbf{u}_1^\\top\\mathbf{x}_i\\}$. La solución es el eigenvector dominante de la matriz de covarianza $\\Sigma$. Los $k$ componentes principales son una base ortonormal $\\{\\mathbf{u}_1,\\ldots,\\mathbf{u}_k\\}$ que define el mejor subespacio de dimensión $k$ en sentido $L^2$:\n\n$$\\min_{\\text{rank}(P)=k} \\sum_{i=1}^n \\|\\mathbf{x}_i - P\\mathbf{x}_i\\|^2 \\quad \\Rightarrow \\quad P = \\sum_{j=1}^k \\mathbf{u}_j\\mathbf{u}_j^\\top$$\n\nEn **redes neuronales**, las capas de atención proyectan queries sobre el subespacio de keys mediante $\\text{softmax}(QK^\\top/\\sqrt{d})$, una forma suavizada de proyección ortogonal."
+      },
+    ],
+    code: `import numpy as np
+from numpy.linalg import norm, qr
+
+# ── 1. Ortogonalidad y verificación ────────────────────────────────────────
+u = np.array([1.0, 2.0, 3.0])
+v = np.array([1.0, 1.0, -1.0])   # ¿ortogonal a u?
+
+dot = u @ v
+print(f"u · v = {dot:.6f}  {'→ ortogonales ✓' if np.isclose(dot,0) else '→ NO ortogonales'}")
+
+# Teorema de Pitágoras generalizado
+if np.isclose(dot, 0):
+    print(f"‖u+v‖² = {norm(u+v)**2:.4f}")
+    print(f"‖u‖²+‖v‖² = {norm(u)**2 + norm(v)**2:.4f}")
+
+# ── 2. Proyección sobre un vector ──────────────────────────────────────────
+def proj_vector(v: np.ndarray, u: np.ndarray) -> np.ndarray:
+    """Proyección ortogonal de v sobre span{u}."""
+    return (u @ v) / (u @ u) * u
+
+v = np.array([3.0, 4.0, 0.0])
+u = np.array([1.0, 0.0, 0.0])   # eje x
+
+v_hat  = proj_vector(v, u)       # componente en dirección u
+v_perp = v - v_hat               # componente perpendicular
+
+print(f"\\nv       = {v}")
+print(f"proj_u(v)= {v_hat}   (en span{{u}})")
+print(f"residuo  = {v_perp}  (⊥ a u)")
+print(f"ortogonalidad: (v_hat · v_perp) = {v_hat @ v_perp:.2e}")  # ≈ 0
+print(f"Pitágoras: {norm(v)**2:.4f} = {norm(v_hat)**2:.4f} + {norm(v_perp)**2:.4f}")
+
+# ── 3. Matriz de proyección P = uu^T / (u^Tu) ─────────────────────────────
+def matriz_proyeccion_vector(u: np.ndarray) -> np.ndarray:
+    """P = u u^T / (u^T u). Idempotente y simétrica."""
+    return np.outer(u, u) / (u @ u)
+
+P = matriz_proyeccion_vector(u)
+print(f"\\nP² = P (idempotente): {np.allclose(P @ P, P)}")
+print(f"P  = P^T (simétrica):  {np.allclose(P, P.T)}")
+print(f"Proyección: P·v = {P @ v}")  # mismo resultado que proj_vector
+
+# ── 4. Proyección sobre subespacio (base ortonormal) ──────────────────────
+def proj_subespacio(Q: np.ndarray, v: np.ndarray) -> np.ndarray:
+    """
+    Proyección de v sobre Col(Q) donde Q tiene columnas ortonormales.
+    P_W = Q Q^T,  proj = Q Q^T v = Q (Q^T v)
+    """
+    coords = Q.T @ v          # coordenadas en la base ortonormal
+    return Q @ coords         # reconstrucción en el subespacio
+
+# Subespacio W = span{e1, e2} en R^3
+Q = np.eye(3)[:, :2]   # primeras dos columnas canónicas (ya ortonormales)
+v3 = np.array([2.0, -1.0, 5.0])
+
+v3_hat  = proj_subespacio(Q, v3)
+v3_perp = v3 - v3_hat
+
+print(f"\\nv          = {v3}")
+print(f"proj_W(v)  = {v3_hat}   (en W = span{{e1,e2}})")
+print(f"residuo    = {v3_perp}  (en W⊥)")
+print(f"Ortogonalidad: {np.allclose(v3_hat @ v3_perp, 0)}")
+
+# ── 5. Proceso de Gram-Schmidt ─────────────────────────────────────────────
+def gram_schmidt(A: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Factorización QR via Gram-Schmidt clásico.
+    A: matriz n×k con columnas linealmente independientes.
+    Devuelve Q (n×k ortonormal) y R (k×k triangular superior).
+    """
+    n, k = A.shape
+    Q = np.zeros((n, k))
+    R = np.zeros((k, k))
+    for j in range(k):
+        v = A[:, j].copy()
+        for i in range(j):
+            R[i, j] = Q[:, i] @ A[:, j]   # coeficiente de proyección
+            v = v - R[i, j] * Q[:, i]      # restar proyección
+        R[j, j] = norm(v)
+        Q[:, j] = v / R[j, j]             # normalizar
+    return Q, R
+
+A = np.array([[1., 1., 0.],
+              [0., 1., 1.],
+              [1., 0., 1.]])
+
+Q_gs, R_gs = gram_schmidt(A)
+Q_np, R_np = qr(A)
+
+print(f"\\nGram-Schmidt — Q^TQ = I: {np.allclose(Q_gs.T @ Q_gs, np.eye(3))}")
+print(f"Reconstrucción A = QR:    {np.allclose(Q_gs @ R_gs, A)}")
+
+# ── 6. Mínimos cuadrados via QR ────────────────────────────────────────────
+# Ajuste lineal y = β₀ + β₁x con más ecuaciones que incógnitas
+rng = np.random.default_rng(7)
+x_data = np.linspace(0, 5, 20)
+y_data = 2.5*x_data + 1.0 + rng.standard_normal(20)
+
+# Matriz de diseño A
+A_ls = np.column_stack([np.ones_like(x_data), x_data])
+
+# QR → solución triangular (más estable que (A^TA)^{-1}A^T)
+Q_ls, R_ls = np.linalg.qr(A_ls)
+beta_qr = np.linalg.solve(R_ls, Q_ls.T @ y_data)
+
+# Verificación directa
+beta_direct = np.linalg.lstsq(A_ls, y_data, rcond=None)[0]
+print(f"\\nMínimos cuadrados (QR):     β₀={beta_qr[0]:.4f}, β₁={beta_qr[1]:.4f}")
+print(f"Mínimos cuadrados (directo): β₀={beta_direct[0]:.4f}, β₁={beta_direct[1]:.4f}")
+print(f"Residuo ⊥ Col(A): {np.allclose(A_ls.T @ (y_data - A_ls@beta_qr), 0, atol=1e-10)}")`,
+    related: ["Producto Punto", "Similitud Coseno", "Descomposición SVD", "PCA", "Mínimos Cuadrados"],
+    hasViz: true,
+    vizType: "orthogonalProjection",
+  },
+  {
+    id: 24,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Matriz y Tipos (Identidad, Diagonal, Simétrica)",
+    tags: ["álgebra lineal", "matrices", "identidad", "diagonal", "simétrica", "tipos de matrices"],
+    definition: "Una matriz $A \\in \\mathbb{R}^{m \\times n}$ es un arreglo rectangular de escalares con $m$ filas y $n$ columnas que representa una transformación lineal $T: \\mathbb{R}^n \\to \\mathbb{R}^m$. Los tipos especiales —identidad, diagonal y simétrica— aparecen en prácticamente todo algoritmo de ML: codifican invarianzas, simplifican inversiones y garantizan propiedades espectrales que hacen la optimización tratable.",
+    formal: {
+      notation: "Sea $A \\in \\mathbb{R}^{m \\times n}$ con entradas $(A)_{ij} = a_{ij}$",
+      body: "I_n = (\\delta_{ij}) \\quad \\text{(identidad)} \\\\[8pt] D = \\text{diag}(d_1,\\ldots,d_n) \\iff a_{ij} = 0 \\ \\forall i \\neq j \\quad \\text{(diagonal)} \\\\[8pt] A = A^\\top \\iff a_{ij} = a_{ji} \\ \\forall i,j \\quad \\text{(simétrica)}",
+      geometric: "A\\mathbf{e}_j = \\mathbf{a}_j \\quad (\\text{columna } j \\text{ = imagen del } j\\text{-ésimo vector canónico})",
+      properties: [
+        "\\text{Identidad: } I_n A = A I_m = A, \\quad A^{-1}A = AA^{-1} = I_n \\text{ (si } A \\text{ invertible)}",
+        "\\text{Diagonal: } D^k = \\text{diag}(d_1^k,\\ldots,d_n^k), \\quad D^{-1} = \\text{diag}(1/d_1,\\ldots,1/d_n) \\text{ si } d_i \\neq 0",
+        "\\text{Simétrica: eigenvalores } \\in \\mathbb{R} \\text{ y eigenvectores ortonormales (teorema espectral)}",
+      ],
+    },
+    intuition: "Una matriz es una tabla de números que transforma vectores: multiplica entradas, mezcla dimensiones. La identidad $I$ es el 'no hacer nada' — deja todo igual. Una diagonal $D$ estira o comprime cada eje independientemente sin mezclarlos: el eje $i$ se escala por $d_i$. Una simétrica $A = A^\\top$ es la más especial: garantiza que sus ejes de transformación (eigenvectores) son perpendiculares entre sí, haciendo la geometría predecible y la optimización convexa. Es como una lupa que puede estirar el espacio, pero sin rotarlo.",
+    development: [
+      {
+        label: "Anatomía de una matriz y álgebra matricial",
+        body: "Una matriz $A \\in \\mathbb{R}^{m \\times n}$ puede leerse como colección de **vectores columna** $A = [\\mathbf{a}_1 | \\cdots | \\mathbf{a}_n]$ o de **vectores fila** $A = [\\mathbf{r}_1^\\top; \\cdots; \\mathbf{r}_m^\\top]$. El producto $A\\mathbf{x}$ es entonces una **combinación lineal de columnas**:\n\n$$A\\mathbf{x} = \\sum_{j=1}^n x_j \\mathbf{a}_j$$\n\nEl producto matricial $C = AB$ con $A \\in \\mathbb{R}^{m\\times k}$, $B \\in \\mathbb{R}^{k\\times n}$ tiene entradas $c_{ij} = \\mathbf{r}_i^\\top \\mathbf{b}_j = \\sum_{l=1}^k a_{il}b_{lj}$, composición de transformaciones. El producto **no es conmutativo** en general: $AB \\neq BA$.\n\nLa **transpuesta** invierte filas y columnas: $(A^\\top)_{ij} = a_{ji}$, satisfaciendo $(AB)^\\top = B^\\top A^\\top$ y $(A^\\top)^{-1} = (A^{-1})^\\top$."
+      },
+      {
+        label: "Matriz identidad y matrices especiales",
+        body: "La **matriz identidad** $I_n = \\text{diag}(1,\\ldots,1)$ es el elemento neutro de la multiplicación: $AI_n = I_m A = A$. Su generalización, la **matriz de permutación** $P$, reordena filas/columnas y satisface $P^{-1} = P^\\top$.\n\nOtros tipos importantes en ML:\n\n- **Triangular superior/inferior**: $U$ con $u_{ij}=0$ para $i>j$; aparece en factorización $LU$ y $QR$.\n- **Ortogonal**: $Q^\\top Q = QQ^\\top = I$; preserva normas y ángulos, $\\det(Q) = \\pm 1$.\n- **Positiva semidefinida (PSD)**: $A \\succeq 0 \\iff \\mathbf{x}^\\top A \\mathbf{x} \\geq 0 \\ \\forall \\mathbf{x}$; toda matriz de covarianza es PSD.\n- **Estocástica**: filas (o columnas) suman 1 y son no negativas; modelos de Markov."
+      },
+      {
+        label: "Matrices diagonales: eficiencia computacional",
+        body: "Una matriz diagonal $D = \\text{diag}(d_1,\\ldots,d_n)$ actúa sobre vectores como **escalado independiente por eje**:\n\n$$D\\mathbf{x} = (d_1 x_1, d_2 x_2, \\ldots, d_n x_n)^\\top$$\n\nSus operaciones son todas $\\mathcal{O}(n)$ en vez de $\\mathcal{O}(n^2)$ o $\\mathcal{O}(n^3)$:\n\n$$D^k = \\text{diag}(d_1^k,\\ldots,d_n^k), \\quad D^{-1} = \\text{diag}(1/d_1,\\ldots,1/d_n), \\quad \\det(D) = \\prod_i d_i$$\n\nEl producto $D_1 D_2 = \\text{diag}(d_1^{(1)}d_1^{(2)},\\ldots)$ y las matrices diagonales conmutan entre sí. En SVD, $A = U\\Sigma V^\\top$, la matriz $\\Sigma$ es diagonal con los **valores singulares** — los 'factores de escala' propios de $A$."
+      },
+      {
+        label: "Matrices simétricas y el Teorema Espectral",
+        body: "Una matriz $A \\in \\mathbb{R}^{n\\times n}$ es **simétrica** si $A = A^\\top$. El **Teorema Espectral** garantiza la descomposición:\n\n$$A = Q\\Lambda Q^\\top = \\sum_{i=1}^n \\lambda_i \\mathbf{q}_i \\mathbf{q}_i^\\top$$\n\ndonde $Q$ es ortogonal (eigenvectores), $\\Lambda = \\text{diag}(\\lambda_1,\\ldots,\\lambda_n)$ (eigenvalores reales). Esta descomposición es una **diagonalización ortogonal**, imposible en general para matrices no simétricas.\n\nSubtipos fundamentales según el signo de los eigenvalores:\n\n- **Definida positiva** (PD): $\\lambda_i > 0 \\ \\forall i \\iff \\mathbf{x}^\\top A\\mathbf{x} > 0 \\ \\forall \\mathbf{x}\\neq\\mathbf{0}$\n- **Semidefinida positiva** (PSD): $\\lambda_i \\geq 0 \\ \\forall i$\n- **Indefinida**: eigenvalores de ambos signos\n\nLas matrices de covarianza $\\Sigma = \\frac{1}{n}X^\\top X$ son siempre PSD; la Hessiana de una función convexa es PSD."
+      },
+      {
+        label: "En Machine Learning",
+        body: "Los tipos de matrices determinan la eficiencia y propiedades de cada algoritmo:\n\n**Identidad en regularización**: Ridge añade $\\lambda I$ a la Hessiana $X^\\top X$, garantizando invertibilidad: $\\hat{\\boldsymbol{\\beta}} = (X^\\top X + \\lambda I)^{-1}X^\\top\\mathbf{y}$. El desplazamiento $\\lambda I$ eleva todos los eigenvalores por $\\lambda$, convirtiendo matrices PSD en PD.\n\n**Diagonal en normalización**: Batch Normalization mantiene una matriz diagonal de escalas $\\gamma$ y desplazamientos $\\beta$ por feature. Adam y RMSProp aproximan la Hessiana con una **diagonal**: $H \\approx \\text{diag}(v_1,\\ldots,v_n)$ donde $v_i$ estima la curvatura en cada dirección, permitiendo tasas de aprendizaje adaptativas con coste $\\mathcal{O}(n)$.\n\n**Simétrica en atención y covarianza**: la matriz de atención $\\text{softmax}(QK^\\top/\\sqrt{d})$ es cuadrada (no necesariamente simétrica), pero en **self-attention** con $Q=K$ la versión pre-softmax $QQ^\\top/\\sqrt{d}$ sí lo es. La **matriz de Gram** $G = X^\\top X \\in \\mathbb{R}^{n\\times n}$ es simétrica PSD y aparece en kernel methods (SVM, Gaussian Processes)."
+      },
+    ],
+    code: `import numpy as np
+from numpy.linalg import inv, det, eigh, matrix_power
+
+# ── 1. Construcción de tipos especiales ────────────────────────────────────
+n = 4
+
+I  = np.eye(n)                                   # Identidad
+D  = np.diag([3.0, -1.0, 2.5, 0.5])             # Diagonal
+rng = np.random.default_rng(42)
+M  = rng.standard_normal((n, n))
+S  = (M + M.T) / 2                               # Simétrica (simetrizar M)
+
+print("Identidad I:")
+print(I)
+
+print("\\nDiagonal D:", np.diag(D))              # Solo diagonal principal
+print(f"\\nSimétrica — A=Aᵀ: {np.allclose(S, S.T)}")
+
+# ── 2. Propiedades de la identidad ─────────────────────────────────────────
+A = rng.standard_normal((3, 4))
+print(f"\\nI·A = A: {np.allclose(np.eye(3) @ A, A)}")
+print(f"A·I = A: {np.allclose(A @ np.eye(4), A)}")
+
+# ── 3. Álgebra de matrices diagonales: O(n) ────────────────────────────────
+d = np.array([2.0, -3.0, 5.0, 0.5])
+D = np.diag(d)
+
+print(f"\\nD² (entrada a entrada): {np.diag(D @ D)}")
+print(f"d²                      {d**2}")            # idéntico, O(n)
+
+print(f"D⁻¹: {np.diag(inv(D)).round(4)}")
+print(f"1/d : {(1/d).round(4)}")                    # idéntico
+
+print(f"det(D) = {det(D):.4f} = prod(d) = {np.prod(d):.4f}")
+
+# Potencia de matriz diagonal
+k = 5
+print(f"D^{k} diagonal: {np.diag(matrix_power(D, k)).round(2)}")
+print(f"d^{k}          {(d**k).round(2)}")
+
+# ── 4. Teorema espectral para matrices simétricas ──────────────────────────
+# eigh: versión optimizada para simétricas, eigenvalores reales garantizados
+eigenvalores, Q = eigh(S)   # Q columnas = eigenvectores ortonormales
+
+print(f"\\nEigenvalores (reales): {eigenvalores.round(4)}")
+print(f"Q ortogonal — QᵀQ = I: {np.allclose(Q.T @ Q, np.eye(n))}")
+
+# Reconstrucción: S = Q Λ Qᵀ = Σ λᵢ qᵢqᵢᵀ
+Lambda = np.diag(eigenvalores)
+S_rec  = Q @ Lambda @ Q.T
+print(f"S = QΛQᵀ reconstruida:  {np.allclose(S, S_rec)}")
+
+# Reconstrucción como suma de matrices de rango 1
+S_outer = sum(eigenvalores[i] * np.outer(Q[:,i], Q[:,i]) for i in range(n))
+print(f"S = Σ λᵢqᵢqᵢᵀ:         {np.allclose(S, S_outer)}")
+
+# ── 5. Positividad: PSD y PD ───────────────────────────────────────────────
+def es_psd(A: np.ndarray, tol: float = 1e-10) -> bool:
+    """A es PSD iff todos sus eigenvalores son >= 0."""
+    return bool(np.all(eigh(A)[0] >= -tol))
+
+def es_pd(A: np.ndarray, tol: float = 1e-10) -> bool:
+    """A es PD iff todos sus eigenvalores son > 0."""
+    return bool(np.all(eigh(A)[0] > tol))
+
+# Matriz de covarianza empírica (siempre PSD)
+X  = rng.standard_normal((20, n))
+Sigma = X.T @ X / 20
+print(f"\\nCovarianza Σ — PSD: {es_psd(Sigma)}, PD: {es_pd(Sigma)}")
+
+# Ridge: Σ + λI es siempre PD
+lam   = 0.1
+Sigma_ridge = Sigma + lam * np.eye(n)
+print(f"Σ + λI       — PSD: {es_psd(Sigma_ridge)}, PD: {es_pd(Sigma_ridge)}")
+
+# ── 6. Ridge regression: rol de I ─────────────────────────────────────────
+X_data = rng.standard_normal((30, 3))
+y_data = X_data @ np.array([1.5, -2.0, 0.8]) + 0.5*rng.standard_normal(30)
+
+lam = 1.0
+# (XᵀX + λI)⁻¹ Xᵀy
+beta_ridge = inv(X_data.T @ X_data + lam*np.eye(3)) @ X_data.T @ y_data
+print(f"\\nRidge β = {beta_ridge.round(4)}")
+print(f"(XᵀX + λI) es PD: {es_pd(X_data.T @ X_data + lam*np.eye(3))}")`,
+    related: ["Transformaciones Lineales", "Eigenvalores y Eigenvectores", "Descomposición SVD", "Determinante", "PCA"],
+    hasViz: true,
+    vizType: "matrixTypes",
+  },
+  {
+    id: 25,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Operaciones entre Matrices y Transposición",
+    tags: ["álgebra lineal", "matrices", "multiplicación matricial", "transposición", "producto externo", "broadcasting"],
+    definition: "Las operaciones fundamentales entre matrices son la suma (entrada a entrada, requiere mismas dimensiones), el producto escalar (escala todas las entradas) y el producto matricial (composición de transformaciones lineales, requiere dimensiones compatibles). La transposición $A^\\top$ intercambia filas por columnas. Estas operaciones son el vocabulario computacional de todo ML: cada forward pass, cada actualización de gradientes y cada capa de atención se expresa como combinaciones de ellas.",
+    formal: {
+      notation: "Sean $A \\in \\mathbb{R}^{m \\times k}$, $B \\in \\mathbb{R}^{k \\times n}$, $\\alpha \\in \\mathbb{R}$",
+      body: "(A + B)_{ij} = a_{ij} + b_{ij} \\quad (m=k,\\ \\text{mismas dims}) \\\\[8pt] (\\alpha A)_{ij} = \\alpha\\, a_{ij} \\\\[8pt] (AB)_{ij} = \\sum_{l=1}^{k} a_{il}\\, b_{lj} = \\mathbf{r}_i^\\top \\mathbf{c}_j \\\\[8pt] (A^\\top)_{ij} = a_{ji}",
+      geometric: "AB = \\sum_{l=1}^{k} \\mathbf{a}_{:l}\\, \\mathbf{b}_{l:} \\quad (\\text{suma de } k \\text{ matrices de rango 1})",
+      properties: [
+        "\\text{No conmutatividad: } AB \\neq BA \\text{ en general; sí } (AB)^\\top = B^\\top A^\\top",
+        "\\text{Asociatividad: } (AB)C = A(BC), \\quad \\text{coste mínimo por paréntesis óptimos}",
+        "\\text{Transpuesta compuesta: } (ABC)^\\top = C^\\top B^\\top A^\\top",
+      ],
+    },
+    intuition: "Multiplicar matrices es componer transformaciones: $AB$ significa 'primero aplica $B$, luego aplica $A$'. Si $B$ rota y $A$ escala, $AB$ rota-y-luego-escala. La no conmutatividad es intuitiva: escalar-y-luego-rotar ≠ rotar-y-luego-escalar. La transposición 'voltea' la matriz sobre su diagonal — convierte vectores columna en fila, intercambia el rol de filas y columnas, e invierte el orden en productos. El producto externo $\\mathbf{u}\\mathbf{v}^\\top$ es la matriz 'más simple posible': rango 1, todo el contenido en una sola dirección.",
+    development: [
+      {
+        label: "Suma, escalar y producto de Hadamard",
+        body: "La **suma matricial** $A + B$ requiere $A, B \\in \\mathbb{R}^{m \\times n}$ y opera entrada a entrada: $(A+B)_{ij} = a_{ij} + b_{ij}$. Es conmutativa, asociativa, y hereda las propiedades del espacio vectorial.\n\nEl **producto de Hadamard** (elemento a elemento) $A \\odot B$ también requiere mismas dimensiones:\n\n$$(A \\odot B)_{ij} = a_{ij} b_{ij}$$\n\nAparece en gates de redes recurrentes (LSTM, GRU) y en máscaras de atención. A diferencia del producto matricial, **sí es conmutativo**: $A \\odot B = B \\odot A$.\n\nEl **broadcasting** generaliza suma y Hadamard a dimensiones compatibles: si $\\mathbf{b} \\in \\mathbb{R}^n$, la operación $A + \\mathbf{b}^\\top$ suma $\\mathbf{b}^\\top$ a cada fila de $A \\in \\mathbb{R}^{m\\times n}$ — operación estándar al añadir sesgos en redes neuronales."
+      },
+      {
+        label: "Producto matricial: cuatro interpretaciones",
+        body: "El producto $C = AB$ con $A \\in \\mathbb{R}^{m\\times k}$, $B \\in \\mathbb{R}^{k\\times n}$ admite **cuatro perspectivas** equivalentes pero computacionalmente distintas:\n\n**1. Entrada a entrada** (definición): $c_{ij} = \\sum_l a_{il} b_{lj}$ — producto punto de fila $i$ de $A$ con columna $j$ de $B$. Coste $\\mathcal{O}(mnk)$.\n\n**2. Columna a columna**: $C_{:j} = A\\mathbf{b}_j$ — cada columna de $C$ es $A$ aplicado a la columna $j$ de $B$.\n\n**3. Fila a fila**: $C_{i:} = \\mathbf{a}_{i:} B$ — cada fila de $C$ es combinación lineal de filas de $B$ con pesos de fila $i$ de $A$.\n\n**4. Suma de rangos 1**: $C = \\sum_{l=1}^k \\mathbf{a}_{:l}\\mathbf{b}_{l:}^\\top$ — suma de $k$ matrices de rango 1, cada una producto externo de columna $l$ de $A$ con fila $l$ de $B$. Esta visión es la base de **low-rank approximation** y SVD."
+      },
+      {
+        label: "Transposición: reglas y usos",
+        body: "La transpuesta $A^\\top \\in \\mathbb{R}^{n\\times m}$ de $A \\in \\mathbb{R}^{m\\times n}$ satisface $(A^\\top)_{ij} = a_{ji}$. Reglas algebraicas esenciales:\n\n$$(A + B)^\\top = A^\\top + B^\\top$$\n\n$$(\\alpha A)^\\top = \\alpha A^\\top$$\n\n$$(AB)^\\top = B^\\top A^\\top \\quad \\text{(inversión del orden)}$$\n\n$$(A^\\top)^{-1} = (A^{-1})^\\top \\stackrel{\\text{def}}{=} A^{-\\top}$$\n\nLa regla $(AB)^\\top = B^\\top A^\\top$ tiene interpretación directa: si $AB$ compone '$B$ primero, $A$ después', la transpuesta invierte el orden de composición. En backpropagation, el gradiente fluye a través de $W^\\top$ exactamente porque la adjunta de una transformación lineal es su transpuesta."
+      },
+      {
+        label: "Producto interno, externo y de matrices como sumas",
+        body: "Tres productos relacionados con vectores $\\mathbf{u} \\in \\mathbb{R}^m$, $\\mathbf{v} \\in \\mathbb{R}^n$:\n\n**Producto interno** ($m=n$): $\\mathbf{u}^\\top\\mathbf{v} = \\sum_i u_i v_i \\in \\mathbb{R}$ — escalar, simetría.\n\n**Producto externo**: $\\mathbf{u}\\mathbf{v}^\\top \\in \\mathbb{R}^{m\\times n}$ — matriz de rango 1:\n\n$$\\mathbf{u}\\mathbf{v}^\\top = \\begin{pmatrix} u_1 v_1 & u_1 v_2 & \\cdots \\\\ u_2 v_1 & u_2 v_2 & \\cdots \\\\ \\vdots & & \\ddots \\end{pmatrix}$$\n\nEl producto externo descompone el producto matricial: $AB = \\sum_{l=1}^k \\mathbf{a}_{:l}\\mathbf{b}_{l:}$. En **backpropagation**, el gradiente de la pérdida respecto a $W \\in \\mathbb{R}^{m\\times n}$ en la capa $\\mathbf{h} = W\\mathbf{x}$ es exactamente un producto externo:\n\n$$\\nabla_W \\mathcal{L} = \\boldsymbol{\\delta} \\mathbf{x}^\\top \\in \\mathbb{R}^{m\\times n}$$\n\ndonde $\\boldsymbol{\\delta} = \\nabla_{\\mathbf{h}}\\mathcal{L}$ es el error que llega de la capa siguiente."
+      },
+      {
+        label: "En Machine Learning",
+        body: "El forward pass de una red neuronal densa es una cascada de multiplicaciones matriciales intercaladas con no-linealidades:\n\n$$\\mathbf{h}^{(l)} = \\sigma(W^{(l)}\\mathbf{h}^{(l-1)} + \\mathbf{b}^{(l)})$$\n\nEl **backpropagation** es la regla de la cadena aplicada a estas operaciones matriciales. Para la capa $l$:\n\n$$\\frac{\\partial \\mathcal{L}}{\\partial W^{(l)}} = \\boldsymbol{\\delta}^{(l)} (\\mathbf{h}^{(l-1)})^\\top \\quad (\\text{producto externo})$$\n\n$$\\boldsymbol{\\delta}^{(l-1)} = (W^{(l)})^\\top \\boldsymbol{\\delta}^{(l)} \\odot \\sigma'(\\mathbf{z}^{(l-1)}) \\quad (W^\\top \\text{ propaga el error hacia atrás})$$\n\nEn **Transformers**, la capa de atención computa $\\text{softmax}(QK^\\top / \\sqrt{d_k})V$: la transpuesta $K^\\top$ aparece explícitamente en el producto de similitudes. El coste $\\mathcal{O}(n^2 d)$ de $QK^\\top$ para secuencias de longitud $n$ es el cuello de botella que motiva **Flash Attention** y la atención lineal."
+      },
+    ],
+    code: `import numpy as np
+
+# ── 1. Suma, escalar y Hadamard ────────────────────────────────────────────
+A = np.array([[1., 2., 3.],
+              [4., 5., 6.]])           # (2,3)
+B = np.array([[7., 0., -1.],
+              [2., 3.,  4.]])          # (2,3)
+
+print("A + B =\\n", A + B)
+print("3·A   =\\n", 3 * A)
+print("A ⊙ B =\\n", A * B)             # Hadamard: np.multiply(A, B)
+
+# Broadcasting: sumar bias (vector fila) a cada fila de A
+bias = np.array([10., 20., 30.])       # (3,) → broadcast a (2,3)
+print("A + bias =\\n", A + bias)
+
+# ── 2. Producto matricial: cuatro perspectivas ─────────────────────────────
+M = np.array([[1., 2.],
+              [3., 4.],
+              [5., 6.]])               # (3,2)
+N = np.array([[7., 8., 9.],
+              [10.,11.,12.]])          # (2,3)
+
+C_direct = M @ N                      # O(3·2·3) = O(18)
+
+# Perspectiva 1: entrada a entrada
+C_ij = np.array([[M[i] @ N[:,j] for j in range(3)] for i in range(3)])
+
+# Perspectiva 2: columna a columna
+C_cols = np.column_stack([M @ N[:,j] for j in range(3)])
+
+# Perspectiva 4: suma de productos externos (rango 1)
+C_outer = sum(np.outer(M[:,l], N[l,:]) for l in range(2))
+
+assert np.allclose(C_direct, C_ij)    and \\
+       np.allclose(C_direct, C_cols)  and \\
+       np.allclose(C_direct, C_outer)
+print("\\nLas 4 perspectivas coinciden ✓")
+print("C = M @ N =\\n", C_direct)
+
+# ── 3. Transposición: reglas algebraicas ───────────────────────────────────
+P = np.random.default_rng(0).standard_normal((3, 4))
+Q = np.random.default_rng(1).standard_normal((4, 2))
+
+# (PQ)ᵀ = QᵀPᵀ
+assert np.allclose((P @ Q).T, Q.T @ P.T)
+print("\\n(PQ)ᵀ = QᵀPᵀ ✓")
+
+# (Pᵀ)⁻¹ = (P⁻¹)ᵀ para matrices cuadradas invertibles
+R = np.random.default_rng(2).standard_normal((4, 4))
+R = R @ R.T + 4*np.eye(4)             # hacerla PD para garantizar invertibilidad
+assert np.allclose(np.linalg.inv(R.T), np.linalg.inv(R).T)
+print("(Rᵀ)⁻¹ = (R⁻¹)ᵀ ✓")
+
+# ── 4. Producto externo y gradiente en backprop ────────────────────────────
+# Simular una capa lineal h = W·x + b y su gradiente
+rng = np.random.default_rng(42)
+W   = rng.standard_normal((4, 3))     # pesos (out=4, in=3)
+x   = rng.standard_normal(3)         # entrada
+b   = np.zeros(4)                    # sesgo
+
+h   = W @ x + b                      # forward pass
+# Suponer delta = gradiente de pérdida respecto a h (llegado de arriba)
+delta = rng.standard_normal(4)
+
+# Gradientes por backprop
+dW = np.outer(delta, x)              # (4,3) — producto externo
+db = delta.copy()                    # (4,)
+dx = W.T @ delta                     # (3,) — W transpuesta propaga error
+
+print(f"\\ndW = δ·xᵀ ∈ ℝ^{{4×3}}:\\n{dW.round(4)}")
+print(f"dx = Wᵀ·δ ∈ ℝ^3: {dx.round(4)}")
+
+# ── 5. Atención simplificada: QKᵀ ─────────────────────────────────────────
+seq_len, d_model, d_k = 6, 8, 4
+
+rng2  = np.random.default_rng(7)
+Wq, Wk, Wv = [rng2.standard_normal((d_model, d_k)) for _ in range(3)]
+X_seq = rng2.standard_normal((seq_len, d_model))   # (T, d)
+
+Q_mat = X_seq @ Wq                   # (T, d_k)
+K_mat = X_seq @ Wk                   # (T, d_k)
+V_mat = X_seq @ Wv                   # (T, d_k)
+
+scores = Q_mat @ K_mat.T / np.sqrt(d_k)            # (T, T) — QKᵀ/√d
+
+def softmax(x, axis=-1):
+    e = np.exp(x - x.max(axis=axis, keepdims=True))
+    return e / e.sum(axis=axis, keepdims=True)
+
+attn   = softmax(scores)             # (T, T) — pesos de atención
+output = attn @ V_mat                # (T, d_k) — contexto
+
+print(f"\\nScores QKᵀ/√d  shape: {scores.shape}")
+print(f"Atención (softmax) shape: {attn.shape}")
+print(f"Output AV         shape: {output.shape}")
+print(f"Filas de atención suman 1: {np.allclose(attn.sum(axis=1), 1)}")
+
+# ── 6. Coste computacional y orden de multiplicación ─────────────────────
+# Encadenado A(BC) vs (AB)C — mismo resultado, coste distinto
+rng3 = np.random.default_rng(9)
+A100 = rng3.standard_normal((100, 1))
+B100 = rng3.standard_normal((1, 100))
+C100 = rng3.standard_normal((100, 1))
+
+# (AB)C: 100·1·100 + 100·100·1 = 10000+10000 = 20000 ops
+# A(BC): 1·100·1  + 100·1·1   = 100+100 = 200 ops  ← mucho mejor
+import time
+
+t0 = time.perf_counter()
+for _ in range(10000): _ = (A100 @ B100) @ C100
+t1 = time.perf_counter()
+for _ in range(10000): _ = A100 @ (B100 @ C100)
+t2 = time.perf_counter()
+
+print(f"\\n(AB)C: {(t1-t0)*1000:.1f} ms  |  A(BC): {(t2-t1)*1000:.1f} ms")
+print("A(BC) es ~100× más rápido por orden óptimo de paréntesis")`,
+    related: ["Transformación Lineal", "Determinante", "Eigenvalores y Eigenvectores", "Descomposición SVD", "Mecanismo de Atención"],
+    hasViz: true,
+    vizType: "matrixOps",
+  }
 ];

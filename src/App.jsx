@@ -19,6 +19,20 @@ import VectorViz from './components/visualizations/VectorViz';
 import EspacioSubespacioViz from './components/visualizations/EspacioSubespacioViz';
 import CombinacionLinealSpanViz from './components/visualizations/CombinacionLinealSpanViz';
 import IndependenciaLinealViz from './components/visualizations/IndependenciaLinealViz';
+import BaseDimensionViz from './components/visualizations/BaseDimensionViz';
+import VectorOpsViz from './components/visualizations/VectorOpsViz';
+import CrossProductViz from './components/visualizations/CrossProductViz';
+import NormBallsViz from './components/visualizations/NormBallsViz';
+import EuclideanDistanceViz from './components/visualizations/EuclideanDistanceViz';
+import CosineSimilarityViz from './components/visualizations/CosineSimilarityViz';
+import OrthogonalProjectionViz from './components/visualizations/OrthogonalProjectionViz';
+import MatrixTypesViz from './components/visualizations/MatrixTypesViz';
+import MatrixOpsViz from './components/visualizations/MatrixOpsViz';
+import DetRankViz from './components/visualizations/DetRankViz';
+import PseudoinverseViz from './components/visualizations/PseudoinverseViz';
+import LinearSystemsViz from './components/visualizations/LinearSystemsViz';
+import GaussianEliminationViz from './components/visualizations/GaussianEliminationViz';
+import LuFactorizationViz from './components/visualizations/LuFactorizationViz';
 
 const katexCSS = document.createElement("link");
 katexCSS.rel = "stylesheet";
@@ -70,16 +84,24 @@ function DevBody({ text }) {
 
 
 
-const vizMap={dotproduct:DotProductViz,bayes:BayesViz,gradient:GradientViz,temperature:TemperatureViz,numeroReal:NumeroRealViz,numeroComplejo:NumeroComplejoViz,campoAlgebra:CampoAlgebraViz,variable:VariableViz,funcion:FuncionViz,dominioRango:DominioRangoViz,composicionFunciones:ComposicionFuncionesViz,funcionInversa:FuncionInversaViz,funcionLinealNoLineal:FuncionLinealNoLinealViz,funcionConvexaConcava:FuncionConvexaConcavaViz,limitesContinuidad:LimitesContinuidadViz,vector:VectorViz,espacioSubespacio:EspacioSubespacioViz,combinacionLinealSpan:CombinacionLinealSpanViz,independenciaLineal:IndependenciaLinealViz};
+const vizMap={dotproduct:DotProductViz,bayes:BayesViz,gradient:GradientViz,temperature:TemperatureViz,numeroReal:NumeroRealViz,numeroComplejo:NumeroComplejoViz,campoAlgebra:CampoAlgebraViz,variable:VariableViz,funcion:FuncionViz,dominioRango:DominioRangoViz,composicionFunciones:ComposicionFuncionesViz,funcionInversa:FuncionInversaViz,funcionLinealNoLineal:FuncionLinealNoLinealViz,funcionConvexaConcava:FuncionConvexaConcavaViz,limitesContinuidad:LimitesContinuidadViz,vector:VectorViz,espacioSubespacio:EspacioSubespacioViz,combinacionLinealSpan:CombinacionLinealSpanViz,independenciaLineal:IndependenciaLinealViz,baseDimension:BaseDimensionViz,vectorOps:VectorOpsViz,crossProduct:CrossProductViz,normBalls:NormBallsViz,euclideanDistance:EuclideanDistanceViz,cosineSimilarity:CosineSimilarityViz,orthogonalProjection:OrthogonalProjectionViz,matrixTypes:MatrixTypesViz,matrixOps:MatrixOpsViz,detRank:DetRankViz,pseudoinverse:PseudoinverseViz,linearSystems:LinearSystemsViz,gaussianElimination:GaussianEliminationViz,luFactorization:LuFactorizationViz};
 const sectionColors={"I":"#e2e8f0","II":"#60a5fa","III":"#34d399","IV":"#a78bfa","V":"#f472b6","VI":"#38bdf8","VII":"#facc15","VIII":"#fb923c","IX":"#f87171"};
 
 export default function App() {
   const [sel,setSel]=useState(concepts[0]),[tab,setTab]=useState("definition");
   const [search,setSearch]=useState(""),[sidebar,setSidebar]=useState(true);
+  const [openSections,setOpenSections]=useState({ "I": true, "II": true });
 
+  const sortedConcepts = [...concepts].sort((a, b) => a.id - b.id);
   const filtered=search.length>1
-    ?concepts.filter(c=>c.name.toLowerCase().includes(search.toLowerCase())||c.section.toLowerCase().includes(search.toLowerCase())||c.tags.some(t=>t.includes(search.toLowerCase())))
-    :concepts;
+    ?sortedConcepts.filter(c=>c.name.toLowerCase().includes(search.toLowerCase())||c.section.toLowerCase().includes(search.toLowerCase())||c.tags.some(t=>t.includes(search.toLowerCase())))
+    :sortedConcepts;
+
+  const grouped = {};
+  filtered.forEach(c => {
+    if (!grouped[c.sectionCode]) grouped[c.sectionCode] = { section: c.section, concepts: [] };
+    grouped[c.sectionCode].concepts.push(c);
+  });
 
   const VizComp=sel.hasViz?vizMap[sel.vizType]:null;
   const ac=sectionColors[sel.sectionCode]||"#60a5fa";
@@ -136,13 +158,33 @@ export default function App() {
         {/* Sidebar */}
         <div className={`sidebar-wrap ${sidebar?"open":"closed"}`}>
           <div style={{overflowY:"auto",height:"100%",padding:"10px 8px"}}>
-            {filtered.map(c=>(
-              <div key={c.id} className={`ccard ${sel.id===c.id?"sel":""}`}
-                onClick={()=>{setSel(c);setTab("definition");}}>
-                <div style={{fontSize:10,color:sectionColors[c.sectionCode]||"#64748b",fontWeight:600,marginBottom:2}}>§{c.sectionCode}</div>
-                <div style={{fontSize:12,color:sel.id===c.id?"#e2e8f0":"#64748b",fontWeight:500,lineHeight:1.3}}>{c.name}</div>
-              </div>
-            ))}
+            {Object.entries(grouped).map(([code, group]) => {
+              const isOpen = search.length > 1 || openSections[code];
+              const ac = sectionColors[code] || "#64748b";
+              return (
+                <div key={code} style={{ marginBottom: 8 }}>
+                  <div onClick={() => setOpenSections(p => ({...p, [code]: !p[code]}))}
+                    style={{ padding:"8px 12px", background:"rgba(255,255,255,0.03)", borderRadius:6, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"space-between", borderLeft:`2px solid ${ac}` }}>
+                    <div style={{ fontSize:10, fontWeight:600, color:ac, textTransform:"uppercase", letterSpacing:"0.05em", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                      §{code}. {group.section}
+                    </div>
+                    <div style={{ fontSize:10, color:"#64748b", marginLeft:8 }}>{isOpen ? "▼" : "▶"}</div>
+                  </div>
+                  {isOpen && (
+                    <div style={{ paddingLeft: 6, marginTop: 4, display:"flex", flexDirection:"column", gap:2 }}>
+                      {group.concepts.map(c => (
+                        <div key={c.id} className={`ccard ${sel.id===c.id?"sel":""}`}
+                          onClick={()=>{setSel(c);setTab("definition");}} style={{ padding:"8px 10px" }}>
+                          <div style={{ fontSize:12, color:sel.id===c.id?"#e2e8f0":"#64748b", fontWeight:500, lineHeight:1.3 }}>
+                            {c.id}. {c.name}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
             {filtered.length===0&&<div style={{padding:16,color:"#1e293b",fontSize:12,textAlign:"center"}}>Sin resultados</div>}
           </div>
         </div>
