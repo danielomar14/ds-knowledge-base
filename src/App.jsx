@@ -16,6 +16,9 @@ import FuncionLinealNoLinealViz from './components/visualizations/FuncionLinealN
 import FuncionConvexaConcavaViz from './components/visualizations/FuncionConvexaConcavaViz';
 import LimitesContinuidadViz from './components/visualizations/LimitesContinuidadViz';
 import VectorViz from './components/visualizations/VectorViz';
+import EspacioSubespacioViz from './components/visualizations/EspacioSubespacioViz';
+import CombinacionLinealSpanViz from './components/visualizations/CombinacionLinealSpanViz';
+import IndependenciaLinealViz from './components/visualizations/IndependenciaLinealViz';
 
 const katexCSS = document.createElement("link");
 katexCSS.rel = "stylesheet";
@@ -67,8 +70,8 @@ function DevBody({ text }) {
 
 
 
-const vizMap={dotproduct:DotProductViz,bayes:BayesViz,gradient:GradientViz,temperature:TemperatureViz,numeroReal:NumeroRealViz,numeroComplejo:NumeroComplejoViz,campoAlgebra:CampoAlgebraViz,variable:VariableViz,funcion:FuncionViz,dominioRango:DominioRangoViz,composicionFunciones:ComposicionFuncionesViz,funcionInversa:FuncionInversaViz,funcionLinealNoLineal:FuncionLinealNoLinealViz,funcionConvexaConcava:FuncionConvexaConcavaViz,limitesContinuidad:LimitesContinuidadViz,vector:VectorViz};
-const sectionColors={"Álgebra Lineal":"#60a5fa","Probabilidad":"#a78bfa","Cálculo y Optimización":"#34d399","LLMs Avanzados":"#fb923c","Fundamentos Numéricos":"#f472b6","Machine Learning":"#38bdf8","Deep Learning":"#818cf8"};
+const vizMap={dotproduct:DotProductViz,bayes:BayesViz,gradient:GradientViz,temperature:TemperatureViz,numeroReal:NumeroRealViz,numeroComplejo:NumeroComplejoViz,campoAlgebra:CampoAlgebraViz,variable:VariableViz,funcion:FuncionViz,dominioRango:DominioRangoViz,composicionFunciones:ComposicionFuncionesViz,funcionInversa:FuncionInversaViz,funcionLinealNoLineal:FuncionLinealNoLinealViz,funcionConvexaConcava:FuncionConvexaConcavaViz,limitesContinuidad:LimitesContinuidadViz,vector:VectorViz,espacioSubespacio:EspacioSubespacioViz,combinacionLinealSpan:CombinacionLinealSpanViz,independenciaLineal:IndependenciaLinealViz};
+const sectionColors={"I":"#e2e8f0","II":"#60a5fa","III":"#34d399","IV":"#a78bfa","V":"#f472b6","VI":"#38bdf8","VII":"#facc15","VIII":"#fb923c","IX":"#f87171"};
 
 export default function App() {
   const [sel,setSel]=useState(concepts[0]),[tab,setTab]=useState("definition");
@@ -79,7 +82,7 @@ export default function App() {
     :concepts;
 
   const VizComp=sel.hasViz?vizMap[sel.vizType]:null;
-  const ac=sectionColors[sel.section]||"#60a5fa";
+  const ac=sectionColors[sel.sectionCode]||"#60a5fa";
 
   return (
     <div style={{minHeight:"100vh",background:"#080c14",color:"#e2e8f0",fontFamily:"'IBM Plex Sans',system-ui,sans-serif",display:"flex",flexDirection:"column"}}>
@@ -136,7 +139,7 @@ export default function App() {
             {filtered.map(c=>(
               <div key={c.id} className={`ccard ${sel.id===c.id?"sel":""}`}
                 onClick={()=>{setSel(c);setTab("definition");}}>
-                <div style={{fontSize:10,color:sectionColors[c.section]||"#64748b",fontWeight:600,marginBottom:2}}>§{c.sectionCode}</div>
+                <div style={{fontSize:10,color:sectionColors[c.sectionCode]||"#64748b",fontWeight:600,marginBottom:2}}>§{c.sectionCode}</div>
                 <div style={{fontSize:12,color:sel.id===c.id?"#e2e8f0":"#64748b",fontWeight:500,lineHeight:1.3}}>{c.name}</div>
               </div>
             ))}

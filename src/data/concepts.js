@@ -2024,6 +2024,620 @@ for d_k in [8, 64, 512, 4096]:
     vizType: "vector",
   },
   {
+    id: 13,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Espacio y Subespacio Vectorial",
+    tags: ["álgebra lineal", "subespacio", "clausura", "base", "dimensión", "representación"],
+    definition: "Un espacio vectorial sobre un campo F es un conjunto V dotado de suma y multiplicación escalar que satisfacen 8 axiomas (clausura, asociatividad, conmutatividad, identidad y negativo aditivos, compatibilidad y distributividades escalar). Un subespacio vectorial S ⊆ V es un subconjunto no vacío cerrado bajo suma y multiplicación escalar, lo que equivale a: S contiene el vector cero, es cerrado bajo suma, y es cerrado bajo multiplicación escalar. Los subespacios son los objetos geométricos naturales del álgebra lineal — rectas, planos y hiperplanos que pasan por el origen — y son el lenguaje con el que se describe la estructura interna de las transformaciones lineales y los datos en ML.",
+    formal: {
+      notation: "Sea $(V, +, \\cdot)$ un espacio vectorial sobre $\\mathbb{F}$ y $S \\subseteq V$",
+      body: "S \\text{ es subespacio de } V \\iff \\\\ \\quad (\\text{S1})\\; \\mathbf{0} \\in S \\\\ \\quad (\\text{S2})\\; \\mathbf{u}, \\mathbf{v} \\in S \\implies \\mathbf{u} + \\mathbf{v} \\in S \\quad (\\text{clausura bajo }+) \\\\ \\quad (\\text{S3})\\; \\mathbf{v} \\in S,\\; \\alpha \\in \\mathbb{F} \\implies \\alpha\\mathbf{v} \\in S \\quad (\\text{clausura bajo }\\cdot) \\\\ \\text{Equivalente compacto: } S \\text{ subespacio} \\iff \\forall\\,\\mathbf{u},\\mathbf{v}\\in S,\\;\\alpha,\\beta\\in\\mathbb{F}: \\alpha\\mathbf{u}+\\beta\\mathbf{v}\\in S \\\\ \\textbf{Suma de subespacios: } S_1 + S_2 = \\{\\mathbf{s}_1 + \\mathbf{s}_2 : \\mathbf{s}_1\\in S_1,\\,\\mathbf{s}_2\\in S_2\\} \\\\ \\textbf{Suma directa: } V = S_1 \\oplus S_2 \\iff S_1+S_2=V \\text{ y } S_1\\cap S_2=\\{\\mathbf{0}\\}",
+      geometric: "\\dim(S_1 + S_2) = \\dim S_1 + \\dim S_2 - \\dim(S_1 \\cap S_2) \\quad (\\text{fórmula de Grassmann}) \\\\ \\text{Complemento ortogonal: } S^\\perp = \\{\\mathbf{v}\\in V: \\langle\\mathbf{v},\\mathbf{s}\\rangle=0\\;\\forall\\,\\mathbf{s}\\in S\\} \\\\ V = S \\oplus S^\\perp \\quad \\text{y} \\quad \\dim S + \\dim S^\\perp = \\dim V",
+      properties: [
+        "\\text{Intersección arbitraria de subespacios es subespacio: } \\bigcap_i S_i \\text{ subespacio}",
+        "\\text{Unión de subespacios es subespacio} \\iff S_1 \\subseteq S_2 \\text{ o } S_2 \\subseteq S_1",
+        "\\text{Subespacio generado: } \\operatorname{span}(A) = \\left\\{\\sum_{i} \\alpha_i \\mathbf{a}_i : \\alpha_i \\in \\mathbb{F},\\, \\mathbf{a}_i \\in A\\right\\} \\text{ — el menor subespacio que contiene a }A",
+      ],
+    },
+    intuition: "Un subespacio es una 'versión más pequeña' del espacio original que mantiene toda la estructura: si tienes dos vectores dentro, su suma y cualquier múltiplo escalar también están dentro. Geométricamente en $\\mathbb{R}^3$, los únicos subespacios son el punto de origen $\\{\\mathbf{0}\\}$, las rectas por el origen, los planos por el origen, y el espacio entero. El requisito de que pasen por el origen es clave: una recta que no pasa por el origen es un **variedad afín** (traslado de subespacio), no un subespacio. En ML, el espacio de columnas de una matriz de pesos determina qué transformaciones puede realizar una capa lineal — es el subespacio de todas las salidas posibles.",
+    development: [
+      {
+        label: "Subespacios fundamentales de una matriz: los cuatro de Strang",
+        body: "Dada $A \\in \\mathbb{R}^{m \\times n}$ de rango $r$, hay cuatro subespacios fundamentales que describen completamente la acción de $A$:\n\n| Subespacio | Definición | Dimensión | Espacio |\n|---|---|---|---|\n| Espacio columna $\\mathcal{C}(A)$ | $\\{A\\mathbf{x}: \\mathbf{x}\\in\\mathbb{R}^n\\}$ | $r$ | $\\mathbb{R}^m$ |\n| Espacio nulo $\\mathcal{N}(A)$ | $\\{\\mathbf{x}: A\\mathbf{x}=\\mathbf{0}\\}$ | $n-r$ | $\\mathbb{R}^n$ |\n| Espacio fila $\\mathcal{C}(A^\\top)$ | $\\{A^\\top\\mathbf{y}: \\mathbf{y}\\in\\mathbb{R}^m\\}$ | $r$ | $\\mathbb{R}^n$ |\n| Espacio nulo izq. $\\mathcal{N}(A^\\top)$ | $\\{\\mathbf{y}: A^\\top\\mathbf{y}=\\mathbf{0}\\}$ | $m-r$ | $\\mathbb{R}^m$ |\n\nLa **ortogonalidad fundamental**: $\\mathcal{C}(A)^\\perp = \\mathcal{N}(A^\\top)$ y $\\mathcal{C}(A^\\top)^\\perp = \\mathcal{N}(A)$. Toda entrada $\\mathbf{x}$ se descompone ortogonalmente como $\\mathbf{x} = \\mathbf{x}_r + \\mathbf{x}_n$ con $\\mathbf{x}_r \\in \\mathcal{C}(A^\\top)$ y $\\mathbf{x}_n \\in \\mathcal{N}(A)$. Sólo $\\mathbf{x}_r$ sobrevive a la multiplicación por $A$."
+      },
+      {
+        label: "Base, dimensión y cambio de coordenadas",
+        body: "Un conjunto $\\mathcal{B} = \\{\\mathbf{b}_1, \\ldots, \\mathbf{b}_k\\}$ es **base** de un subespacio $S$ si es linealmente independiente (L.I.) y $\\operatorname{span}(\\mathcal{B}) = S$. La **dimensión** $\\dim(S) = k$ es el número de vectores en cualquier base.\n\nEl **Teorema de la Base** garantiza que toda base de $S$ tiene el mismo número de elementos. Las coordenadas $[\\mathbf{v}]_{\\mathcal{B}}$ de $\\mathbf{v}$ respecto a $\\mathcal{B}$ son los únicos $\\alpha_i$ tales que $\\mathbf{v} = \\sum_i \\alpha_i \\mathbf{b}_i$.\n\nEl **cambio de base** entre $\\mathcal{B}$ y $\\mathcal{C}$ se realiza mediante la matriz de transición $P_{\\mathcal{B} \\to \\mathcal{C}} \\in \\mathbb{R}^{k\\times k}$:\n$$[\\mathbf{v}]_{\\mathcal{C}} = P_{\\mathcal{B}\\to\\mathcal{C}}\\,[\\mathbf{v}]_{\\mathcal{B}}$$\n\nEn ML, cada capa de una red realiza implícitamente un cambio de base: transforma las representaciones de la base de entrada a la base de características aprendidas en la capa siguiente. El embedding de un token es precisamente sus coordenadas en el subespacio semántico aprendido."
+      },
+      {
+        label: "Complemento ortogonal, proyecciones y descomposición espectral",
+        body: "Para $S \\subseteq \\mathbb{R}^n$ subespacio, su **complemento ortogonal** $S^\\perp = \\{\\mathbf{v}: \\langle\\mathbf{v},\\mathbf{s}\\rangle = 0\\;\\forall\\mathbf{s}\\in S\\}$ cumple $\\mathbb{R}^n = S \\oplus S^\\perp$. La **proyección ortogonal** sobre $S$ es la única transformación lineal $P_S: \\mathbb{R}^n \\to S$ tal que:\n$$P_S^2 = P_S \\quad (\\text{idempotente}) \\qquad P_S = P_S^\\top \\quad (\\text{simétrica})$$\n\nSi $\\{\\mathbf{q}_1,\\ldots,\\mathbf{q}_r\\}$ es base ortonormal de $S$ y $Q=[\\mathbf{q}_1|\\cdots|\\mathbf{q}_r]$:\n$$P_S = QQ^\\top \\in \\mathbb{R}^{n\\times n}$$\n\nLa **descomposición espectral** de una matriz simétrica $A = Q\\Lambda Q^\\top$ expresa $A$ como suma de proyecciones sobre sus autoespacios:\n$$A = \\sum_{i=1}^n \\lambda_i \\mathbf{q}_i\\mathbf{q}_i^\\top$$\n\ncada $\\mathbf{q}_i\\mathbf{q}_i^\\top$ es la proyección sobre el subespacio generado por el $i$-ésimo autovector — fundamental en PCA, análisis espectral y Graph Neural Networks."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "Los subespacios estructuran la geometría de la representación en ML a múltiples niveles:\n\n**Espacio columna de capas lineales.** La capa $f(\\mathbf{x}) = W\\mathbf{x}$ con $W \\in \\mathbb{R}^{m\\times n}$ y $\\operatorname{rank}(W)=r<\\min(m,n)$ mapea toda entrada al subespacio $\\mathcal{C}(W) \\subsetneq \\mathbb{R}^m$ de dimensión $r$. Esto es el **cuello de botella informacional**: independientemente de la entrada, la salida vive en un subespacio de dimensión $r$. El diseño de arquitecturas bottleneck (autoencoders, cross-attention en Transformers) explota esto deliberadamente.\n\n**Rango intrínseco y LoRA.** Los pesos de LLMs preentrenados tienen rango efectivo mucho menor que su tamaño total. LoRA (Low-Rank Adaptation) explota esto: en lugar de ajustar $W \\in \\mathbb{R}^{m\\times n}$, aprende $\\Delta W = BA$ con $B \\in \\mathbb{R}^{m\\times r}$, $A \\in \\mathbb{R}^{r\\times n}$, $r \\ll \\min(m,n)$. El espacio de fine-tuning está restringido a un subespacio de rango $r$ del espacio de pesos — reduciendo parámetros entrenables de millones a miles.\n\n**Subespacio nulo y degeneración.** Si $\\mathcal{N}(W) \\neq \\{\\mathbf{0}\\}$, hay entradas no nulas que producen salida cero — pérdida de información irrecuperable. Capas con $\\operatorname{rank}(W) < n$ hacen que la red sea insensible a ciertas direcciones del espacio de entrada. Esto puede ser un bug (expresividad limitada) o una feature (invarianzas aprendidas, como en redes equivariantes).\n\n**Cabezas de atención y subespacios.**  Cada cabeza de atención en un Transformer opera en un subespacio de dimensión $d_k = d_{\\text{model}}/h$:\n$$Q_i = XW_i^Q, \\quad K_i = XW_i^K, \\quad V_i = XW_i^V$$\n\nLas matrices $W_i^Q, W_i^K, W_i^V \\in \\mathbb{R}^{d_{\\text{model}}\\times d_k}$ proyectan la representación al subespacio de la cabeza $i$. La interpretabilidad mecanística estudia qué subespacio semántico 'atiende' cada cabeza."
+      },
+    ],
+    code: `import numpy as np
+from typing import Optional
+
+# ── 1. Verificación de subespacio ────────────────────────────────────────────
+def es_subespacio(
+    candidatos: np.ndarray,           # filas = vectores que generan el candidato
+    espacio_dim: int,
+    n_tests: int = 2000,
+    tol: float = 1e-8,
+) -> dict:
+    """
+    Verifica los 3 axiomas de subespacio para span(candidatos) ⊆ ℝ^{espacio_dim}.
+    Genera combinaciones lineales aleatorias y comprueba clausura.
+    """
+    rng = np.random.default_rng(42)
+
+    def en_subespacio(v):
+        """Proyecta v sobre span(candidatos) y mide residuo."""
+        Q, _ = np.linalg.qr(candidatos.T)
+        proj = Q @ Q.T @ v
+        return np.linalg.norm(v - proj) < tol
+
+    resultados = {"contiene_cero": en_subespacio(np.zeros(espacio_dim))}
+
+    falla_suma = falla_escalar = 0
+    for _ in range(n_tests):
+        # Genera vectores dentro del subespacio
+        alphas = rng.standard_normal(len(candidatos))
+        betas  = rng.standard_normal(len(candidatos))
+        u = candidatos.T @ alphas
+        v = candidatos.T @ betas
+        alpha = rng.standard_normal()
+
+        if not en_subespacio(u + v):   falla_suma    += 1
+        if not en_subespacio(alpha*u): falla_escalar += 1
+
+    resultados.update({
+        "clausura_suma":    falla_suma == 0,
+        "clausura_escalar": falla_escalar == 0,
+        "es_subespacio":    resultados["contiene_cero"] and
+                            falla_suma == 0 and falla_escalar == 0,
+    })
+    return resultados
+
+print("=== Verificación de subespacios en ℝ³ ===")
+# Plano x+y+z=0: vectores que lo generan
+plano_vecs = np.array([[1., -1., 0.], [0., 1., -1.]])
+# Recta en dirección (1,2,3)
+recta_vecs = np.array([[1., 2., 3.]])
+# "Candidato" inválido: plano x+y+z=1 (no pasa por origen)
+# No podemos representarlo como span, pero sí verificar que (1,0,0)+(0,1,0)=(1,1,0)
+# no está en {(x,y,z):x+y+z=1} → suma falla.
+
+for nombre, vecs in [
+    ("Plano x+y+z=0  (subespacio)", plano_vecs),
+    ("Recta t·(1,2,3) (subespacio)", recta_vecs),
+    ("Solo {(2,0,0)}  (no subespacio)", np.array([[2., 0., 0.]])),
+]:
+    res = es_subespacio(vecs, espacio_dim=3)
+    print(f"  {nombre}: {res}")
+
+# ── 2. Los cuatro subespacios fundamentales de una matriz ─────────────────────
+print("\\n=== Cuatro subespacios de Strang ===")
+A = np.array([[1., 2., 3.],
+              [4., 5., 6.],
+              [7., 8., 9.]])     # rango 2 (filas/cols linealmente dependientes)
+
+def cuatro_subespacios(A: np.ndarray) -> dict:
+    m, n = A.shape
+    # SVD: A = U Σ Vᵀ
+    U, s, Vt = np.linalg.svd(A, full_matrices=True)
+    r = int(np.sum(s > 1e-9))
+
+    return {
+        "rango r":          r,
+        "C(A)  dim=r":      U[:, :r],             # primeras r cols de U
+        "N(Aᵀ) dim=m-r":   U[:, r:],             # últimas m-r cols de U
+        "C(Aᵀ) dim=r":     Vt[:r, :].T,          # primeras r filas de Vt (transpuestas)
+        "N(A)  dim=n-r":   Vt[r:, :].T,          # últimas n-r filas de Vt
+    }
+
+ss = cuatro_subespacios(A)
+print(f"  A ∈ ℝ^{{{A.shape[0]}×{A.shape[1]}}},  rango = {ss['rango r']}")
+for nombre, base in ss.items():
+    if nombre == "rango r": continue
+    if hasattr(base, 'shape'):
+        print(f"  {nombre}: base de forma {base.shape}")
+        print(f"    {base.round(4)}")
+
+# Verificación ortogonalidad fundamental
+CA  = ss["C(A)  dim=r"]
+NAt = ss["N(Aᵀ) dim=m-r"]
+print(f"  C(A) ⊥ N(Aᵀ): max|⟨c,n⟩| = {np.abs(CA.T @ NAt).max():.2e}  (≈ 0)")
+
+# ── 3. Proyección ortogonal sobre un subespacio ────────────────────────────────
+print("\\n=== Proyección ortogonal P = QQᵀ ===")
+def proyeccion_ortogonal(S_base: np.ndarray) -> np.ndarray:
+    """P = QQᵀ donde Q es base ortonormal de span(S_base)."""
+    Q, _ = np.linalg.qr(S_base)
+    r = S_base.shape[1]
+    return Q[:, :r] @ Q[:, :r].T
+
+# Subespacio: plano x+y+z=0 en ℝ³
+S = plano_vecs.T                        # columnas = generadores
+P = proyeccion_ortogonal(S)
+print(f"  P =\\n{P.round(4)}")
+print(f"  P² = P (idempotente): {np.allclose(P@P, P)}")
+print(f"  P = Pᵀ (simétrica):   {np.allclose(P, P.T)}")
+
+# Proyectar vector
+v_test = np.array([1., 1., 1.])
+v_proj = P @ v_test
+v_perp = v_test - v_proj
+print(f"  v = {v_test}")
+print(f"  proj_S(v) = {v_proj.round(4)}")
+print(f"  perp_S(v) = {v_perp.round(4)}")
+print(f"  ⟨proj, perp⟩ = {np.dot(v_proj, v_perp):.2e}  (≈ 0)")
+
+# ── 4. LoRA: fine-tuning en subespacio de bajo rango ─────────────────────────
+print("\\n=== LoRA: actualización de bajo rango ===")
+np.random.seed(42)
+d_model, d_ff = 512, 2048         # dimensiones típicas de FFN en Transformer
+r_lora        = 8                  # rango de la adaptación
+
+W_pretrain = np.random.randn(d_ff, d_model) * 0.01   # pesos preentrenados (fijos)
+
+# LoRA: ΔW = B @ A,   B ∈ ℝ^{d_ff×r},  A ∈ ℝ^{r×d_model}
+A_lora = np.random.randn(r_lora, d_model) * 0.01
+B_lora = np.zeros((d_ff, r_lora))              # B inicializa en 0 → ΔW=0 al inicio
+
+W_lora = W_pretrain + B_lora @ A_lora          # pesos efectivos
+
+params_full = d_ff * d_model
+params_lora = r_lora * (d_ff + d_model)
+print(f"  W ∈ ℝ^{{{d_ff}×{d_model}}}   parámetros totales: {params_full:,}")
+print(f"  LoRA rango r={r_lora}:        parámetros entrenables: {params_lora:,}")
+print(f"  Reducción: ×{params_full/params_lora:.1f}  ({100*params_lora/params_full:.2f}%)")
+print(f"  rank(ΔW) = rank(BA) ≤ r = {r_lora}  ← actualización en subespacio de dim {r_lora}")
+
+# ── 5. Cabezas de atención como proyecciones a subespacios ────────────────────
+print("\\n=== Multi-Head Attention: subespacios por cabeza ===")
+d_model_att, h = 256, 8
+d_k = d_model_att // h
+
+np.random.seed(1)
+# Proyecciones por cabeza (simuladas)
+WQ = [np.random.randn(d_model_att, d_k) * np.sqrt(2/d_model_att) for _ in range(h)]
+WK = [np.random.randn(d_model_att, d_k) * np.sqrt(2/d_model_att) for _ in range(h)]
+
+x = np.random.randn(d_model_att)          # embedding de un token
+
+print(f"  d_model={d_model_att}, h={h}, d_k={d_k}")
+for i in range(h):
+    q_i = WQ[i].T @ x
+    k_i = WK[i].T @ x
+    score = np.dot(q_i, k_i) / np.sqrt(d_k)
+    print(f"  Cabeza {i}: ‖q_i‖={np.linalg.norm(q_i):.3f}  score=q·k/√d={score:.3f}")
+
+# Dimensión del subespacio efectivo de las cabezas (rango de la proyección)
+for i in [0, 3, 7]:
+    r_i = np.linalg.matrix_rank(WQ[i], tol=1e-8)
+    print(f"  rank(W_Q[{i}]) = {r_i}  → cada cabeza opera en subespacio de dim ≤ {r_i}")
+`,
+    related: ["Vector", "Transformación Lineal", "Matriz", "PCA y SVD", "LoRA"],
+    hasViz: true,
+    vizType: "espacioSubespacio",
+  },
+  {
+    id: 14,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Combinación Lineal y Span",
+    tags: ["álgebra lineal", "span", "generadores", "independencia lineal", "base", "representación"],
+    definition: "Una combinación lineal de vectores {v₁,…,vₖ} es cualquier vector de la forma α₁v₁+⋯+αₖvₖ con escalares αᵢ ∈ F. El span (o espacio generado) de un conjunto A es el conjunto de todas las combinaciones lineales posibles de sus elementos, y es el menor subespacio vectorial que contiene a A. El span captura la idea de qué vectores pueden 'construirse' a partir de un conjunto dado — si un vector b está en span({v₁,…,vₖ}), el sistema Ax=b tiene solución; si no lo está, no la tiene.",
+    formal: {
+      notation: "Sean $\\mathbf{v}_1, \\ldots, \\mathbf{v}_k \\in V$ y $\\alpha_1, \\ldots, \\alpha_k \\in \\mathbb{F}$",
+      body: "\\text{Combinación lineal: } \\mathbf{w} = \\sum_{i=1}^k \\alpha_i \\mathbf{v}_i = \\alpha_1\\mathbf{v}_1 + \\cdots + \\alpha_k\\mathbf{v}_k \\\\ \\text{Span: } \\operatorname{span}(\\mathbf{v}_1,\\ldots,\\mathbf{v}_k) = \\left\\{\\sum_{i=1}^k \\alpha_i\\mathbf{v}_i : \\alpha_i \\in \\mathbb{F}\\right\\} \\\\ \\text{Consistencia de } A\\mathbf{x}=\\mathbf{b}: \\quad \\mathbf{b} \\in \\operatorname{span}(\\mathbf{a}_1,\\ldots,\\mathbf{a}_n) \\iff \\mathbf{b} \\in \\mathcal{C}(A) \\\\ \\text{Sobreyectividad: } \\mathcal{C}(A) = \\mathbb{R}^m \\iff \\operatorname{rank}(A)=m \\iff A\\mathbf{x}=\\mathbf{b} \\text{ siempre consistente}",
+      geometric: "\\operatorname{span}(\\{\\mathbf{v}\\}) = \\text{recta por el origen en dirección } \\mathbf{v} \\\\ \\operatorname{span}(\\{\\mathbf{v}_1,\\mathbf{v}_2\\}) = \\begin{cases} \\text{plano por el origen} & \\mathbf{v}_1 \\not\\parallel \\mathbf{v}_2 \\\\ \\text{recta} & \\mathbf{v}_1 \\parallel \\mathbf{v}_2 \\end{cases} \\\\ \\dim\\operatorname{span}(\\mathbf{v}_1,\\ldots,\\mathbf{v}_k) = \\operatorname{rank}([\\mathbf{v}_1|\\cdots|\\mathbf{v}_k])",
+      properties: [
+        "\\operatorname{span}(A) \\text{ es el menor subespacio que contiene a } A: \\; S \\supseteq A \\Rightarrow S \\supseteq \\operatorname{span}(A)",
+        "\\operatorname{span}(A) = \\operatorname{span}(B) \\iff \\text{cada vector de }A\\text{ es comb. lineal de }B\\text{ y viceversa}",
+        "\\mathbf{v} \\in \\operatorname{span}(A) \\iff \\operatorname{span}(A \\cup \\{\\mathbf{v}\\}) = \\operatorname{span}(A) \\quad (\\text{criterio de dependencia lineal})",
+      ],
+    },
+    intuition: "El span es el 'alcance' de un conjunto de vectores: todas las posibles mezclas que puedes hacer combinando los vectores con cualquier receta de escalares. Si tienes dos vectores no paralelos en $\\mathbb{R}^2$, su span es todo el plano — con mezclas adecuadas de ambos puedes llegar a cualquier punto. Si son paralelos, solo alcanzas una recta. En ML, las columnas de una matriz de embeddings generan el espacio semántico accesible al modelo: si el span de los embeddings de entrada no cubre ciertas direcciones del espacio de salida, el modelo no puede expresar ciertos conceptos, sin importar qué escalares (pesos de atención) use.",
+    development: [
+      {
+        label: "Span y consistencia de sistemas lineales",
+        body: "El sistema $A\\mathbf{x} = \\mathbf{b}$ con $A = [\\mathbf{a}_1|\\cdots|\\mathbf{a}_n] \\in \\mathbb{R}^{m\\times n}$ equivale a preguntarse si $\\mathbf{b}$ es una combinación lineal de las columnas de $A$:\n$$A\\mathbf{x} = x_1\\mathbf{a}_1 + x_2\\mathbf{a}_2 + \\cdots + x_n\\mathbf{a}_n = \\mathbf{b}$$\n\nSi $\\mathbf{b} \\in \\mathcal{C}(A) = \\operatorname{span}(\\mathbf{a}_1,\\ldots,\\mathbf{a}_n)$, el sistema es **consistente** y $\\mathbf{x}$ son los coeficientes de la combinación. Si $\\mathbf{b} \\notin \\mathcal{C}(A)$, no hay solución exacta — solo la **solución de mínimos cuadrados** $\\hat{\\mathbf{x}} = A^+\\mathbf{b}$, que proyecta $\\mathbf{b}$ sobre $\\mathcal{C}(A)$.\n\nEl criterio de consistencia via rango aumentado:\n$$A\\mathbf{x}=\\mathbf{b} \\text{ consistente} \\iff \\operatorname{rank}([A|\\mathbf{b}]) = \\operatorname{rank}(A)$$"
+      },
+      {
+        label: "Independencia lineal: cuando el span es máximo sin redundancia",
+        body: "Un conjunto $\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\}$ es **linealmente independiente** (L.I.) si la única combinación lineal que produce el cero es la trivial:\n$$\\sum_{i=1}^k \\alpha_i \\mathbf{v}_i = \\mathbf{0} \\implies \\alpha_1=\\cdots=\\alpha_k=0$$\n\nSi el conjunto es L.I., ningún vector del conjunto está en el span de los demás — cada uno aporta una dirección genuinamente nueva. Si es **linealmente dependiente**, al menos un vector es redundante (combinación de los otros) y puede eliminarse sin reducir el span.\n\nLa dimensión del span se calcula directamente:\n$$\\dim\\operatorname{span}(\\mathbf{v}_1,\\ldots,\\mathbf{v}_k) = \\operatorname{rank}([\\mathbf{v}_1|\\cdots|\\mathbf{v}_k])$$\n\nEn particular, $k$ vectores en $\\mathbb{R}^n$ con $k > n$ son **siempre** linealmente dependientes (por el Teorema de la Dimensión)."
+      },
+      {
+        label: "Span como espacio de soluciones y de hipótesis",
+        body: "El span tiene dos interpretaciones duales en álgebra lineal:\n\n**Como espacio de alcance (imagen)**: $\\mathcal{C}(A) = \\operatorname{span}(\\text{cols de }A)$ es el conjunto de vectores $\\mathbf{b}$ para los que $A\\mathbf{x}=\\mathbf{b}$ es resoluble. Define qué funciones $\\mathbf{b}$ puede 'aprender' un modelo lineal.\n\n**Como espacio de representación**: dado un conjunto de funciones base $\\{\\phi_1,\\ldots,\\phi_k\\}$, el span $\\{\\sum_i w_i\\phi_i: w_i\\in\\mathbb{R}\\}$ es la **clase de hipótesis** de modelos lineales en esas bases. Los polinomios de grado $\\leq d$, las funciones de la base de Fourier truncada, y las representaciones de kernel son todos spans de funciones base específicas.\n\nLa elección de las funciones base $\\{\\phi_i\\}$ determina **qué puede aprender** el modelo, independientemente de los pesos $\\mathbf{w}$. Las redes neuronales aprenden las propias funciones base $\\phi_i$ (columnas de la última capa) de manera adaptativa — en contraste con los modelos lineales donde las $\\phi_i$ son fijas."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "Las combinaciones lineales y el span aparecen como operación fundamental en casi todos los módulos de una red neuronal:\n\n**Capa densa = combinación lineal de filas de activación.**  La salida $\\mathbf{h} = W\\mathbf{x} + \\mathbf{b}$ es un vector cuya coordenada $j$-ésima es $h_j = \\mathbf{w}_j^\\top\\mathbf{x} + b_j$ — combinación lineal de los componentes de $\\mathbf{x}$ con pesos $\\mathbf{w}_j$. El vector $\\mathbf{h}$ vive en $\\operatorname{span}(\\text{filas de }W) + \\mathbf{b}$ (variedad afín).\n\n**Atención como combinación lineal de valores.**  El mecanismo de atención produce:\n$$\\mathbf{o}_i = \\sum_{j=1}^n \\alpha_{ij}\\mathbf{v}_j = \\text{combinación lineal de valores}$$\ndonde los pesos $\\alpha_{ij} = \\operatorname{softmax}(\\mathbf{q}_i^\\top K^\\top/\\sqrt{d_k})_j \\geq 0$ suman 1. La salida de la atención es siempre una **combinación convexa** de los valores $\\{\\mathbf{v}_j\\}$, por tanto vive en su envolvente convexa — subconjunto del span.\n\n**Colapso de rango y degeneración.**  Si las columnas de $W$ son casi linealmente dependientes ($\\operatorname{rank}(W) \\ll d_{\\text{out}}$), la capa proyecta entradas a un subespacio de baja dimensión — pérdida de capacidad representacional. El **colapso de representaciones** en auto-supervisado ocurre cuando los embeddings colapsan a un span de dimensión 1 (todos los vectores se vuelven proporcionales). Métodos como SimCLR, BYOL y VICReg añaden penalizaciones para mantener el span de representaciones expandido.\n\n**Mezcla de expertos (MoE) como combinación lineal de expertos.**  La salida de un módulo MoE es una combinación lineal ponderada de $K$ expertos:\n$$\\mathbf{y} = \\sum_{k=1}^K g_k(\\mathbf{x})\\, E_k(\\mathbf{x}), \\quad g_k \\geq 0, \\sum_k g_k=1$$\nEl enrutador $g_k(\\mathbf{x})$ produce los coeficientes de la combinación convexa de los outputs de los expertos — span adaptativo a la entrada."
+      },
+    ],
+    code: `import numpy as np
+from typing import Optional
+
+# ── 1. Pertenencia al span: ¿b ∈ span(v₁,...,vₖ)? ────────────────────────────
+def en_span(b: np.ndarray, *vectores: np.ndarray, tol: float = 1e-8) -> dict:
+    """
+    Determina si b ∈ span(vectores) resolviendo el sistema Ax = b
+    donde A = [v₁|...|vₖ] via mínimos cuadrados.
+    """
+    A = np.column_stack(vectores)                 # A ∈ ℝ^{m×k}
+    # Solución de mínimos cuadrados: x̂ = argmin ‖Ax-b‖
+    x_hat, residuals, rank, sv = np.linalg.lstsq(A, b, rcond=None)
+    residuo = float(np.linalg.norm(A @ x_hat - b))
+    return {
+        "en_span":   residuo < tol,
+        "residuo":   residuo,
+        "coefs":     x_hat,                       # coeficientes de la comb. lineal
+        "rank_A":    rank,
+        "verificacion": A @ x_hat,               # reconstrucción b̂
+    }
+
+print("=== Pertenencia al span ===")
+v1 = np.array([1., 0., 0.])
+v2 = np.array([0., 1., 0.])
+
+casos = [
+    ("b=(2,3,0)  ← span",  np.array([2., 3., 0.])),
+    ("b=(0,0,1)  ← no span", np.array([0., 0., 1.])),
+    ("b=(1,1,1)  ← no span", np.array([1., 1., 1.])),
+    ("b=(-2,5,0) ← span",  np.array([-2., 5., 0.])),
+]
+for nombre, b in casos:
+    res = en_span(b, v1, v2)
+    sim = "✓" if res["en_span"] else "✗"
+    print(f"  {sim} {nombre}: coefs={res['coefs'].round(3)}  residuo={res['residuo']:.2e}")
+
+# ── 2. Dimensión del span: rank de la matriz de columnas ──────────────────────
+print("\\n=== Dimensión del span ===")
+conjuntos = [
+    ("3 vectores L.I. en ℝ³",
+     [np.array([1.,0.,0.]), np.array([0.,1.,0.]), np.array([0.,0.,1.])]),
+    ("2 vectores en ℝ³ (plano)",
+     [np.array([1.,2.,3.]), np.array([4.,5.,6.])]),
+    ("3 vectores dep. (1 redund.)",
+     [np.array([1.,2.,0.]), np.array([2.,4.,0.]), np.array([0.,1.,1.])]),
+    ("4 vectores en ℝ³ (max dim=3)",
+     [np.array([1.,0.,0.]),np.array([0.,1.,0.]),np.array([0.,0.,1.]),np.array([1.,1.,1.])]),
+]
+for nombre, vecs in conjuntos:
+    A = np.column_stack(vecs)
+    r = np.linalg.matrix_rank(A)
+    print(f"  {nombre}: k={len(vecs)} vectores → dim(span)={r}")
+
+# ── 3. Independencia lineal via eliminación gaussiana ─────────────────────────
+def independencia_lineal(vectores: list[np.ndarray], tol: float = 1e-8) -> dict:
+    """
+    Determina L.I. y extrae subconjunto máximo L.I. (base del span).
+    """
+    A = np.column_stack(vectores).T          # filas = vectores
+    m, n = A.shape
+    # Reducción por filas con pivoteo
+    A_red = A.copy().astype(float)
+    pivots = []
+    row = 0
+    for col in range(n):
+        # Buscar pivote
+        max_row = row + np.argmax(np.abs(A_red[row:, col]))
+        if np.abs(A_red[max_row, col]) < tol:
+            continue
+        A_red[[row, max_row]] = A_red[[max_row, row]]
+        A_red[row] /= A_red[row, col]
+        for i in range(m):
+            if i != row:
+                A_red[i] -= A_red[i, col] * A_red[row]
+        pivots.append(row)
+        row += 1
+        if row >= m: break
+    rango = len(pivots)
+    return {
+        "linealmente_independientes": rango == len(vectores),
+        "rango": rango,
+        "vectores_base": [vectores[i] for i in pivots],  # subconjunto L.I.
+        "vectores_redundantes": len(vectores) - rango,
+    }
+
+print("\\n=== Independencia lineal ===")
+tests = [
+    ("L.I.: (1,0),(0,1)",           [np.array([1.,0.]),np.array([0.,1.])]),
+    ("Dep: (1,2),(2,4)",            [np.array([1.,2.]),np.array([2.,4.])]),
+    ("L.I.: (1,0,0),(0,1,0),(0,0,1)",[np.array([1.,0.,0.]),np.array([0.,1.,0.]),np.array([0.,0.,1.])]),
+    ("Dep: 3 vecs en ℝ² (k>n)",    [np.array([1.,0.]),np.array([0.,1.]),np.array([1.,1.])]),
+]
+for nombre, vecs in tests:
+    res = independencia_lineal(vecs)
+    print(f"  {nombre}")
+    print(f"    LI={res['linealmente_independientes']}  rango={res['rango']}  "
+          f"redundantes={res['vectores_redundantes']}")
+
+# ── 4. Atención como combinación convexa de valores ───────────────────────────
+print("\\n=== Atención: combinación lineal convexa de valores ===")
+np.random.seed(42)
+d_k, d_v, n_tokens = 8, 16, 6
+
+Q = np.random.randn(1, d_k)          # query (1 token)
+K = np.random.randn(n_tokens, d_k)   # keys
+V = np.random.randn(n_tokens, d_v)   # values
+
+scores = Q @ K.T / np.sqrt(d_k)      # (1, n_tokens)
+
+def softmax(x):
+    e = np.exp(x - x.max(axis=-1, keepdims=True))
+    return e / e.sum(axis=-1, keepdims=True)
+
+alpha = softmax(scores)               # pesos de atención (1, n_tokens)
+output = alpha @ V                    # (1, d_v) — combinación lineal de valores
+
+print(f"  Pesos α (suman 1): {alpha.round(3)}")
+print(f"  Σα = {alpha.sum():.6f}")
+print(f"  output ∈ ℝ^{{{d_v}}}: {output.round(3)}")
+
+# Verificar que output ∈ span(V)
+res_span = en_span(output.squeeze(), *[V[i] for i in range(n_tokens)])
+print(f"  output ∈ span(V): {res_span['en_span']}  residuo={res_span['residuo']:.2e}")
+
+# ── 5. Colapso de span: detección vía valores singulares ─────────────────────
+print("\\n=== Colapso de representaciones (span degenerado) ===")
+np.random.seed(0)
+n_emb, d_emb = 64, 32
+
+def rango_efectivo(E: np.ndarray, umbral: float = 0.99) -> int:
+    """
+    Rango efectivo: mínimo k tal que los k primeros valores
+    singulares acumulan 'umbral' fracción de la energía total.
+    """
+    _, s, _ = np.linalg.svd(E, full_matrices=False)
+    energia = np.cumsum(s**2) / np.sum(s**2)
+    return int(np.searchsorted(energia, umbral)) + 1
+
+for nombre, E in [
+    ("Random (sin colapso)",       np.random.randn(n_emb, d_emb)),
+    ("Colapso parcial (rank≈8)",   np.random.randn(n_emb, 8) @ np.random.randn(8, d_emb)),
+    ("Colapso total (todos=const)", np.ones((n_emb, d_emb)) + 0.01*np.random.randn(n_emb,d_emb)),
+]:
+    r_ef = rango_efectivo(E)
+    _, sv, _ = np.linalg.svd(E, full_matrices=False)
+    print(f"  {nombre:35s}: rank_eff(99%)={r_ef:3d}  "
+          f"σ₁={sv[0]:.2f}  σ₃₂={sv[-1]:.4f}  ratio={sv[0]/sv[-1]:.1f}")
+
+# ── 6. MoE: combinación lineal de expertos ────────────────────────────────────
+print("\\n=== MoE: combinación lineal ponderada de expertos ===")
+np.random.seed(7)
+K_exp, d_in2, d_out2 = 4, 8, 8
+
+# Expertos: redes lineales simples E_k(x) = W_k x
+experts = [np.random.randn(d_out2, d_in2)*0.5 for _ in range(K_exp)]
+x_in = np.random.randn(d_in2)
+
+# Router: softmax(Wx)
+W_router = np.random.randn(K_exp, d_in2)*0.5
+logits   = W_router @ x_in
+gates    = softmax(logits.reshape(1,-1)).squeeze()    # pesos convexos
+
+# Salida MoE = Σ gates_k * E_k(x)
+outputs_exp = np.stack([E @ x_in for E in experts])  # (K, d_out)
+moe_output  = gates @ outputs_exp                     # comb. lineal convexa
+
+print(f"  Gates (Σ=1): {gates.round(3)}")
+for k in range(K_exp):
+    print(f"  E_{k}(x) = {outputs_exp[k].round(3)}")
+print(f"  MoE(x) = Σ g_k·E_k(x) = {moe_output.round(3)}")
+# Verificar que está en el span de las salidas de expertos
+res_moe = en_span(moe_output, *[outputs_exp[k] for k in range(K_exp)])
+print(f"  MoE ∈ span({{E_k(x)}}): {res_moe['en_span']}  residuo={res_moe['residuo']:.2e}")
+`,
+    related: ["Espacio y Subespacio Vectorial", "Independencia Lineal y Base", "Transformación Lineal", "Mecanismo de Atención", "Colapso de Representaciones"],
+    hasViz: true,
+    vizType: "combinacionLinealSpan",
+  },
+  {
+    id: 15,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Independencia Lineal",
+    tags: ["álgebra lineal", "independencia lineal", "dependencia", "rango", "base", "redundancia"],
+    definition: "Un conjunto de vectores {v₁,…,vₖ} en un espacio vectorial V es linealmente independiente (L.I.) si la única combinación lineal que produce el vector cero es la trivial: α₁v₁+⋯+αₖvₖ=0 implica α₁=⋯=αₖ=0. Si existe una combinación no trivial que produce el cero, el conjunto es linealmente dependiente (L.D.), lo que equivale a que al menos un vector es combinación lineal de los demás — es redundante y puede eliminarse sin reducir el span. La independencia lineal es la condición exacta que garantiza que una representación sea única y no redundante.",
+    formal: {
+      notation: "Sean $\\mathbf{v}_1, \\ldots, \\mathbf{v}_k \\in V$ y $\\alpha_1, \\ldots, \\alpha_k \\in \\mathbb{F}$",
+      body: "\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\} \\text{ L.I.} \\iff \\left[\\sum_{i=1}^k \\alpha_i\\mathbf{v}_i = \\mathbf{0} \\implies \\alpha_1=\\cdots=\\alpha_k=0\\right] \\\\ \\text{Equivalentemente (vía matriz): sea } A=[\\mathbf{v}_1|\\cdots|\\mathbf{v}_k] \\in \\mathbb{R}^{n\\times k}: \\\\ \\quad \\{\\mathbf{v}_i\\} \\text{ L.I.} \\iff \\mathcal{N}(A)=\\{\\mathbf{0}\\} \\iff \\operatorname{rank}(A)=k \\\\ \\text{L.D.: } \\exists\\,(\\alpha_1,\\ldots,\\alpha_k)\\neq\\mathbf{0}: \\sum_i\\alpha_i\\mathbf{v}_i=\\mathbf{0} \\\\ \\quad \\iff \\exists\\, j: \\mathbf{v}_j \\in \\operatorname{span}(\\{\\mathbf{v}_i\\}_{i\\neq j})",
+      geometric: "k > n \\implies \\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\} \\text{ L.D. en } \\mathbb{R}^n \\quad (\\text{más vectores que dimensiones}) \\\\ \\text{L.I.} \\iff \\text{det}([\\mathbf{v}_1|\\cdots|\\mathbf{v}_n]) \\neq 0 \\quad (\\text{solo si } k=n) \\\\ \\text{Gram: } G_{ij} = \\langle\\mathbf{v}_i,\\mathbf{v}_j\\rangle;\\quad \\{\\mathbf{v}_i\\}\\text{ L.I.}\\iff \\det(G)\\neq 0",
+      properties: [
+        "\\text{Todo subconjunto de un conjunto L.I. es L.I.; todo superconjunto de uno L.D. es L.D.}",
+        "\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\} \\text{ L.I.} \\iff \\text{cada } \\mathbf{w}\\in\\operatorname{span}(\\{\\mathbf{v}_i\\}) \\text{ tiene representación única}",
+        "\\text{Criterio de Gram: } \\{\\mathbf{v}_i\\} \\text{ L.I.} \\iff \\det(V^\\top V)>0 \\quad (V=[\\mathbf{v}_1|\\cdots|\\mathbf{v}_k])",
+      ],
+    },
+    intuition: "La independencia lineal es la ausencia de redundancia: cada vector del conjunto aporta una dirección genuinamente nueva que no puede construirse combinando los demás. Imagina construir un mapa: si ya tienes las direcciones Norte y Este, añadir 'Noreste' es redundante — es la suma de los dos primeros. En $\\mathbb{R}^2$, dos vectores son L.I. si apuntan en direcciones distintas (no paralelas); tres vectores en $\\mathbb{R}^2$ son siempre L.D. porque no hay espacio para una tercera dirección independiente. En ML, la L.I. de los embeddings garantiza que el modelo pueda distinguir conceptos sin ambigüedad; la dependencia lineal entre features de entrada provoca multicolinealidad y degrada la estabilidad numérica.",
+    development: [
+      {
+        label: "Caracterizaciones algebraicas y el test del rango",
+        body: "Hay varias formas equivalentes de verificar la L.I. de $\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\}$, cada una computacionalmente distinta:\n\n**1. Definición directa**: resolver $A\\mathbf{\\alpha}=\\mathbf{0}$ con $A=[\\mathbf{v}_1|\\cdots|\\mathbf{v}_k]$. Si la única solución es $\\mathbf{\\alpha}=\\mathbf{0}$ (núcleo trivial), los vectores son L.I.\n\n**2. Rango**: $\\operatorname{rank}(A)=k$ equivale a L.I. Computable eficientemente via eliminación gaussiana o SVD.\n\n**3. Determinante** (solo para $k=n$ vectores en $\\mathbb{R}^n$): $\\det(A)\\neq 0 \\iff$ L.I.\n\n**4. Valores singulares**: los vectores son L.I. si y solo si todos los valores singulares de $A$ son positivos. El valor singular mínimo $\\sigma_{\\min}(A) > 0$ mide cuán 'lejos' está el conjunto de la dependencia — es el recíproco del número de condición $\\kappa=\\sigma_{\\max}/\\sigma_{\\min}$.\n\n**5. Matriz de Gram** $G = A^\\top A$: $\\det(G) > 0 \\iff$ L.I. La raíz cuadrada de $\\det(G)$ es el volumen del paralelepípedo formado por los vectores."
+      },
+      {
+        label: "Dependencia lineal: geometría y consecuencias",
+        body: "Cuando un conjunto es L.D., existe $\\mathbf{\\alpha}\\neq\\mathbf{0}$ tal que $A\\mathbf{\\alpha}=\\mathbf{0}$, lo que significa que $\\mathbf{\\alpha}$ está en el núcleo de $A$. Geométricamente:\n\n- **2 vectores L.D.**: son paralelos (uno es múltiplo del otro). Su span es una recta.\n- **3 vectores en $\\mathbb{R}^2$**: siempre L.D. — no hay 'espacio' para una tercera dirección.\n- **3 vectores L.D. en $\\mathbb{R}^3$**: coplanares (span = plano o menos).\n\nLa dependencia tiene consecuencias prácticas graves:\n\n- **Sistemas $A\\mathbf{x}=\\mathbf{b}$**: si $A$ tiene columnas L.D., la solución no es única (hay infinitas o ninguna). El sistema está **subdeterminado** o **mal condicionado**.\n- **Regresión con features correladas** (multicolinealidad): $(X^\\top X)^{-1}$ se vuelve inestable o singular, los coeficientes tienen varianza enorme y son difíciles de interpretar.\n- **Embeddings degenerados**: si los embeddings de $k$ tokens son L.D. y viven en un subespacio de dimensión $r<k$, el modelo tiene redundancia representacional — $k-r$ grados de libertad 'perdidos'."
+      },
+      {
+        label: "Proceso de Gram-Schmidt: ortonormalización y extracción de base L.I.",
+        body: "Dado un conjunto L.I. $\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\}$, el **proceso de Gram-Schmidt** construye una base ortonormal $\\{\\mathbf{q}_1,\\ldots,\\mathbf{q}_k\\}$ con el mismo span:\n$$\\mathbf{u}_j = \\mathbf{v}_j - \\sum_{i=1}^{j-1}\\frac{\\langle\\mathbf{v}_j,\\mathbf{q}_i\\rangle}{\\|\\mathbf{q}_i\\|}\\mathbf{q}_i, \\qquad \\mathbf{q}_j = \\frac{\\mathbf{u}_j}{\\|\\mathbf{u}_j\\|}$$\n\nEsto es la factorización $A = QR$ donde $Q \\in \\mathbb{R}^{n\\times k}$ tiene columnas ortonormales y $R \\in \\mathbb{R}^{k\\times k}$ es triangular superior. Si algún $\\|\\mathbf{u}_j\\| = 0$, el vector $\\mathbf{v}_j$ es redundante (L.D. con los anteriores) y se descarta.\n\nLa factorización QR es el algoritmo estándar para:\n- Resolver sistemas de mínimos cuadrados establamente: $\\hat{\\mathbf{x}} = R^{-1}Q^\\top\\mathbf{b}$.\n- Detectar rango numéricamente: el rango es el número de diagonales de $R$ mayores que un umbral.\n- Ortonormalizar las cabezas de atención para mejorar la estabilidad del entrenamiento."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La independencia lineal determina la calidad representacional y la estabilidad numérica en múltiples niveles:\n\n**Multicolinealidad y regresión.** En regresión lineal $\\mathbf{y} = X\\boldsymbol{\\beta} + \\boldsymbol{\\varepsilon}$ con $X \\in \\mathbb{R}^{n\\times p}$, si las columnas de $X$ son casi L.D. (features correladas), $X^\\top X$ es casi singular: $\\sigma_{\\min}(X) \\approx 0$ y $\\hat{\\boldsymbol{\\beta}} = (X^\\top X)^{-1}X^\\top\\mathbf{y}$ es numéricamente inestable. Ridge regresión añade $\\lambda I$ para regularizar: $(X^\\top X + \\lambda I)^{-1}$ tiene $\\sigma_{\\min} \\geq \\lambda > 0$ garantizado.\n\n**Hipótesis de superposición en LLMs.** Los LLMs tienen más conceptos que dimensiones ($p_{\\text{conceptos}} \\gg d_{\\text{model}}$). Elhage et al. (2022) demostraron que los modelos almacenan features en **vectores casi L.I.** (casi ortogonales), con interferencia controlada por $1/\\sqrt{d}$. Este régimen de superposición es imposible sin independencia lineal parcial de las representaciones.\n\n**Rango de las matrices de atención.** Si $W_Q, W_K \\in \\mathbb{R}^{d\\times d_k}$ tienen columnas casi L.D. (rango efectivo $r \\ll d_k$), la cabeza de atención opera en un subespacio de dimensión $r$ — reducción efectiva de capacidad. El entrenamiento con inicialización ortogonal y weight decay mantiene los valores singulares separados de cero, preservando la independencia.\n\n**Colapso de gradiente y L.I.** Durante el entrenamiento, si los gradientes de distintos parámetros se vuelven L.D. (colineales), el espacio de actualización colapsa: $\\nabla_{\\theta_1}\\mathcal{L} \\approx \\alpha \\nabla_{\\theta_2}\\mathcal{L}$ significa que actualizar $\\theta_1$ y $\\theta_2$ es redundante. El **gradient clipping** y la **preconditioning** (AdaGrad, Adam) actúan sobre el espectro del Hessiano para mantener las direcciones de descenso efectivamente independientes."
+      },
+    ],
+    code: `import numpy as np
+from typing import Optional
+
+# ── 1. Test de independencia lineal vía rango ─────────────────────────────────
+def test_li(vectores: list[np.ndarray], tol: float = 1e-8) -> dict:
+    """
+    Verifica L.I. usando SVD: LI ↔ rank(A) = k ↔ σ_min > 0.
+    """
+    A = np.column_stack(vectores)
+    _, s, _ = np.linalg.svd(A, full_matrices=False)
+    r = int(np.sum(s > tol))
+    return {
+        "LI":              r == len(vectores),
+        "rango":           r,
+        "k":               len(vectores),
+        "redundantes":     len(vectores) - r,
+        "sigma_min":       float(s[-1]),
+        "sigma_max":       float(s[0]),
+        "cond_number":     float(s[0] / (s[-1] + 1e-300)),
+        "valores_sing":    s.round(4),
+        "det_gram":        float(np.linalg.det(A.T @ A)),
+    }
+
+print("=== Test de independencia lineal ===")
+casos = [
+    ("L.I.: (1,0,0),(0,1,0),(0,0,1)",
+     [np.array([1.,0.,0.]), np.array([0.,1.,0.]), np.array([0.,0.,1.])]),
+    ("L.D.: (1,2),(2,4) (paralelos)",
+     [np.array([1.,2.]),    np.array([2.,4.])]),
+    ("L.I.: (1,1),(1,-1)",
+     [np.array([1.,1.]),    np.array([1.,-1.])]),
+    ("L.D.: 3 vecs en ℝ² (k>n)",
+     [np.array([1.,0.]),    np.array([0.,1.]),    np.array([1.,1.])]),
+    ("Casi L.D.: alta correlación",
+     [np.array([1.,0.]),    np.array([0.999, 0.045])]),
+]
+for nombre, vecs in casos:
+    res = test_li(vecs)
+    mark = "✓ LI" if res["LI"] else "✗ LD"
+    print(f"  {mark} {nombre}")
+    print(f"       rank={res['rango']}/{res['k']}  σ_min={res['sigma_min']:.4f}  "
+          f"κ={res['cond_number']:.2f}  det(G)={res['det_gram']:.4f}")
+
+# ── 2. Resolución de la ecuación de dependencia: encontrar coeficientes ────────
+def coeficientes_dependencia(vectores: list[np.ndarray], tol=1e-8) -> Optional[np.ndarray]:
+    """
+    Si los vectores son L.D., devuelve α≠0 tal que Σ αᵢ vᵢ = 0.
+    """
+    A = np.column_stack(vectores)
+    _, s, Vt = np.linalg.svd(A)
+    idx_nulos = np.where(s < tol)[0]
+    if len(idx_nulos) == 0:
+        # También chequear dimensión nula por exceso de vectores
+        if A.shape[1] > A.shape[0]:
+            # Hay núcleo garantizado
+            _, _, Vt = np.linalg.svd(A, full_matrices=True)
+            return Vt[A.shape[0]:][0]
+        return None                                    # L.I.
+    return Vt[len(s):][0] if len(s) < A.shape[1] else Vt[idx_nulos[0]]
+
+print("\\n=== Coeficientes de dependencia lineal ===")
+deps = [
+    ([np.array([1.,2.]), np.array([2.,4.])],          "v₂ = 2v₁"),
+    ([np.array([1.,0.]), np.array([0.,1.]), np.array([1.,1.])], "v₃ = v₁+v₂"),
+    ([np.array([1.,0.]), np.array([0.,1.])],           "L.I. (ninguna)"),
+]
+for vecs, expected in deps:
+    alpha = coeficientes_dependencia(vecs)
+    if alpha is not None:
+        recomb = sum(a*v for a,v in zip(alpha, vecs))
+        print(f"  α={alpha.round(4)} → Σαᵢvᵢ={recomb.round(6)}  (esperado: {expected})")
+    else:
+        print(f"  → Linealmente independientes ({expected})")
+
+# ── 3. Gram-Schmidt: ortonormalización ────────────────────────────────────────
+def gram_schmidt(vectores: list[np.ndarray], tol: float = 1e-10) -> tuple:
+    """
+    Proceso de Gram-Schmidt con detección de redundancia.
+    Devuelve (Q, indices_base) donde Q tiene columnas ortonormales.
+    """
+    n = len(vectores[0])
+    Q_cols = []
+    indices_base = []
+
+    for j, v in enumerate(vectores):
+        u = v.copy().astype(float)
+        for q in Q_cols:
+            u -= np.dot(u, q) * q          # proyectar fuera de los anteriores
+        norm_u = np.linalg.norm(u)
+        if norm_u > tol:                   # no redundante
+            Q_cols.append(u / norm_u)
+            indices_base.append(j)
+        # Si norm_u ≈ 0: v_j era combinación lineal de los anteriores → redundante
+
+    Q = np.column_stack(Q_cols) if Q_cols else np.zeros((n, 0))
+    return Q, indices_base
+
+print("\\n=== Gram-Schmidt y extracción de base L.I. ===")
+vecs_test = [
+    np.array([1., 2., 0.]),
+    np.array([3., 4., 0.]),
+    np.array([2., 4., 0.]),   # redundante: 2*(1,2,0)
+    np.array([0., 0., 1.]),
+]
+Q, idx_base = gram_schmidt(vecs_test)
+print(f"  Vectores: {len(vecs_test)}  →  Base L.I.: {len(idx_base)} (índices: {idx_base})")
+print(f"  Q (columnas ortonormales):\\n{Q.round(4)}")
+print(f"  QᵀQ = I: {np.allclose(Q.T @ Q, np.eye(len(idx_base)))}")
+
+# Verificar igualdad de spans
+A_orig = np.column_stack(vecs_test)
+# Residuo de las cols de A respecto a span(Q): debe ser ≈ 0
+residuos = [np.linalg.norm(v - Q @ (Q.T @ v)) for v in vecs_test]
+print(f"  Residuos ‖vⱼ - P·vⱼ‖: {np.array(residuos).round(6)} (≈0 si span igual)")
+
+# ── 4. Multicolinealidad en regresión: efecto en el número de condición ────────
+print("\\n=== Multicolinealidad: κ(XᵀX) y estabilidad de β̂ ===")
+np.random.seed(42)
+n_obs = 100
+
+# Feature base
+x1 = np.random.randn(n_obs)
+
+for corr, desc in [(0.0, "sin corr"), (0.8, "corr=0.8"),
+                   (0.99, "corr=0.99"), (0.999, "corr=0.999")]:
+    x2 = corr*x1 + np.sqrt(1-corr**2)*np.random.randn(n_obs)
+    X  = np.column_stack([np.ones(n_obs), x1, x2])
+    XtX= X.T @ X
+    s  = np.linalg.svd(XtX, compute_uv=False)
+    kappa= s[0]/(s[-1]+1e-12)
+    try:
+        beta = np.linalg.solve(XtX, X.T @ (2*x1 - x2 + np.random.randn(n_obs)*0.1))
+        stable = True
+    except np.linalg.LinAlgError:
+        stable = False
+    print(f"  {desc}: σ_min={s[-1]:.4f}  κ={kappa:.1f}  "
+          f"{'estable' if kappa<1e6 else 'INESTABLE'}")
+
+# ── 5. Hipótesis de superposición: LI aproximada en alta dimensión ────────────
+print("\\n=== Hipótesis de superposición: |cos θ| entre embeddings ===")
+np.random.seed(0)
+
+for d, n_emb, desc in [
+    (4,   10,  "d=4,  10 embeddings"),
+    (64,  100, "d=64, 100 embeddings"),
+    (512, 500, "d=512, 500 embeddings"),
+]:
+    E = np.random.randn(d, n_emb)
+    E = E / np.linalg.norm(E, axis=0)         # normalizar
+    G = E.T @ E                                # Gram matrix
+    np.fill_diagonal(G, 0)
+    max_cos = np.abs(G).max()
+    mean_cos= np.abs(G).mean()
+    r = np.linalg.matrix_rank(E)
+    print(f"  {desc}: rank={r}  max|cos|={max_cos:.4f}  mean|cos|={mean_cos:.4f}  "
+          f"(teórico E[|cos|]≈{1/np.sqrt(d):.4f})")
+`,
+    related: ["Combinación Lineal y Span", "Base y Dimensión", "Rango de una Matriz", "Multicolinealidad", "Embeddings y Superposición"],
+    hasViz: true,
+    vizType: "independenciaLineal",
+  },
+  {
     id: 18, section: "Álgebra Lineal", sectionCode: "II",
     name: "Producto Punto (Dot Product)",
     tags: ["vectores", "geometría"],
@@ -2209,133 +2823,6 @@ for T in [0.2, 1.0, 2.0]:
   },
 
   // ── SECCIÓN II: ÁLGEBRA LINEAL ─────────────────────────────────────────
-  {
-    id: 12, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Vector",
-    tags: ["vectores", "espacio vectorial"],
-    definition: "Elemento de un espacio vectorial. Puede interpretarse como una tupla ordenada de escalares (vista algebraica) o como una magnitud con dirección y sentido (vista geométrica).",
-    formal: {
-      notation: "Sea $\\mathbb{F}$ un campo (usualmente $\\mathbb{R}$ o $\\mathbb{C}$)",
-      body: "\\mathbf{v} = (v_1, v_2, \\ldots, v_n)^\\top \\in \\mathbb{F}^n",
-      geometric: "\\mathbf{v} + \\mathbf{w} = (v_1+w_1,\\ldots,v_n+w_n)^\\top,\\quad \\alpha\\mathbf{v} = (\\alpha v_1,\\ldots,\\alpha v_n)^\\top",
-      properties: [
-        "\\text{Conmutatividad: } \\mathbf{u}+\\mathbf{v} = \\mathbf{v}+\\mathbf{u}",
-        "\\text{Elemento neutro: } \\mathbf{v}+\\mathbf{0} = \\mathbf{v}",
-        "\\text{Inverso aditivo: } \\mathbf{v}+(-\\mathbf{v}) = \\mathbf{0}",
-        "\\text{Distributividad: } \\alpha(\\mathbf{u}+\\mathbf{v}) = \\alpha\\mathbf{u}+\\alpha\\mathbf{v}",
-      ],
-    },
-    intuition: "Un vector es una flecha en el espacio: saber dónde apunta y qué tan larga es lo determina completamente. En ML, un vector de features describe un punto de dato en un espacio de alta dimensión.",
-    development: [
-      { label: "Representaciones", body: "Columna (estándar): $\\mathbf{v} \\in \\mathbb{R}^{n\\times 1}$. Fila: $\\mathbf{v}^\\top \\in \\mathbb{R}^{1\\times n}$.\n\nEn NumPy, un vector 1D `np.array([1,2,3])` no tiene orientación — importa cuando se multiplica con matrices." },
-      { label: "Normas de vectores", body: "Norma $L_p$: $\\|\\mathbf{v}\\|_p = \\left(\\sum_i |v_i|^p\\right)^{1/p}$\n\n$L_1$: $\\sum|v_i|$ — robusta a outliers, induce sparsity.\n$L_2$: $\\sqrt{\\sum v_i^2}$ — la norma euclídea usual.\n$L_\\infty$: $\\max_i |v_i|$ — el componente de mayor magnitud." },
-      { label: "En ML", body: "Cada muestra de datos es un vector $\\mathbf{x} \\in \\mathbb{R}^d$. Los parámetros de un modelo lineal son un vector $\\mathbf{w} \\in \\mathbb{R}^d$. Los embeddings de palabras son vectores en $\\mathbb{R}^{300}$ o $\\mathbb{R}^{768}$." },
-    ],
-    code: `import numpy as np
-
-v = np.array([3.0, -1.0, 2.0])
-
-# Normas
-l1  = np.linalg.norm(v, ord=1)   # 6.0
-l2  = np.linalg.norm(v)           # 3.742
-linf= np.linalg.norm(v, ord=np.inf)  # 3.0
-
-# Operaciones básicas
-w = np.array([1.0, 2.0, -1.0])
-suma   = v + w
-escala = 2.5 * v
-print(f"L1={l1:.2f}, L2={l2:.3f}, Linf={linf}")`,
-    related: ["Espacio vectorial", "Norma L1/L2", "Producto punto", "Embedding"],
-    hasViz: false,
-  },
-  {
-    id: 13, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Espacio y Subespacio Vectorial",
-    tags: ["álgebra", "estructura"],
-    definition: "Un espacio vectorial es un conjunto V sobre un campo F cerrado bajo suma y multiplicación escalar que satisface 8 axiomas. Un subespacio es un subconjunto no vacío de V que es él mismo un espacio vectorial.",
-    formal: {
-      notation: "Sea $V$ un espacio vectorial sobre $\\mathbb{F}$ y $W \\subseteq V$",
-      body: "W \\text{ es subespacio} \\iff \\begin{cases} \\mathbf{0} \\in W \\\\ \\mathbf{u},\\mathbf{v} \\in W \\Rightarrow \\mathbf{u}+\\mathbf{v} \\in W \\\\ \\alpha \\in \\mathbb{F},\\, \\mathbf{v} \\in W \\Rightarrow \\alpha\\mathbf{v} \\in W \\end{cases}",
-      geometric: "W_1 \\cap W_2 \\text{ es subespacio}; \\quad W_1 \\cup W_2 \\text{ es subespacio} \\iff W_1 \\subseteq W_2 \\text{ o } W_2 \\subseteq W_1",
-      properties: [
-        "\\{\\mathbf{0}\\} \\text{ y } V \\text{ son siempre subespacios (triviales)}",
-        "\\dim(W_1 + W_2) = \\dim W_1 + \\dim W_2 - \\dim(W_1 \\cap W_2)",
-        "\\text{Núcleo (kernel) de } A: \\ker(A) = \\{\\mathbf{x}: A\\mathbf{x}=\\mathbf{0}\\} \\text{ es subespacio}",
-      ],
-    },
-    intuition: "Un subespacio es como un plano o recta que pasa por el origen: puedes moverte dentro de él libremente (suma y escala) sin salir. El origen siempre está incluido — si no, no es subespacio.",
-    development: [
-      { label: "Los 8 axiomas de espacio vectorial", body: "Conmutatividad, asociatividad de suma, elemento neutro ($\\mathbf{0}$), inverso aditivo, compatibilidad escalar, distributividad escalar sobre vectores, distributividad escalar sobre escalares, neutro multiplicativo ($1\\cdot\\mathbf{v}=\\mathbf{v}$)." },
-      { label: "Ejemplos clave", body: "$\\mathbb{R}^n$, $\\mathbb{C}^n$: los más usados en ML.\n$\\mathcal{M}_{m\\times n}(\\mathbb{R})$: matrices, espacio vectorial de dimensión $mn$.\n$\\mathcal{P}_n$: polinomios de grado $\\leq n$, dimensión $n+1$.\n$\\ker(A)$: kernel de una matriz, crucial en análisis de sistemas lineales." },
-      { label: "Relevancia en ML", body: "El espacio de columnas (column space) de una matriz $A \\in \\mathbb{R}^{m\\times n}$ es el subespacio de $\\mathbb{R}^m$ alcanzable: $\\text{col}(A) = \\{A\\mathbf{x}: \\mathbf{x}\\in\\mathbb{R}^n\\}$. En regresión, si $\\mathbf{y} \\notin \\text{col}(X)$, no hay solución exacta — usamos mínimos cuadrados." },
-    ],
-    code: `import numpy as np
-
-# Verificar si un conjunto de vectores forma subespacio
-def es_subespacio_candidato(vecs):
-    """Verifica condiciones necesarias (no suficientes)."""
-    # 1. Contiene el cero
-    tiene_cero = any(np.allclose(v, 0) for v in vecs)
-    # 2. Closed under addition (muestreo)
-    for i in range(len(vecs)):
-        for j in range(i, len(vecs)):
-            suma = vecs[i] + vecs[j]
-            # En práctica: verificar que suma esté en el span
-    return tiene_cero
-
-# Column space de una matriz
-A = np.array([[1,2],[3,4],[5,6]])
-# Rango = dimensión del column space
-print(f"dim(col(A)) = {np.linalg.matrix_rank(A)}")  # 2
-
-# Kernel: Ax=0
-# Para sistemas sobredeterminados, usar SVD`,
-    related: ["Vector", "Base y dimensión", "Combinación lineal", "Kernel"],
-    hasViz: false,
-  },
-  {
-    id: 14, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Combinación Lineal y Span",
-    tags: ["álgebra", "bases"],
-    definition: "Una combinación lineal de vectores es su suma ponderada por escalares. El span (espacio generado) es el conjunto de todas las combinaciones lineales posibles de un conjunto de vectores.",
-    formal: {
-      notation: "Dados $\\mathbf{v}_1, \\ldots, \\mathbf{v}_k \\in V$ y escalares $\\alpha_1, \\ldots, \\alpha_k \\in \\mathbb{F}$",
-      body: "\\mathbf{w} = \\sum_{i=1}^k \\alpha_i \\mathbf{v}_i = \\alpha_1\\mathbf{v}_1 + \\alpha_2\\mathbf{v}_2 + \\cdots + \\alpha_k\\mathbf{v}_k",
-      geometric: "\\text{span}\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\} = \\left\\{\\sum_{i=1}^k \\alpha_i\\mathbf{v}_i \\;:\\; \\alpha_i \\in \\mathbb{F}\\right\\}",
-      properties: [
-        "\\text{span}\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\} \\text{ siempre es un subespacio}",
-        "\\text{span}\\{\\mathbf{v}\\} = \\{\\alpha\\mathbf{v}: \\alpha\\in\\mathbb{F}\\} \\text{ (recta por el origen)}",
-        "\\text{span}(S) = \\text{el menor subespacio que contiene a } S",
-      ],
-    },
-    intuition: "Si tienes dos vectores no paralelos en $\\mathbb{R}^2$, su span cubre todo el plano. Si son paralelos, su span es solo una recta. El span responde: ¿qué puntos del espacio puedo alcanzar con estas 'palancas'?",
-    development: [
-      { label: "Span en dimensiones", body: "Un vector en $\\mathbb{R}^2$: span es una recta (dim 1).\nDos vectores LI en $\\mathbb{R}^2$: span = $\\mathbb{R}^2$ (dim 2).\nTres vectores en $\\mathbb{R}^2$: span $\\leq \\mathbb{R}^2$ (el tercero es redundante).\n\nLa dimensión del span = rango del conjunto." },
-      { label: "Verificar si v está en el span", body: "¿Está $\\mathbf{b}$ en $\\text{span}\\{\\mathbf{v}_1,\\ldots,\\mathbf{v}_k\\}$?\nEquivale a resolver $A\\boldsymbol{\\alpha} = \\mathbf{b}$ donde $A = [\\mathbf{v}_1|\\cdots|\\mathbf{v}_k]$.\nSi el sistema es consistente → sí. Si no → no." },
-      { label: "En ML", body: "PCA busca una base de vectores cuyo span capture la mayor varianza de los datos. Los embeddings de palabras: 'rey' - 'hombre' + 'mujer' ≈ 'reina' — operaciones de combinación lineal en el espacio latente tienen significado semántico." },
-    ],
-    code: `import numpy as np
-
-v1 = np.array([1, 0])
-v2 = np.array([0, 1])
-b  = np.array([3, -2])
-
-# ¿Está b en span{v1, v2}?
-A = np.column_stack([v1, v2])
-try:
-    alphas, res, rank, sv = np.linalg.lstsq(A, b, rcond=None)
-    print(f"b = {alphas[0]:.1f}*v1 + {alphas[1]:.1f}*v2")
-    print(f"Residual: {res}")  # ~0 si está en el span
-except:
-    print("No solución")
-
-# Span de vectores dependientes
-v3 = 2*v1  # paralelo a v1
-A2 = np.column_stack([v1, v3])
-print(f"Rank(A2) = {np.linalg.matrix_rank(A2)}")  # 1`,
-    related: ["Independencia lineal", "Base y dimensión", "Espacio vectorial", "PCA"],
-    hasViz: false,
-  },
   {
     id: 15, section: "Álgebra Lineal", sectionCode: "II",
     name: "Independencia Lineal",
