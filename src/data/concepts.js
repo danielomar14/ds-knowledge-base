@@ -3386,148 +3386,6 @@ print(np.allclose(eAt, expm(t * A)))  # True`,
     hasViz: false,
   },
   {
-    id: 33, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Descomposición SVD",
-    tags: ["matrices", "factorización", "fundamental"],
-    definition: "La Descomposición en Valores Singulares factoriza cualquier matriz $A \\in \\mathbb{R}^{m\\times n}$ (rectangular o singular) en tres matrices. Es la generalización más importante de la eigendescomposición y fundamento de PCA, compresión, y pseudoinversa.",
-    formal: {
-      notation: "Sea $A \\in \\mathbb{R}^{m\\times n}$, $\\text{rank}(A) = r$",
-      body: "A = U\\Sigma V^\\top = \\sum_{i=1}^r \\sigma_i \\mathbf{u}_i \\mathbf{v}_i^\\top",
-      geometric: "\\sigma_1 \\geq \\sigma_2 \\geq \\cdots \\geq \\sigma_r > 0 = \\sigma_{r+1} = \\cdots",
-      properties: [
-        "U \\in \\mathbb{R}^{m\\times m},\\ \\Sigma \\in \\mathbb{R}^{m\\times n},\\ V \\in \\mathbb{R}^{n\\times n} \\text{ — todas ortogonales}",
-        "\\sigma_i(A) = \\sqrt{\\lambda_i(A^\\top A)} = \\sqrt{\\lambda_i(AA^\\top)}",
-        "\\|A\\|_F^2 = \\sum_i \\sigma_i^2,\\quad \\|A\\|_2 = \\sigma_1",
-        "\\text{Mejor aprox. rango-}k\\text{: } A_k = \\sum_{i=1}^k\\sigma_i\\mathbf{u}_i\\mathbf{v}_i^\\top \\text{ (Teorema de Eckart-Young)}",
-      ],
-    },
-    intuition: "SVD dice que cualquier transformación lineal puede descomponerse en: rotar el input ($V^\\top$), escalar los ejes ($\\Sigma$), rotar el output ($U$). Los valores singulares son las 'amplificaciones' en cada dirección — revelan cuánta información hay en cada dimensión.",
-    development: [
-      { label: "Teorema de Eckart-Young", body: "La mejor aproximación de rango $k$ en norma Frobenius es: $$A_k = \\sum_{i=1}^k \\sigma_i\\mathbf{u}_i\\mathbf{v}_i^\\top$$ con error $\\|A - A_k\\|_F^2 = \\sum_{i=k+1}^r \\sigma_i^2$.\n\nFundamento de compresión de imágenes, NMF, y Latent Semantic Analysis." },
-      { label: "SVD y PCA", body: "Para datos centrados $X \\in \\mathbb{R}^{n\\times d}$: $$X = U\\Sigma V^\\top$$ Las columnas de $V$ son los eigenvectores de $X^\\top X = V\\Sigma^2 V^\\top$ (componentes principales). $\\sigma_i^2/n$ son las varianzas explicadas. PCA = SVD de la matriz de datos centrados." },
-      { label: "Número de condición", body: "$$\\kappa(A) = \\frac{\\sigma_{\\max}}{\\sigma_{\\min}}$$ Mide sensibilidad numérica. $\\kappa \\approx 1$: bien condicionado. $\\kappa \\gg 1$: ill-conditioned, el gradiente oscilará entre dimensiones → convergencia lenta. Precondicionamiento busca reducir $\\kappa$." },
-    ],
-    code: `import numpy as np
-
-A = np.array([[1,2,3],[4,5,6],[7,8,9],[10,11,12]], dtype=float)
-
-U, s, Vt = np.linalg.svd(A, full_matrices=False)
-print(f"Valores singulares: {s.round(2)}")
-print(f"rank(A) ≈ {np.sum(s > 1e-10)}")
-
-# Reconstrucción
-A_rec = U @ np.diag(s) @ Vt
-print(f"Reconstrucción ok: {np.allclose(A, A_rec)}")
-
-# Mejor aproximación rango-1
-k = 1
-A_k = s[0] * np.outer(U[:,0], Vt[0,:])
-err = np.linalg.norm(A - A_k, 'fro')
-print(f"Error rango-1: {err:.4f}")
-print(f"Energía capturada: {(s[0]**2/np.sum(s**2)*100):.1f}%")
-
-# Pseudoinversa via SVD
-A_plus = Vt.T @ np.diag(1/s) @ U.T`,
-    related: ["Eigenvalores", "PCA", "Pseudoinversa", "Norma matricial"],
-    hasViz: false,
-  },
-  {
-    id: 34, section: "Álgebra Lineal", sectionCode: "II",
-    name: "PCA — Análisis de Componentes Principales",
-    tags: ["dimensionalidad", "espectral", "ML"],
-    definition: "Técnica de reducción de dimensionalidad que encuentra las direcciones de máxima varianza en los datos. Transforma features correlacionadas en componentes ortogonales (sin correlación), ordenados por varianza decreciente.",
-    formal: {
-      notation: "Datos $X \\in \\mathbb{R}^{n\\times d}$ centrados ($\\bar{x}=0$), matriz de covarianza $\\Sigma = \\frac{1}{n}X^\\top X$",
-      body: "\\mathbf{w}_k = \\arg\\max_{\\|\\mathbf{w}\\|=1,\\, \\mathbf{w}\\perp\\mathbf{w}_{1:k-1}} \\mathbf{w}^\\top\\Sigma\\mathbf{w}",
-      geometric: "\\Sigma = Q\\Lambda Q^\\top, \\quad W = Q_{:,1:K} \\in \\mathbb{R}^{d\\times K}",
-      properties: [
-        "\\text{Varianza explicada por PC}_k\\text{: } \\lambda_k / \\sum_i\\lambda_i",
-        "\\text{Los PCs son los eigenvectores de } \\Sigma = \\frac{1}{n}X^\\top X",
-        "\\text{Equivalente a SVD de } X\\text{: columnas de }V\\text{ son PCs}",
-        "\\text{Compresión: } Z = XW \\in \\mathbb{R}^{n\\times K},\\quad \\hat{X} = ZW^\\top",
-      ],
-    },
-    intuition: "PCA encuentra la 'perspectiva óptima' para ver los datos: el primer eje captura la mayor dispersión, el segundo el mayor restante siendo perpendicular al primero, etc. Es como rotar los ejes de coordenadas para alinearlos con la estructura de los datos.",
-    development: [
-      { label: "Algoritmo paso a paso", body: "1. Centrar: $X \\leftarrow X - \\bar{X}$.\n2. Calcular covarianza: $\\Sigma = \\frac{1}{n-1}X^\\top X$.\n3. Eigendescomposición: $\\Sigma = Q\\Lambda Q^\\top$.\n4. Seleccionar $K$ primeros eigenvectores.\n5. Proyectar: $Z = XQ_{:,1:K}$.\n\nAlternativa eficiente: SVD directamente sobre $X$." },
-      { label: "¿Cuántos componentes elegir?", body: "Criterio de varianza explicada acumulada: elegir $K$ tal que: $$\\frac{\\sum_{i=1}^K\\lambda_i}{\\sum_{i=1}^d\\lambda_i} \\geq 0.95$$ Scree plot: buscar el 'codo' donde los eigenvalores caen bruscamente. En práctica: 90-99% de varianza explicada es común." },
-      { label: "Limitaciones", body: "PCA es lineal — no captura estructuras no lineales (usar t-SNE, UMAP).\nSensible a escala — siempre estandarizar antes.\nNo es invariante a outliers — considera PCA robusto.\nMaximizar varianza ≠ maximizar información relevante para la tarea (usar LDA si hay etiquetas)." },
-    ],
-    code: `import numpy as np
-from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
-
-# Datos sintéticos correlacionados
-np.random.seed(42)
-X = np.random.randn(100, 5)
-X[:, 2] = 0.8*X[:,0] + 0.2*np.random.randn(100)
-X[:, 3] = -0.6*X[:,1] + 0.3*np.random.randn(100)
-
-# PCA manual
-X_c = X - X.mean(axis=0)
-Sigma = X_c.T @ X_c / (len(X)-1)
-lams, Q = np.linalg.eigh(Sigma)
-# eigh devuelve orden ascendente → invertir
-lams, Q = lams[::-1], Q[:, ::-1]
-
-var_exp = lams / lams.sum()
-print("Varianza explicada:", var_exp.round(3))
-
-# Con sklearn
-pca = PCA(n_components=2)
-Z = pca.fit_transform(X)
-print(f"Varianza acumulada (2 PCs): {pca.explained_variance_ratio_.sum():.3f}")`,
-    related: ["SVD", "Eigenvalores", "Reducción de dimensionalidad", "t-SNE"],
-    hasViz: false,
-  },
-  {
-    id: 35, section: "Álgebra Lineal", sectionCode: "II",
-    name: "Tensores y Operaciones Tensoriales",
-    tags: ["tensores", "deep learning"],
-    definition: "Generalización de escalares (rango 0), vectores (rango 1) y matrices (rango 2) a arreglos multidimensionales de rango arbitrario. Son el objeto de datos fundamental en deep learning.",
-    formal: {
-      notation: "Tensor de rango $r$: $\\mathcal{T} \\in \\mathbb{R}^{d_1 \\times d_2 \\times \\cdots \\times d_r}$",
-      body: "\\mathcal{T}_{i_1 i_2 \\cdots i_r} \\in \\mathbb{R}, \\quad i_k \\in \\{1,\\ldots,d_k\\}",
-      geometric: "\\text{Producto tensorial: } (\\mathbf{u}\\otimes\\mathbf{v})_{ij} = u_i v_j \\quad \\in \\mathbb{R}^{m\\times n}",
-      properties: [
-        "\\text{Escalar: rango 0; Vector: rango 1; Matriz: rango 2}",
-        "\\text{Contracción (einsum): } C_{ij} = \\sum_k A_{ik}B_{kj} \\text{ (product matricial)}",
-        "\\text{Reshape: mismo número de elementos, distintas dimensiones}",
-        "\\text{Broadcasting: operaciones entre tensores de distintas formas}",
-      ],
-    },
-    intuition: "Un tensor es como una tabla de datos multidimensional. Un batch de imágenes en color es un tensor de rango 4: (batch, alto, ancho, canales). Las operaciones tensoriales son las capas de una red neuronal.",
-    development: [
-      { label: "Tensores en Deep Learning", body: "Rango 0: pérdida (loss), escalar.\nRango 1: bias de una capa $\\mathbf{b} \\in \\mathbb{R}^d$.\nRango 2: pesos $W \\in \\mathbb{R}^{d_{out}\\times d_{in}}$, batch de vectores.\nRango 3: secuencias $(B, T, d)$ — batch, tiempo, embedding.\nRango 4: imágenes $(B, C, H, W)$ — batch, canales, alto, ancho." },
-      { label: "Einstein summation (einsum)", body: "Notación unificada para contracciones tensoriales: $$C_{ij} = \\sum_k A_{ik}B_{kj} \\rightarrow \\texttt{ij,jk->ik}$$ Casos especiales: `ii->` (traza), `ij->ji` (transpuesta), `bij,bjk->bik` (batch matmul). Más legible y a veces más eficiente que operaciones explícitas." },
-      { label: "Descomposiciones tensoriales", body: "Análogo de SVD para tensores:\n\nDescomposición CP: $\\mathcal{T} \\approx \\sum_{r=1}^R \\mathbf{a}_r \\otimes \\mathbf{b}_r \\otimes \\mathbf{c}_r$ (NP-hard en general).\nTucker: generaliza la diagonalización a tensores.\n\nUsadas en compresión de redes neuronales (tensor decomposition for model compression)." },
-    ],
-    code: `import numpy as np
-
-# Tensores básicos
-escalar = np.array(3.14)              # rango 0, shape ()
-vector  = np.array([1, 2, 3])         # rango 1, shape (3,)
-matriz  = np.eye(3)                   # rango 2, shape (3,3)
-tensor3 = np.random.randn(4, 5, 6)   # rango 3, shape (4,5,6)
-
-# Batch de imágenes: (batch, canales, alto, ancho)
-imgs = np.random.randn(32, 3, 224, 224)
-print(f"Shape: {imgs.shape}, ndim: {imgs.ndim}")
-
-# Einsum: herramienta universal
-A = np.random.randn(3, 4)
-B = np.random.randn(4, 5)
-C = np.einsum('ij,jk->ik', A, B)      # matmul
-print(np.allclose(C, A @ B))          # True
-
-# Batch matmul
-X = np.random.randn(8, 3, 4)  # 8 matrices 3x4
-Y = np.random.randn(8, 4, 5)  # 8 matrices 4x5
-Z = np.einsum('bij,bjk->bik', X, Y)   # (8,3,5)`,
-    related: ["Matriz", "Producto punto", "Convolución", "Broadcasting"],
-    hasViz: false,
-  },
-  {
     id: 29,
     section: "Álgebra Lineal: La Estructura de los Datos",
     sectionCode: "II",
@@ -5302,5 +5160,474 @@ for t in [1, 5, 10, 50]:
     ],
     hasViz: true,
     vizType: "diagonalizacion",
+  },
+  {
+    id: 33,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Descomposición en Valores Singulares (SVD)",
+    tags: ["SVD", "descomposición matricial", "valores singulares", "reducción de dimensionalidad", "PCA", "álgebra lineal numérica"],
+    definition: "La Descomposición en Valores Singulares (SVD) factoriza cualquier matriz real A de dimensiones m×n en el producto A = UΣVᵀ, donde U y V son matrices ortogonales y Σ es diagonal con entradas no negativas llamadas valores singulares. A diferencia de la diagonalización espectral, la SVD existe para toda matriz, sea cuadrada o rectangular, singular o no. Los valores singulares cuantifican cuánto estira la transformación lineal en cada dirección singular, y su decaimiento revela la estructura de rango bajo subyacente en los datos.",
+    formal: {
+      notation: "Sea $A \\in \\mathbb{R}^{m \\times n}$ con $\\text{rank}(A) = r \\leq \\min(m,n)$",
+      body: "A = U \\Sigma V^\\top, \\quad U \\in \\mathbb{R}^{m \\times m},\\; \\Sigma \\in \\mathbb{R}^{m \\times n},\\; V \\in \\mathbb{R}^{n \\times n}",
+      geometric: "A\\mathbf{v}_i = \\sigma_i \\mathbf{u}_i, \\quad i = 1, \\ldots, r, \\qquad \\sigma_1 \\geq \\sigma_2 \\geq \\cdots \\geq \\sigma_r > 0 = \\sigma_{r+1} = \\cdots",
+      properties: [
+        "\\text{Ortonormalidad: } U^\\top U = I_m,\\quad V^\\top V = I_n",
+        "\\text{Relación espectral: } \\sigma_i^2 = \\lambda_i(A^\\top A) = \\lambda_i(AA^\\top),\\quad \\mathbf{v}_i = \\text{eigenvec. de } A^\\top A,\\; \\mathbf{u}_i = \\text{eigenvec. de } AA^\\top",
+        "\\text{Norma de Frobenius: } \\|A\\|_F^2 = \\sum_{i=1}^{r} \\sigma_i^2",
+        "\\text{Norma espectral: } \\|A\\|_2 = \\sigma_1",
+        "\\text{Aproximación óptima (Eckart–Young): } \\underset{\\text{rank}(B)=k}{\\arg\\min}\\|A - B\\|_F = U_k \\Sigma_k V_k^\\top = \\sum_{i=1}^{k} \\sigma_i \\mathbf{u}_i \\mathbf{v}_i^\\top",
+      ],
+    },
+    intuition: "Toda transformación lineal $A$ puede entenderse como tres movimientos geométricos sucesivos: primero una rotación/reflexión en el espacio de entrada ($V^\\top$), luego un estiramiento anisótropo a lo largo de los ejes coordenados ($\\Sigma$), y finalmente otra rotación/reflexión en el espacio de salida ($U$). Los valores singulares $\\sigma_i$ son los factores de escala de ese estiramiento. Si los $\\sigma_i$ decaen rápido, la mayor parte de la 'energía' de la transformación vive en pocas dimensiones: la matriz tiene estructura de rango bajo y puede comprimirse sin perder casi información.",
+    development: [
+      {
+        label: "Existencia y construcción",
+        body: "La SVD existe para toda $A \\in \\mathbb{R}^{m \\times n}$. La construcción parte de $A^\\top A \\in \\mathbb{R}^{n \\times n}$, que es simétrica semidefinida positiva, por lo que admite diagonalización espectral:\n\n$$A^\\top A = V \\Lambda V^\\top, \\quad \\Lambda = \\text{diag}(\\lambda_1, \\ldots, \\lambda_n),\\quad \\lambda_i \\geq 0$$\n\nSe definen $\\sigma_i = \\sqrt{\\lambda_i}$ y los vectores singulares izquierdos como $\\mathbf{u}_i = \\frac{1}{\\sigma_i} A \\mathbf{v}_i$ para $i \\leq r$, completando $U$ con una base ortonormal del complemento. La SVD delgada (thin/economy) retiene solo las $r$ columnas no nulas:\n\n$$A = U_r \\Sigma_r V_r^\\top = \\sum_{i=1}^{r} \\sigma_i \\mathbf{u}_i \\mathbf{v}_i^\\top$$\n\ncada término $\\sigma_i \\mathbf{u}_i \\mathbf{v}_i^\\top$ es una matriz de rango 1 que contribuye con 'peso' $\\sigma_i$."
+      },
+      {
+        label: "Teorema de Eckart–Young y aproximación de rango bajo",
+        body: "El teorema de Eckart–Young–Mirsky (1936) establece que la mejor aproximación de rango $k < r$ de $A$ en norma de Frobenius y en norma espectral es la SVD truncada:\n\n$$A_k = \\sum_{i=1}^{k} \\sigma_i \\mathbf{u}_i \\mathbf{v}_i^\\top$$\n\ncon errores:\n\n$$\\|A - A_k\\|_F^2 = \\sum_{i=k+1}^{r} \\sigma_i^2, \\qquad \\|A - A_k\\|_2 = \\sigma_{k+1}$$\n\nEsto justifica usar la SVD como herramienta de compresión: si $\\sum_{i=1}^{k} \\sigma_i^2 / \\sum_{i=1}^{r} \\sigma_i^2 \\geq 0.99$, entonces $A_k$ captura el 99% de la varianza con solo $k(m+n+1)$ números en lugar de $mn$."
+      },
+      {
+        label: "Cuatro subespacios fundamentales",
+        body: "La SVD exhibe explícitamente los cuatro subespacios fundamentales de $A$ (Teorema de Strang):\n\n$$\\text{Col}(A) = \\text{span}\\{\\mathbf{u}_1, \\ldots, \\mathbf{u}_r\\}$$\n\n$$\\text{Nul}(A) = \\text{span}\\{\\mathbf{v}_{r+1}, \\ldots, \\mathbf{v}_n\\}$$\n\n$$\\text{Row}(A) = \\text{span}\\{\\mathbf{v}_1, \\ldots, \\mathbf{v}_r\\}$$\n\n$$\\text{Nul}(A^\\top) = \\text{span}\\{\\mathbf{u}_{r+1}, \\ldots, \\mathbf{u}_m\\}$$\n\nAdicionalmente, la pseudoinversa de Moore–Penrose se obtiene directamente como $A^+ = V \\Sigma^+ U^\\top$, donde $\\Sigma^+$ invierte los valores singulares no nulos, dando la solución de mínima norma al sistema $\\min \\|A\\mathbf{x} - \\mathbf{b}\\|_2$."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La SVD es ubicua en ML. **PCA** es SVD de la matriz de datos centrada: los vectores singulares derechos $\\mathbf{v}_i$ son las componentes principales y $\\sigma_i^2/(m-1)$ las varianzas explicadas.\n\n**Sistemas de recomendación** (Netflix Prize): factorizar la matriz usuario–ítem $R \\approx U_k \\Sigma_k V_k^\\top$ para imputar entradas faltantes y descubrir factores latentes.\n\n**NLP clásico**: LSA (Latent Semantic Analysis) aplica SVD a la matriz TF-IDF para capturar semántica latente.\n\nEn **Deep Learning**, la SVD aparece en:\n- *Inicialización ortogonal* de pesos via $U$ o $V$\n- *Compresión de capas* lineales: $W \\approx U_k \\Sigma_k V_k^\\top$ reduce parámetros\n- *LoRA* (Low-Rank Adaptation): fine-tuning eficiente que aprende $\\Delta W = BA$ con $\\text{rank}(\\Delta W) \\ll \\min(m,n)$, motivado exactamente por el teorema de Eckart–Young\n- *Análisis de estabilidad*: $\\sigma_1(W)$ (norma espectral) se usa como regularizador (spectral normalization en GANs)"
+      },
+    ],
+    code: `# Python - Descomposición SVD y aproximación de rango bajo
+  import numpy as np
+  import matplotlib.pyplot as plt
+  
+  # ── 1. SVD completa y delgada ──────────────────────────────────────────────
+  np.random.seed(42)
+  m, n = 6, 4
+  A = np.random.randn(m, n)
+  
+  # SVD completa: U (m×m), S (valores singulares), Vt (n×n)
+  U, S, Vt = np.linalg.svd(A, full_matrices=True)
+  print("Valores singulares:", np.round(S, 4))
+  print("Rango numérico:", np.sum(S > 1e-10))
+  
+  # Reconstrucción exacta
+  Sigma = np.zeros((m, n))
+  np.fill_diagonal(Sigma, S)
+  A_reconstructed = U @ Sigma @ Vt
+  print("Error de reconstrucción:", np.linalg.norm(A - A_reconstructed))
+  
+  # ── 2. SVD delgada (economy) ───────────────────────────────────────────────
+  U_thin, S_thin, Vt_thin = np.linalg.svd(A, full_matrices=False)
+  # U_thin: (m×r), S_thin: (r,), Vt_thin: (r×n)  — más eficiente en memoria
+  
+  # ── 3. Aproximación de rango k (Eckart–Young) ─────────────────────────────
+  def svd_rank_k(A, k):
+      """Mejor aproximación de rango k en norma Frobenius."""
+      U, S, Vt = np.linalg.svd(A, full_matrices=False)
+      # Retener solo los k primeros valores singulares
+      return U[:, :k] @ np.diag(S[:k]) @ Vt[:k, :]
+  
+  def varianza_explicada(S, k):
+      return np.sum(S[:k]**2) / np.sum(S**2)
+  
+  for k in range(1, len(S_thin) + 1):
+      Ak = svd_rank_k(A, k)
+      err = np.linalg.norm(A - Ak, 'fro')
+      var = varianza_explicada(S_thin, k)
+      print(f"k={k}: ||A-A_k||_F={err:.4f}, varianza explicada={var:.2%}")
+  
+  # ── 4. Pseudoinversa de Moore–Penrose ─────────────────────────────────────
+  # A^+ = V Σ^+ U^T  (scipy o numpy)
+  A_pinv = np.linalg.pinv(A)  # equivalente a la SVD con inversión de σ_i > tol
+  
+  # Solución de mínima norma: min ||x||₂  s.t.  Ax ≈ b
+  b = np.random.randn(m)
+  x_minnorm = A_pinv @ b
+  print("Solución mínima norma ||x||:", np.round(np.linalg.norm(x_minnorm), 4))
+  
+  # ── 5. Compresión de imagen (ejemplo con matriz sintética de rango bajo) ──
+  # Simular imagen 50×80 de rango bajo real = 5
+  rank_true = 5
+  Image = (np.random.randn(50, rank_true) @ np.random.randn(rank_true, 80)
+           + 0.5 * np.random.randn(50, 80))  # señal + ruido
+  
+  U_img, S_img, Vt_img = np.linalg.svd(Image, full_matrices=False)
+  
+  for k in [1, 3, 5, 10]:
+      Ik = svd_rank_k(Image, k)
+      ve = varianza_explicada(S_img, k)
+      cost_ratio = k * (50 + 80 + 1) / (50 * 80)
+      print(f"k={k:2d}: varianza={ve:.1%}, compresión={cost_ratio:.1%} del original")
+  `,
+    related: ["Eigenvalues/Eigenvectors", "PCA", "Descomposición QR", "Pseudoinversa de Moore–Penrose", "LoRA", "Normas matriciales"],
+    hasViz: true,
+    vizType: "svdTransform",
+  },
+  {
+    id: 34,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "PCA (Análisis de Componentes Principales)",
+    tags: ["PCA", "reducción de dimensionalidad", "varianza explicada", "componentes principales", "SVD", "covarianza"],
+    definition: "El Análisis de Componentes Principales (PCA) es una transformación lineal ortogonal que proyecta un conjunto de datos en un nuevo sistema de coordenadas donde las direcciones de máxima varianza —llamadas componentes principales— quedan ordenadas de mayor a menor. Formalmente, PCA diagonaliza la matriz de covarianza empírica, encontrando la base ortonormal que desacopla las correlaciones lineales entre variables. La proyección sobre los primeros k componentes constituye la mejor aproximación afín de rango k a los datos en el sentido de mínimo error cuadrático medio, equivalente al teorema de Eckart–Young aplicado a la matriz de datos centrada.",
+    formal: {
+      notation: "Sea $\\mathbf{X} \\in \\mathbb{R}^{n \\times p}$ la matriz de datos centrada ($\\mathbf{1}^\\top \\mathbf{X} = \\mathbf{0}$), con $n$ observaciones y $p$ variables",
+      body: "\\hat{\\Sigma} = \\frac{1}{n-1} \\mathbf{X}^\\top \\mathbf{X} = V \\Lambda V^\\top, \\quad \\lambda_1 \\geq \\lambda_2 \\geq \\cdots \\geq \\lambda_p \\geq 0",
+      geometric: "\\mathbf{X} = U \\Sigma V^\\top \\implies \\hat{\\Sigma} = \\frac{1}{n-1} V \\Sigma^2 V^\\top, \\quad \\lambda_i = \\frac{\\sigma_i^2}{n-1}",
+      properties: [
+        "\\text{Componentes principales: } \\mathbf{z}_i = \\mathbf{X} \\mathbf{v}_i \\in \\mathbb{R}^n,\\quad \\text{Var}(\\mathbf{z}_i) = \\lambda_i",
+        "\\text{Ortogonalidad de scores: } \\mathbf{z}_i^\\top \\mathbf{z}_j = 0 \\text{ para } i \\neq j",
+        "\\text{Varianza total preservada: } \\sum_{i=1}^{p} \\lambda_i = \\text{tr}(\\hat{\\Sigma}) = \\sum_{j=1}^{p} \\text{Var}(X_j)",
+        "\\text{Varianza explicada por } k \\text{ componentes: } \\text{VE}(k) = \\frac{\\sum_{i=1}^{k} \\lambda_i}{\\sum_{i=1}^{p} \\lambda_i}",
+        "\\text{Reconstrucción óptima: } \\hat{\\mathbf{X}}_k = \\mathbf{Z}_k V_k^\\top = \\sum_{i=1}^{k} \\mathbf{z}_i \\mathbf{v}_i^\\top,\\quad \\|\\mathbf{X} - \\hat{\\mathbf{X}}_k\\|_F^2 = (n-1)\\sum_{i=k+1}^{p} \\lambda_i",
+      ],
+    },
+    intuition: "Imagina una nube de puntos en 3D con forma de disco inclinado: casi toda la variación ocurre dentro del plano del disco, y muy poca en la dirección perpendicular. PCA encuentra automáticamente ese plano —sin que se lo digas— buscando la dirección que maximiza la dispersión proyectada. El primer componente es el 'eje mayor' de la elipsoide de datos, el segundo el 'eje menor' ortogonal, y así sucesivamente. Proyectar sobre los primeros $k$ componentes es como aplanar el disco sobre su plano natural: se pierde la dimensión de 'grosor' (poca varianza) pero se conserva la estructura esencial.",
+    development: [
+      {
+        label: "Derivación variacional: maximización de varianza",
+        body: "El primer componente principal $\\mathbf{v}_1$ resuelve el problema de optimización con restricción:\n\n$$\\mathbf{v}_1 = \\underset{\\|\\mathbf{v}\\|=1}{\\arg\\max}\\; \\mathbf{v}^\\top \\hat{\\Sigma} \\mathbf{v}$$\n\nPor multiplicadores de Lagrange: $\\hat{\\Sigma} \\mathbf{v} = \\lambda \\mathbf{v}$, lo que muestra que $\\mathbf{v}_1$ es el eigenvector de $\\hat{\\Sigma}$ asociado al mayor eigenvalor $\\lambda_1$. El valor óptimo de la varianza proyectada es exactamente $\\lambda_1$.\n\nEl $k$-ésimo componente se obtiene maximizando la varianza en el subespacio ortogonal a $\\{\\mathbf{v}_1, \\ldots, \\mathbf{v}_{k-1}\\}$ (deflación de Hotelling), lo que produce secuencialmente los eigenvalores $\\lambda_1 \\geq \\cdots \\geq \\lambda_p$."
+      },
+      {
+        label: "PCA vía SVD y equivalencia exacta",
+        body: "En la práctica, PCA se implementa mediante SVD de $\\mathbf{X}$ (no de $\\hat{\\Sigma}$), lo cual es numéricamente más estable:\n\n$$\\mathbf{X} = U \\Sigma V^\\top \\implies \\hat{\\Sigma} = \\frac{\\Sigma^2}{n-1},\\quad \\mathbf{v}_i = \\text{columna } i \\text{ de } V$$\n\nLos **scores** (coordenadas en el nuevo sistema) son:\n\n$$\\mathbf{Z} = \\mathbf{X} V = U \\Sigma$$\n\nde modo que la $i$-ésima columna de $U$ da las coordenadas normalizadas de los $n$ puntos sobre el $i$-ésimo componente. Esto evita formar $\\mathbf{X}^\\top \\mathbf{X}$ explícitamente, reduciendo error numérico cuando $p$ es grande."
+      },
+      {
+        label: "Selección de k: varianza explicada y scree plot",
+        body: "La proporción de varianza explicada (PVE) por los primeros $k$ componentes es:\n\n$$\\text{PVE}(k) = \\frac{\\sum_{i=1}^{k} \\sigma_i^2}{\\sum_{i=1}^{p} \\sigma_i^2}$$\n\nCriterios prácticos para elegir $k$:\n\n- **Umbral de varianza**: retener $k$ tal que $\\text{PVE}(k) \\geq 0.90$\n- **Scree plot**: graficar $\\sigma_i^2$ vs. $i$ y buscar el 'codo' (elbow) donde la curva se aplana\n- **Kaiser**: retener componentes con $\\lambda_i > 1$ (si los datos están estandarizados)\n- **CV**: validación cruzada minimizando error de reconstrucción out-of-sample\n\nEl error de reconstrucción cuadrático medio para $k$ componentes es:\n\n$$\\text{RMSE}_k = \\sqrt{\\frac{1}{np}\\sum_{i=k+1}^{p} \\sigma_i^2} = \\sqrt{\\frac{(n-1)}{np}\\sum_{i=k+1}^{p} \\lambda_i}$$"
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "PCA es uno de los algoritmos más influyentes en ML. Sus conexiones principales:\n\n**Preprocesamiento**: PCA whitening transforma los scores como $\\tilde{\\mathbf{Z}} = \\mathbf{Z} \\Lambda^{-1/2}$, produciendo componentes con varianza unitaria. Esto precondiona optimizadores (SGD converge más rápido en superficies isotrópicas).\n\n**Eigenfaces (Turk & Pentland, 1991)**: PCA sobre imágenes de rostros $p = 64{\\times}64 = 4096$ píxeles produce una base de 'caras propias'; la proyección sobre los primeros $k \\approx 50$ es suficiente para reconocimiento.\n\n**Kernel PCA**: reemplaza $\\mathbf{X}\\mathbf{X}^\\top$ por una matriz kernel $K_{ij} = \\kappa(\\mathbf{x}_i, \\mathbf{x}_j)$, extendiendo PCA a manifolds no lineales.\n\n**Autoencoder lineal**: un autoencoder con una capa oculta lineal y función de pérdida MSE aprende exactamente el subespacio de PCA (los pesos del encoder convergen al espacio generado por $V_k$), lo que motiva arquitecturas no lineales como VAE.\n\n**PCA incremental / randomizado**: para $n, p$ masivos, algoritmos como SVD randomizada (Halko et al., 2011) calculan la SVD truncada de rango $k$ en $O(npk)$ en lugar de $O(np\\min(n,p))$, esencial en LLMs para compresión de matrices de atención."
+      },
+    ],
+    code: `# Python - PCA desde cero y con scikit-learn
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+np.random.seed(0)
+
+# ── 1. Generar datos con estructura de covarianza conocida ────────────────
+n, p = 200, 3
+# Covarianza: correlación fuerte entre x1-x2, x3 independiente
+cov_true = np.array([[3.0, 2.4, 0.0],
+                     [2.4, 2.0, 0.0],
+                     [0.0, 0.0, 0.5]])
+X_raw = np.random.multivariate_normal(mean=[0, 0, 0], cov=cov_true, size=n)
+
+# ── 2. Centrar (y opcionalmente estandarizar) ─────────────────────────────
+scaler = StandardScaler(with_std=False)   # solo centrar, no escalar
+X = scaler.fit_transform(X_raw)
+
+# ── 3. PCA desde cero vía SVD ─────────────────────────────────────────────
+U, S, Vt = np.linalg.svd(X, full_matrices=False)
+eigenvalues = S**2 / (n - 1)             # λ_i = σ_i² / (n-1)
+loadings    = Vt.T                        # columnas = eigenvectores de Σ̂
+scores      = X @ loadings               # Z = X V  (coordenadas en PC-space)
+
+pve = eigenvalues / eigenvalues.sum()     # proporción de varianza explicada
+print("Eigenvalores:", np.round(eigenvalues, 4))
+print("PVE:         ", np.round(pve, 4))
+print("PVE acumulada:", np.round(np.cumsum(pve), 4))
+
+# ── 4. Verificar con sklearn ──────────────────────────────────────────────
+pca = PCA(n_components=p)
+pca.fit(X)
+print("\\nEigenvalores sklearn:", np.round(pca.explained_variance_, 4))
+# Nota: los signos de los loadings pueden diferir (convención arbitraria)
+
+# ── 5. Proyección a k=2 componentes y reconstrucción ─────────────────────
+k = 2
+Z_k   = scores[:, :k]                    # scores reducidos  (n × k)
+X_hat = Z_k @ loadings[:, :k].T          # reconstrucción    (n × p)
+rmse  = np.sqrt(np.mean((X - X_hat)**2))
+print(f"\\nRMSE reconstrucción (k={k}): {rmse:.4f}")
+print(f"Varianza explicada acumulada k={k}: {pve[:k].sum():.2%}")
+
+# ── 6. Scree plot ─────────────────────────────────────────────────────────
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+
+axes[0].bar(range(1, p+1), eigenvalues, color="#60a5fa", alpha=0.8)
+axes[0].set(title="Scree plot", xlabel="Componente", ylabel="Eigenvalor λᵢ")
+axes[0].plot(range(1, p+1), eigenvalues, 'o-', color="#f87171")
+
+axes[1].plot(range(1, p+1), np.cumsum(pve), 's-', color="#34d399", linewidth=2)
+axes[1].axhline(0.90, color="#fbbf24", linestyle="--", label="90%")
+axes[1].set(title="Varianza explicada acumulada",
+            xlabel="k componentes", ylabel="PVE acumulada", ylim=(0, 1.05))
+axes[1].legend()
+plt.tight_layout(); plt.show()
+
+# ── 7. PCA incremental para datos grandes ─────────────────────────────────
+from sklearn.decomposition import IncrementalPCA
+
+ipca = IncrementalPCA(n_components=2, batch_size=50)
+Z_incremental = ipca.fit_transform(X)    # procesa en mini-batches
+print("\\nIncrementalPCA eigenvalores:", np.round(ipca.explained_variance_, 4))
+`,
+    related: ["SVD", "Eigenvalues/Eigenvectors", "Kernel PCA", "Autoencoder", "t-SNE / UMAP", "Whitening"],
+    hasViz: true,
+    vizType: "pcaExplorer",
+  },
+  {
+    id: 35,
+    section: "Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Tensores y Operaciones Tensoriales",
+    tags: ["tensores", "producto tensorial", "contracción", "broadcasting", "reshape", "deep learning"],
+    definition: "Un tensor es un arreglo multidimensional de números reales que generaliza escalares (orden 0), vectores (orden 1) y matrices (orden 2) a órdenes arbitrarios. Formalmente, un tensor de orden k sobre espacios vectoriales V₁,…,Vₖ es un elemento del producto tensorial V₁⊗⋯⊗Vₖ, identificable con un arreglo de componentes indexado por k índices. En el contexto computacional de ML y DL, los tensores son el objeto de datos fundamental: imágenes, secuencias, batches y pesos de redes neuronales se representan y manipulan como tensores mediante operaciones de contracción, producto exterior, reshape y broadcasting.",
+    formal: {
+      notation: "Sea $\\mathcal{T} \\in \\mathbb{R}^{d_1 \\times d_2 \\times \\cdots \\times d_k}$ un tensor de orden $k$ y forma $(d_1, d_2, \\ldots, d_k)$",
+      body: "\\mathcal{T}_{i_1 i_2 \\cdots i_k} \\in \\mathbb{R}, \\quad 1 \\leq i_j \\leq d_j,\\quad j = 1,\\ldots,k, \\qquad |\\mathcal{T}| = \\prod_{j=1}^{k} d_j \\text{ elementos}",
+      geometric: "(\\mathcal{A} \\otimes \\mathcal{B})_{i_1 \\cdots i_p j_1 \\cdots j_q} = \\mathcal{A}_{i_1 \\cdots i_p} \\cdot \\mathcal{B}_{j_1 \\cdots j_q}, \\qquad \\mathcal{A} \\in \\mathbb{R}^{d_1 \\cdots d_p},\\; \\mathcal{B} \\in \\mathbb{R}^{e_1 \\cdots e_q}",
+      properties: [
+        "\\text{Contracción sobre índice } \\ell:\\; (\\mathcal{A} \\cdot_\\ell \\mathcal{B})_{\\ldots} = \\sum_{i_\\ell=1}^{d_\\ell} \\mathcal{A}_{\\ldots i_\\ell \\ldots} \\cdot \\mathcal{B}_{\\ldots i_\\ell \\ldots},\\quad d_\\ell \\text{ debe coincidir}",
+        "\\text{Norma de Frobenius: } \\|\\mathcal{T}\\|_F = \\sqrt{\\sum_{i_1,\\ldots,i_k} \\mathcal{T}_{i_1 \\cdots i_k}^2}",
+        "\\text{Reshape (no copia datos): } \\mathcal{T} \\in \\mathbb{R}^{d_1 \\times \\cdots \\times d_k} \\cong \\mathbb{R}^{e_1 \\times \\cdots \\times e_m} \\iff \\prod d_j = \\prod e_i",
+        "\\text{Modo-}n\\text{ unfolding: } \\mathcal{T}_{(n)} \\in \\mathbb{R}^{d_n \\times (d_1 \\cdots \\hat{d}_n \\cdots d_k)},\\text{ matricización a lo largo del eje }n",
+        "\\text{Einstein summation: } C_{ik} = \\sum_j A_{ij} B_{jk} \\equiv \\texttt{einsum('ij,jk->ik', A, B)}",
+      ],
+    },
+    intuition: "Un escalar es un punto, un vector es una fila de números, una matriz es una tabla. Un tensor de orden 3 es un cubo de números —piensa en una imagen RGB: alto × ancho × 3 canales—. Orden 4 agrega el batch: $N$ imágenes forman un hipercubo $N \\times H \\times W \\times C$. Las operaciones tensoriales son generalizaciones de la multiplicación matricial donde se especifica explícitamente qué índices 'se suman' (contraen) y cuáles 'se mantienen libres', usando la notación de Einstein como lenguaje universal.",
+    development: [
+      {
+        label: "Producto tensorial y contracción",
+        body: "El **producto exterior** (outer product) de dos vectores $\\mathbf{u} \\in \\mathbb{R}^m$, $\\mathbf{v} \\in \\mathbb{R}^n$ produce una matriz de rango 1:\n\n$$\\mathbf{u} \\otimes \\mathbf{v} = \\mathbf{u}\\mathbf{v}^\\top \\in \\mathbb{R}^{m \\times n}, \\quad (\\mathbf{u} \\otimes \\mathbf{v})_{ij} = u_i v_j$$\n\nGeneralizando, el producto exterior de $k$ vectores produce un tensor de orden $k$ de rango 1. Todo tensor puede expresarse como suma de tensores de rango 1 (descomposición CP).\n\nLa **contracción** es la operación dual: suma sobre uno o más índices compartidos. La multiplicación matricial $C = AB$ es una contracción sobre el índice interior:\n\n$$C_{ik} = \\sum_j A_{ij} B_{jk} \\equiv \\texttt{einsum('ij,jk->ik')}$$\n\nEl producto punto es contracción total: $\\mathbf{u} \\cdot \\mathbf{v} = \\sum_i u_i v_i \\equiv \\texttt{einsum('i,i->')}$."
+      },
+      {
+        label: "Notación de Einstein y einsum",
+        body: "La **convención de suma de Einstein** suprime el símbolo $\\sum$: todo índice que aparece exactamente dos veces en un producto se contrae automáticamente. La función `einsum` implementa esto de forma general:\n\n$$\\texttt{einsum('bij,bjk->bik', A, B)}$$\n\nrealiza multiplicación matricial en batch: $b$ matrices $A_b \\in \\mathbb{R}^{i \\times j}$ por $B_b \\in \\mathbb{R}^{j \\times k}$, produciendo $C_b \\in \\mathbb{R}^{i \\times k}$. El índice $b$ es libre (no se contrae), $j$ es el índice de contracción.\n\nOperaciones comunes como trazas, productos externos, convoluciones y la atención multi-cabeza de los Transformers se expresan limpiamente con einsum:\n\n$$\\text{Atención: } \\texttt{einsum('bhqd,bhkd->bhqk', Q, K)} \\cdot \\frac{1}{\\sqrt{d}}$$\n\ndonde $b$=batch, $h$=heads, $q$=queries, $k$=keys, $d$=dimensión."
+      },
+      {
+        label: "Reshape, broadcasting y memoria",
+        body: "**Reshape** reorganiza los elementos de un tensor sin copiarlos (vista sobre el mismo buffer de memoria), siempre que el número total de elementos se conserve:\n\n$$\\mathcal{T} \\in \\mathbb{R}^{32 \\times 28 \\times 28} \\xrightarrow{\\text{reshape}} \\mathbb{R}^{32 \\times 784}$$\n\nEl orden de almacenamiento (row-major C vs column-major Fortran) determina cuándo reshape es una vista vs. una copia.\n\n**Broadcasting** permite operar tensores de formas incompatibles expandiendo implícitamente dimensiones de tamaño 1:\n\n$$\\mathbb{R}^{32 \\times 784} + \\mathbb{R}^{784} \\to \\mathbb{R}^{32 \\times 784}$$\n\nLas reglas de broadcasting (NumPy/PyTorch): alinear formas por la derecha, cada dimensión debe ser igual, 1, o inexistente. Broadcasting evita copias explícitas pero puede generar tensores intermedios grandes; en GPUs, la gestión de memoria es crítica para evitar OOM.\n\nLa **traza** y el **modo-n unfolding** $\\mathcal{T}_{(n)}$ matricizan el tensor a lo largo del eje $n$, habilitando aplicar SVD o álgebra matricial estándar a cada modo."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "Los tensores son el sustrato computacional de todo el Deep Learning moderno:\n\n**Convolución 2D** es una contracción parcial: para entrada $\\mathcal{X} \\in \\mathbb{R}^{B \\times C_{in} \\times H \\times W}$ y kernel $\\mathcal{W} \\in \\mathbb{R}^{C_{out} \\times C_{in} \\times k_H \\times k_W}$:\n\n$$\\mathcal{Y}_{b,c_{out},h,w} = \\sum_{c_{in},i,j} \\mathcal{W}_{c_{out},c_{in},i,j} \\cdot \\mathcal{X}_{b,c_{in},h+i,w+j}$$\n\n**Atención multi-cabeza (Transformers)**: los tensores $Q, K, V \\in \\mathbb{R}^{B \\times H \\times T \\times d_k}$ se contraen con einsum, y el resultado se transpone y reshape antes de la proyección final.\n\n**Descomposición tensorial**: Tucker y CP decomposition comprimen capas de redes: una capa Conv4D se factoriza en convoluciones de menor rango, reduciendo FLOPs sin gran pérdida de accuracy.\n\n**Paralelismo de modelos**: en LLMs con billones de parámetros, los tensores de pesos se fragmentan (shard) a lo largo de distintas dimensiones entre GPUs (tensor parallelism), haciendo que la semántica de ejes del tensor sea fundamental para la correctitud del entrenamiento distribuido."
+      },
+    ],
+    code: `# Python - Tensores y operaciones tensoriales con NumPy y PyTorch
+import numpy as np
+import torch
+
+# ── 1. Creación y propiedades básicas ────────────────────────────────────
+T = np.random.randn(4, 3, 5)          # tensor orden 3
+print(f"Forma: {T.shape}, Orden: {T.ndim}, Elementos: {T.size}")
+print(f"Norma Frobenius: {np.linalg.norm(T):.4f}")
+
+# ── 2. Producto exterior (outer product) ──────────────────────────────────
+u = np.array([1.0, 2.0, 3.0])
+v = np.array([0.5, 1.0])
+w = np.array([1.0, -1.0, 2.0, 0.0])
+# Tensor de rango 1 de orden 3
+T_rank1 = np.einsum('i,j,k->ijk', u, v, w)  # shape (3, 2, 4)
+print(f"Tensor rango 1: {T_rank1.shape}")
+
+# ── 3. Notación de Einstein — operaciones comunes ─────────────────────────
+A = np.random.randn(4, 5)
+B = np.random.randn(5, 3)
+C = np.random.randn(4, 4)
+
+# Multiplicación matricial
+AB   = np.einsum('ij,jk->ik', A, B)          # (4,3)
+# Traza
+trC  = np.einsum('ii->', C)                   # escalar
+# Producto hadamard (elemento a elemento)
+D    = np.random.randn(4, 5)
+HD   = np.einsum('ij,ij->ij', A, D)          # (4,5)
+# Producto exterior de vectores
+outer = np.einsum('i,j->ij', u, u)           # (3,3)
+
+print(f"AB shape: {AB.shape}, traza C: {trC:.4f}")
+
+# ── 4. Batch matmul con einsum ────────────────────────────────────────────
+batch = 8
+Ab = np.random.randn(batch, 4, 5)
+Bb = np.random.randn(batch, 5, 3)
+Cb = np.einsum('bij,bjk->bik', Ab, Bb)       # (8, 4, 3)
+print(f"Batch matmul: {Cb.shape}")
+
+# Equivalente con np.matmul / @ operator:
+Cb2 = Ab @ Bb
+print(f"Diferencia: {np.max(np.abs(Cb - Cb2)):.2e}")  # ~0
+
+# ── 5. Reshape y vistas de memoria ────────────────────────────────────────
+X = np.random.randn(32, 28, 28)               # batch de imágenes grayscale
+X_flat = X.reshape(32, -1)                    # (32, 784) — vista, sin copia
+print(f"¿Comparten memoria? {np.shares_memory(X, X_flat)}")  # True
+
+# Transpose cambia strides, puede requerir contiguous() en PyTorch
+Xt = X.transpose(0, 2, 1)                    # (32, 28, 28) — vista diferente
+
+# ── 6. Broadcasting ───────────────────────────────────────────────────────
+batch_vecs = np.random.randn(32, 784)         # (32, 784)
+bias       = np.random.randn(784)             # (784,)
+result     = batch_vecs + bias                # broadcasting → (32, 784)
+
+# Normalización por batch (broadcasting avanzado)
+mean = batch_vecs.mean(axis=0, keepdims=True) # (1, 784)
+std  = batch_vecs.std(axis=0,  keepdims=True) # (1, 784)
+X_norm = (batch_vecs - mean) / (std + 1e-8)  # (32, 784)
+
+# ── 7. Modo-n unfolding (matricización) ──────────────────────────────────
+def unfold(tensor, mode):
+    """Matricización del tensor a lo largo del modo n."""
+    ndim  = tensor.ndim
+    shape = tensor.shape
+    order = [mode] + [i for i in range(ndim) if i != mode]
+    return tensor.transpose(order).reshape(shape[mode], -1)
+
+T3 = np.random.randn(4, 5, 6)
+T3_0 = unfold(T3, 0)   # (4, 30)
+T3_1 = unfold(T3, 1)   # (5, 24)
+T3_2 = unfold(T3, 2)   # (6, 20)
+print(f"Unfoldings: {T3_0.shape}, {T3_1.shape}, {T3_2.shape}")
+
+# ── 8. PyTorch: tensores en GPU y autograd ────────────────────────────────
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+Qt = torch.randn(2, 4, 8, 16, device=device)  # (B, H, T, d_k)
+Kt = torch.randn(2, 4, 8, 16, device=device)
+
+# Atención: scores = Q K^T / sqrt(d_k)
+scores = torch.einsum('bhqd,bhkd->bhqk', Qt, Kt) / (16 ** 0.5)
+print(f"Attention scores shape: {scores.shape}")  # (2, 4, 8, 8)
+`,
+    related: ["SVD", "Producto Matricial", "Convolución", "Mecanismo de Atención", "Broadcasting", "Descomposición CP/Tucker"],
+    hasViz: true,
+    vizType: "tensorOps",
+  },
+  {
+    id: 36,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Derivada y Reglas de Derivación",
+    tags: ["derivada", "diferenciación", "regla de la cadena", "gradiente", "cálculo", "backpropagation"],
+    definition: "La derivada de una función f en un punto x mide la tasa de cambio instantánea de f respecto a x, definida como el límite del cociente diferencial cuando el incremento tiende a cero. Geométricamente, es la pendiente de la recta tangente a la gráfica de f en ese punto. Las reglas de derivación —producto, cociente, cadena— permiten calcular derivadas de funciones compuestas de forma sistemática sin recurrir directamente a la definición límite. En ML y DL, la regla de la cadena es el fundamento matemático del algoritmo de backpropagation, que propaga gradientes a través de grafos computacionales arbitrariamente profundos.",
+    formal: {
+      notation: "Sea $f : \\mathbb{R} \\to \\mathbb{R}$ diferenciable en $x_0 \\in \\mathbb{R}$",
+      body: "f'(x_0) = \\lim_{h \\to 0} \\frac{f(x_0 + h) - f(x_0)}{h} = \\lim_{\\Delta x \\to 0} \\frac{\\Delta f}{\\Delta x}",
+      geometric: "f(x) \\approx f(x_0) + f'(x_0)(x - x_0) + \\frac{f''(x_0)}{2}(x-x_0)^2 + \\cdots \\quad \\text{(Taylor)}",
+      properties: [
+        "\\text{Linealidad: } (\\alpha f + \\beta g)' = \\alpha f' + \\beta g'",
+        "\\text{Producto: } (fg)' = f'g + fg'",
+        "\\text{Cociente: } \\left(\\frac{f}{g}\\right)' = \\frac{f'g - fg'}{g^2}, \\quad g \\neq 0",
+        "\\text{Cadena: } (f \\circ g)'(x) = f'(g(x)) \\cdot g'(x), \\quad \\frac{dz}{dx} = \\frac{dz}{dy}\\cdot\\frac{dy}{dx}",
+        "\\text{Inversa: } (f^{-1})'(y) = \\frac{1}{f'(f^{-1}(y))}, \\quad \\text{donde } f'(f^{-1}(y)) \\neq 0",
+      ],
+    },
+    intuition: "Imagina que conduces por una carretera montañosa y tu altímetro marca $f(x)$ metros a $x$ km del origen. La derivada $f'(x)$ es exactamente lo que marca el inclinómetro en ese instante: cuántos metros subes por cada km adicional. Si $f'(x) > 0$ vas subiendo, si $f'(x) < 0$ bajando, si $f'(x) = 0$ estás en un pico, valle o meseta. La regla de la cadena dice: si el camino depende del tiempo a través de tu velocidad, la tasa de cambio de altitud respecto al tiempo es el producto de la pendiente del terreno por tu velocidad en ese punto.",
+    development: [
+      {
+        label: "Definición límite y diferenciabilidad",
+        body: "La derivada existe en $x_0$ si y solo si el límite lateral izquierdo y derecho del cociente diferencial coinciden:\n\n$$f'(x_0) = \\lim_{h \\to 0^+} \\frac{f(x_0+h)-f(x_0)}{h} = \\lim_{h \\to 0^-} \\frac{f(x_0+h)-f(x_0)}{h}$$\n\nDiferenciabilidad implica continuidad, pero no al revés. El contraejemplo canónico es $f(x) = |x|$ en $x=0$: continua pero no diferenciable (límites laterales $+1$ y $-1$).\n\nLa **aproximación de primer orden** (linealización):\n\n$$f(x_0 + h) \\approx f(x_0) + f'(x_0) \\cdot h + O(h^2)$$\n\nes el fundamento del descenso de gradiente: si $h = -\\alpha f'(x_0)$ con $\\alpha > 0$ pequeño, entonces $f(x_0 + h) < f(x_0)$ siempre que $f'(x_0) \\neq 0$."
+      },
+      {
+        label: "Reglas algebraicas de derivación",
+        body: "Las cuatro reglas fundamentales permiten derivar cualquier función elemental de forma mecánica:\n\n**Potencia**: $(x^n)' = nx^{n-1}$ para todo $n \\in \\mathbb{R}$\n\n**Exponencial y logaritmo**: $(e^x)' = e^x$, $(\\ln x)' = 1/x$\n\n**Trigonométricas**: $(\\sin x)' = \\cos x$, $(\\cos x)' = -\\sin x$, $(\\tan x)' = \\sec^2 x$\n\nAplicando la regla del **producto** a un caso concreto:\n\n$$(x^2 \\sin x)' = 2x \\sin x + x^2 \\cos x$$\n\nAplicando la regla del **cociente**:\n\n$$\\left(\\frac{e^x}{1+x^2}\\right)' = \\frac{e^x(1+x^2) - e^x \\cdot 2x}{(1+x^2)^2} = \\frac{e^x(1-x)^2 + e^x(x^2-1+1)}{(1+x^2)^2}$$\n\nUna identidad útil: $\\frac{d}{dx}\\ln f(x) = \\frac{f'(x)}{f(x)}$, usada en **log-verosimilitud** para simplificar derivadas de productos."
+      },
+      {
+        label: "Regla de la cadena y grafos computacionales",
+        body: "Para $z = f(y)$, $y = g(x)$, la regla de la cadena establece:\n\n$$\\frac{dz}{dx} = \\frac{dz}{dy} \\cdot \\frac{dy}{dx}$$\n\nPara cadenas más largas $z = f_n \\circ f_{n-1} \\circ \\cdots \\circ f_1(x)$:\n\n$$\\frac{dz}{dx} = \\prod_{k=1}^{n} f_k'(a_k), \\quad a_k = f_{k-1} \\circ \\cdots \\circ f_1(x)$$\n\nEn un **grafo computacional** con múltiples caminos (DAG), la regla de la cadena se generaliza sumando sobre todos los caminos de $z$ a $x$:\n\n$$\\frac{\\partial z}{\\partial x} = \\sum_{\\text{caminos } x \\to z} \\prod_{\\text{aristas del camino}} \\frac{\\partial (\\text{nodo hijo})}{\\partial (\\text{nodo padre})}$$\n\nEsto es exactamente lo que implementa **backpropagation**: un recorrido en orden topológico inverso del grafo acumulando productos de derivadas locales."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La derivada y la regla de la cadena son el corazón matemático del entrenamiento de redes neuronales:\n\n**Backpropagation** calcula $\\partial \\mathcal{L}/\\partial w_{ij}$ para cada peso $w_{ij}$ aplicando la regla de la cadena hacia atrás en el grafo computacional. Para una red de $L$ capas con activaciones $\\sigma$:\n\n$$\\frac{\\partial \\mathcal{L}}{\\partial W^{(l)}} = \\delta^{(l)} (a^{(l-1)})^\\top, \\quad \\delta^{(l)} = \\left(\\frac{\\partial \\mathcal{L}}{\\partial a^{(l)}}\\right) \\odot \\sigma'(z^{(l)})$$\n\n**Gradiente de funciones de activación**: la elección de $\\sigma$ afecta directamente la magnitud de las derivadas. ReLU tiene $\\sigma'(x) = \\mathbf{1}_{x>0}$, evitando el **vanishing gradient** que sufre $\\sigma'_{\\text{sigmoid}} = \\sigma(1-\\sigma) \\leq 0.25$.\n\n**Diferenciación automática** (autograd): PyTorch y JAX implementan la regla de la cadena en modo reverso (reverse-mode AD) sobre grafos dinámicos, calculando todos los gradientes en un solo backward pass con costo $O(\\text{forward})$.\n\n**Derivadas de orden superior**: la Hessiana $H_{ij} = \\partial^2 \\mathcal{L}/\\partial w_i \\partial w_j$ aparece en métodos de segundo orden (Newton, L-BFGS) y en análisis de curvatura de la pérdida."
+      },
+    ],
+    code: `# Python - Derivadas: definición, reglas y autograd
+import numpy as np
+import torch
+
+# ── 1. Derivada numérica por diferencias finitas ──────────────────────────
+def deriv_numerica(f, x, h=1e-5):
+    """Diferencia central: O(h²) vs O(h) de diferencia hacia adelante."""
+    return (f(x + h) - f(x - h)) / (2 * h)
+
+f  = lambda x: np.sin(x) * np.exp(-0.1 * x**2)
+df = lambda x: np.cos(x) * np.exp(-0.1 * x**2) - 0.2 * x * np.sin(x) * np.exp(-0.1 * x**2)
+
+x0 = 1.2
+print(f"Derivada numérica:  {deriv_numerica(f, x0):.8f}")
+print(f"Derivada analítica: {df(x0):.8f}")
+print(f"Error relativo:     {abs(deriv_numerica(f, x0) - df(x0)) / abs(df(x0)):.2e}")
+
+# ── 2. Regla de la cadena — composición manual ────────────────────────────
+# z = log(sin²(x) + 1)  →  dz/dx via cadena
+def cadena(x):
+    y1 = np.sin(x)           # dy1/dx = cos(x)
+    y2 = y1**2 + 1           # dy2/dy1 = 2*sin(x)
+    z  = np.log(y2)          # dz/dy2 = 1/(sin²(x)+1)
+    # Regla de cadena: dz/dx = (1/y2) * 2*sin(x) * cos(x)
+    dz_dx = (1 / y2) * 2 * y1 * np.cos(x)
+    return z, dz_dx
+
+z, dz = cadena(x0)
+z_num = deriv_numerica(lambda x: np.log(np.sin(x)**2 + 1), x0)
+print(f"\\nCadena analítica: {dz:.8f}")
+print(f"Cadena numérica:  {z_num:.8f}")
+
+# ── 3. Autograd con PyTorch ───────────────────────────────────────────────
+x = torch.tensor(x0, requires_grad=True, dtype=torch.float64)
+
+# Grafo computacional dinámico
+y1 = torch.sin(x)
+y2 = y1**2 + 1
+z  = torch.log(y2)
+
+z.backward()   # backprop: aplica regla de cadena automáticamente
+print(f"\\nAutograd PyTorch: {x.grad.item():.8f}")
+
+# ── 4. Derivadas de funciones de activación ───────────────────────────────
+x_arr = np.linspace(-4, 4, 200)
+
+# Sigmoid y su derivada
+sigmoid  = lambda x: 1 / (1 + np.exp(-x))
+dsigmoid = lambda x: sigmoid(x) * (1 - sigmoid(x))   # máx = 0.25 en x=0
+
+# ReLU y su derivada (subgradiente en 0)
+relu  = lambda x: np.maximum(0, x)
+drelu = lambda x: (x > 0).astype(float)               # ∈ {0, 1}
+
+# Tanh y su derivada
+dtanh = lambda x: 1 - np.tanh(x)**2                   # máx = 1 en x=0
+
+print("\\nDerivadas de activaciones en x=0:")
+print(f"  σ'(0)    = {dsigmoid(0):.4f}  (máx posible)")
+print(f"  ReLU'(0) = subgradiente ∈ [0,1]")
+print(f"  tanh'(0) = {dtanh(0):.4f}")
+
+# ── 5. Derivada de log-verosimilitud (regresión logística) ───────────────
+# L(w) = -[y log σ(wᵀx) + (1-y) log(1-σ(wᵀx))]
+# dL/dw = (σ(wᵀx) - y) * x   — derivada limpia por regla de cadena + log
+n_samples = 100
+X_data = np.random.randn(n_samples, 3)
+y_true = (np.random.randn(n_samples) > 0).astype(float)
+w = np.zeros(3)
+
+for _ in range(200):
+    logits = X_data @ w
+    preds  = sigmoid(logits)
+    grad   = X_data.T @ (preds - y_true) / n_samples   # regla cadena
+    w     -= 0.5 * grad
+
+print(f"\\nPesos logreg tras 200 pasos GD: {np.round(w, 4)}")
+
+# ── 6. Derivada de orden superior (Hessiana diagonal) ────────────────────
+x = torch.tensor(x0, requires_grad=True, dtype=torch.float64)
+z = torch.sin(x)**2 + torch.cos(x)
+grad1 = torch.autograd.grad(z, x, create_graph=True)[0]
+grad2 = torch.autograd.grad(grad1, x)[0]
+print(f"\\nf''({x0:.1f}) via autograd: {grad2.item():.6f}")
+`,
+    related: ["Gradiente y Derivada Parcial", "Backpropagation", "Descenso de Gradiente", "Regla de la Cadena Multivariable", "Diferenciación Automática", "Serie de Taylor"],
+    hasViz: true,
+    vizType: "derivRule",
   }
+
 ];
