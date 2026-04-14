@@ -5044,5 +5044,263 @@ print("A(BC) es ~100× más rápido por orden óptimo de paréntesis")`,
     related: ["Transformación Lineal", "Determinante", "Eigenvalores y Eigenvectores", "Descomposición SVD", "Mecanismo de Atención"],
     hasViz: true,
     vizType: "matrixOps",
+  },
+  {
+    id: 31,
+    section: "II. Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Valores y Vectores Propios (Eigenvalues / Eigenvectors)",
+    tags: ["eigenvalues", "eigenvectors", "descomposición espectral", "diagonalización", "álgebra lineal"],
+    definition: "Dado un operador lineal representado por una matriz cuadrada A, un vector propio es un vector no nulo que bajo la acción de A solo cambia de escala (no de dirección). El escalar que determina ese factor de escala es el valor propio asociado. El par (λ, v) satisface la ecuación fundamental Av = λv, la cual caracteriza las direcciones invariantes del operador.",
+    formal: {
+      notation: "Sea $A \\in \\mathbb{R}^{n \\times n}$ y $(\\lambda, \\mathbf{v}) \\in \\mathbb{R} \\times (\\mathbb{R}^n \\setminus \\{\\mathbf{0}\\})$",
+      body: "A\\mathbf{v} = \\lambda\\mathbf{v} \\iff (A - \\lambda I)\\mathbf{v} = \\mathbf{0} \\iff \\det(A - \\lambda I) = 0",
+      geometric: "\\|A\\mathbf{v}\\| = |\\lambda|\\,\\|\\mathbf{v}\\|, \\quad \\text{dir}(A\\mathbf{v}) = \\begin{cases} \\text{dir}(\\mathbf{v}) & \\lambda > 0 \\\\ -\\text{dir}(\\mathbf{v}) & \\lambda < 0 \\\\ \\text{indefinida} & \\lambda = 0 \\end{cases}",
+      properties: [
+        "\\text{Polinomio característico: } p(\\lambda) = \\det(A - \\lambda I) \\in \\mathbb{R}[\\lambda],\\; \\deg(p) = n",
+        "\\text{Traza y determinante: } \\mathrm{tr}(A) = \\sum_{i=1}^{n} \\lambda_i, \\quad \\det(A) = \\prod_{i=1}^{n} \\lambda_i",
+        "\\text{Multiplicidad algebraica } m_a(\\lambda_i) \\geq \\text{multiplicidad geométrica } m_g(\\lambda_i) = \\dim\\ker(A - \\lambda_i I)",
+        "\\text{Diagonalizable} \\iff m_a(\\lambda_i) = m_g(\\lambda_i) \\; \\forall\\, i \\iff A = P\\Lambda P^{-1}",
+        "\\text{Si } A \\text{ es simétrica}: \\lambda_i \\in \\mathbb{R},\\; \\mathbf{v}_i \\perp \\mathbf{v}_j \\;(i \\neq j) \\Rightarrow A = Q\\Lambda Q^\\top \\text{ (TES)}",
+      ],
+    },
+    intuition: "Imagina que $A$ es una transformación que estira, comprime o voltea el espacio. La gran mayoría de vectores cambian tanto de longitud como de dirección al multiplicarse por $A$. Los vectores propios son los ejes privilegiados del operador: vectores sobre los cuales $A$ actúa de forma tan simple como una multiplicación por escalar. Si $\\lambda > 1$ el espacio se estira en esa dirección; si $0 < \\lambda < 1$ se comprime; si $\\lambda < 0$ se voltea además de escalar. Los valores propios revelan cuánto 'poder' tiene el operador en cada dirección invariante.",
+    development: [
+      {
+        label: "Ecuación característica y espectro",
+        body: "El conjunto de todos los valores propios de $A$ se llama **espectro** de $A$, denotado $\\sigma(A)$. Se obtiene resolviendo el **polinomio característico**:\n\n$$p(\\lambda) = \\det(A - \\lambda I) = 0$$\n\nPara $A \\in \\mathbb{R}^{2 \\times 2}$, el polinomio es $\\lambda^2 - \\mathrm{tr}(A)\\lambda + \\det(A) = 0$, cuyas raíces pueden ser reales o complejas conjugadas. El **radio espectral** es $\\rho(A) = \\max_{\\lambda \\in \\sigma(A)} |\\lambda|$, cantidad fundamental en el análisis de convergencia de iteraciones matriciales."
+      },
+      {
+        label: "Espacio propio y multiplicidades",
+        body: "Fijado un valor propio $\\lambda_i$, el **espacio propio** (eigenspace) es el subespacio nulo:\n\n$$E_{\\lambda_i} = \\ker(A - \\lambda_i I) = \\{\\mathbf{v} \\in \\mathbb{R}^n : A\\mathbf{v} = \\lambda_i \\mathbf{v}\\}$$\n\nLa **multiplicidad geométrica** $m_g(\\lambda_i) = \\dim E_{\\lambda_i}$ siempre satisface $1 \\leq m_g \\leq m_a$, donde $m_a$ es la multiplicidad algebraica (orden de la raíz en $p(\\lambda)$). Cuando $m_a > m_g$ para algún $\\lambda_i$, la matriz no es diagonalizable y se requiere la **forma normal de Jordan**."
+      },
+      {
+        label: "Diagonalización y Teorema Espectral",
+        body: "Si $A$ posee $n$ vectores propios linealmente independientes $\\{\\mathbf{v}_1, \\ldots, \\mathbf{v}_n\\}$, entonces es **diagonalizable**:\n\n$$A = P\\Lambda P^{-1}, \\quad P = [\\mathbf{v}_1 \\mid \\cdots \\mid \\mathbf{v}_n], \\quad \\Lambda = \\mathrm{diag}(\\lambda_1, \\ldots, \\lambda_n)$$\n\nPara matrices **simétricas** ($A = A^\\top$), el **Teorema Espectral** garantiza que: (i) todos los valores propios son reales, (ii) los espacios propios de valores propios distintos son ortogonales, y (iii) existe una factorización ortogonal:\n\n$$A = Q\\Lambda Q^\\top, \\quad Q^\\top Q = I$$\n\nEsto es la base de PCA y SVD."
+      },
+      {
+        label: "Potencias de matrices y sistemas dinámicos",
+        body: "La diagonalización permite calcular potencias e iteraciones de manera eficiente:\n\n$$A^k = P\\Lambda^k P^{-1}, \\quad \\Lambda^k = \\mathrm{diag}(\\lambda_1^k, \\ldots, \\lambda_n^k)$$\n\nEn un sistema dinámico $\\mathbf{x}_{t+1} = A\\mathbf{x}_t$, la solución es $\\mathbf{x}_t = A^t \\mathbf{x}_0 = \\sum_i c_i \\lambda_i^t \\mathbf{v}_i$. El sistema **converge a cero** si y solo si $\\rho(A) < 1$. El eigenvector asociado al mayor $|\\lambda_i|$ domina el comportamiento asintótico —principio explotado en el **algoritmo de la potencia** para encontrar el eigenvector dominante iterativamente."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "Los eigenvalores y eigenvectores son omnipresentes en ML:\n\n**PCA (Análisis de Componentes Principales):** se diagonaliza la matriz de covarianza $\\Sigma = \\frac{1}{n}X^\\top X \\in \\mathbb{R}^{d \\times d}$ (simétrica semidefinida positiva, $\\lambda_i \\geq 0$). Los eigenvectores son las componentes principales; los eigenvalores indican la varianza capturada:\n\n$$\\text{varianza explicada por } k \\text{ componentes} = \\frac{\\sum_{i=1}^{k} \\lambda_i}{\\sum_{i=1}^{n} \\lambda_i}$$\n\n**Redes Neuronales:** El eigenvalor máximo del Hessiano $H = \\nabla^2 \\mathcal{L}$ determina el **número de condición** $\\kappa = \\lambda_{\\max}/\\lambda_{\\min}$, que controla la dificultad de optimización con gradient descent. Un $\\kappa$ grande implica valles muy anisotrópicos donde el gradiente oscila. **Normalización espectral** de pesos ($W \\leftarrow W / \\sigma_1(W)$) es una técnica de regularización en GANs que controla el lipschitz bound del discriminador."
+      },
+    ],
+    code: `import numpy as np
+from numpy.linalg import eig, eigh
+
+# ─── 1. Eigendescomposición general ────────────────────────────────────────────
+A = np.array([[4, 1],
+              [2, 3]], dtype=float)
+
+eigenvalues, eigenvectors = eig(A)
+print("Valores propios:", eigenvalues)          # [5. 2.]
+print("Vectores propios (columnas):\\n", eigenvectors)
+
+# Verificar Av = λv para el primer par
+v0 = eigenvectors[:, 0]
+lam0 = eigenvalues[0]
+print("\\nAv - λv (debe ser ~0):", A @ v0 - lam0 * v0)
+
+# ─── 2. Polinomio característico (verificación) ─────────────────────────────
+# det(A - λI) = λ² - tr(A)λ + det(A) = 0
+tr_A  = np.trace(A)          # 7  → suma de eigenvalores
+det_A = np.linalg.det(A)     # 10 → producto de eigenvalores
+print(f"\\ntr(A) = {tr_A:.1f}, sum(λ) = {sum(eigenvalues):.1f}")
+print(f"det(A) = {det_A:.1f}, prod(λ) = {np.prod(eigenvalues):.1f}")
+
+# ─── 3. Diagonalización A = P Λ P⁻¹ ────────────────────────────────────────
+P      = eigenvectors
+Lambda = np.diag(eigenvalues)
+P_inv  = np.linalg.inv(P)
+A_reconstructed = P @ Lambda @ P_inv
+print("\\nReconstrucción A = PΛP⁻¹:\\n", np.round(A_reconstructed, 10))
+
+# Potencia de matriz: A^5 = P Λ^5 P⁻¹
+k = 5
+A_k = P @ np.diag(eigenvalues**k) @ P_inv
+print(f"\\nA^{k} via diagonalización:\\n", np.round(A_k))
+
+# ─── 4. Matriz simétrica: Teorema Espectral (eigh es más estable) ────────────
+Sigma = np.array([[3, 1, 0.5],
+                  [1, 2, 0.3],
+                  [0.5, 0.3, 1]], dtype=float)  # simétrica → covarianza
+
+# eigh garantiza eigenvalores reales y eigenvectores ortonormales
+eigenvalues_s, Q = eigh(Sigma)      # orden ascendente
+eigenvalues_s = eigenvalues_s[::-1] # descendente (convención PCA)
+Q = Q[:, ::-1]
+
+# Varianza explicada (PCA)
+var_total = eigenvalues_s.sum()
+var_ratio = eigenvalues_s / var_total
+cumvar    = np.cumsum(var_ratio)
+print("\\n── PCA sobre Σ ──────────────────────────")
+for i, (lam, vr, cv) in enumerate(zip(eigenvalues_s, var_ratio, cumvar)):
+    print(f"  PC{i+1}: λ={lam:.4f}  var={vr*100:.1f}%  cum={cv*100:.1f}%")
+
+# Verificar ortonormalidad: Q^T Q = I
+print("\\nQ^T Q (debe ser I):\\n", np.round(Q.T @ Q, 10))
+
+# ─── 5. Algoritmo de la potencia (eigenvalor dominante) ──────────────────────
+def power_iteration(A, num_iter=1000, tol=1e-10):
+    """Encuentra el eigenvalor de mayor módulo y su eigenvector."""
+    b = np.random.rand(A.shape[0])
+    b /= np.linalg.norm(b)
+    lam_prev = 0
+    for _ in range(num_iter):
+        b_new = A @ b
+        lam = np.dot(b, b_new)          # Rayleigh quotient
+        b_new /= np.linalg.norm(b_new)
+        if abs(lam - lam_prev) < tol:
+            break
+        b, lam_prev = b_new, lam
+    return lam, b
+
+lam_dom, v_dom = power_iteration(A)
+print(f"\\nEigenvalor dominante (potencia): {lam_dom:.6f}")
+print(f"Eigenvalor dominante (numpy):    {max(eigenvalues):.6f}")
+`,
+    related: [
+      "Descomposición en Valores Singulares (SVD)",
+      "Análisis de Componentes Principales (PCA)",
+      "Forma Cuadrática y Definiteness",
+      "Diagonalización y Forma Normal de Jordan",
+      "Número de Condición y Estabilidad Numérica",
+    ],
+    hasViz: true,
+    vizType: "eigenTransform",
+  },
+  {
+    id: 32,
+    section: "II. Álgebra Lineal: La Estructura de los Datos",
+    sectionCode: "II",
+    name: "Diagonalización de Matrices",
+    tags: ["diagonalización", "eigendescomposición", "cambio de base", "potencias de matriz", "álgebra lineal"],
+    definition: "Una matriz cuadrada A es diagonalizable si existe una base de R^n formada por vectores propios de A. En tal caso, A es semejante a una matriz diagonal Λ cuyos elementos son los valores propios: existe una matriz invertible P tal que A = PΛP⁻¹. La diagonalización descompone el operador en sus direcciones invariantes, reduciendo transformaciones complejas a escalados independientes por eje propio.",
+    formal: {
+      notation: "Sea $A \\in \\mathbb{R}^{n \\times n}$ con valores propios $\\lambda_1, \\ldots, \\lambda_n$ y vectores propios $\\mathbf{v}_1, \\ldots, \\mathbf{v}_n$ linealmente independientes",
+      body: "A = P\\Lambda P^{-1}, \\quad P = [\\mathbf{v}_1 \\mid \\cdots \\mid \\mathbf{v}_n] \\in \\mathbb{R}^{n \\times n}, \\quad \\Lambda = \\mathrm{diag}(\\lambda_1, \\ldots, \\lambda_n)",
+      geometric: "A^k = P\\Lambda^k P^{-1}, \\quad \\Lambda^k = \\mathrm{diag}(\\lambda_1^k, \\ldots, \\lambda_n^k), \\quad e^A = Pe^{\\Lambda}P^{-1} = P\\,\\mathrm{diag}(e^{\\lambda_1},\\ldots,e^{\\lambda_n})P^{-1}",
+      properties: [
+        "\\text{Condición necesaria y suficiente: } A \\text{ diagonalizable} \\iff \\sum_{i} m_g(\\lambda_i) = n",
+        "\\text{Condición suficiente: } n \\text{ valores propios distintos} \\Rightarrow A \\text{ diagonalizable}",
+        "\\text{Matrices simétricas: siempre diagonalizables con } P = Q \\text{ ortogonal} \\Rightarrow A = Q\\Lambda Q^\\top",
+        "\\text{Semejanza preserva espectro: } \\sigma(A) = \\sigma(P\\Lambda P^{-1}),\\; \\mathrm{tr}(A) = \\mathrm{tr}(\\Lambda),\\; \\det(A) = \\det(\\Lambda)",
+        "\\text{No diagonalizable} \\Rightarrow \\exists\\, \\lambda_i : m_a(\\lambda_i) > m_g(\\lambda_i) \\Rightarrow \\text{forma normal de Jordan}",
+      ],
+    },
+    intuition: "Diagonalizar es encontrar el sistema de coordenadas natural del operador. En la base propia $\\{\\mathbf{v}_i\\}$, la transformación $A$ actúa de la forma más simple posible: escalar independientemente cada coordenada por su $\\lambda_i$ correspondiente. La matriz $P^{-1}$ traduce al lenguaje propio, $\\Lambda$ ejecuta la transformación trivialmente, y $P$ traduce de vuelta. Es el cambio de idioma que convierte un problema difícil en uno trivial.",
+    development: [
+      {
+        label: "Semejanza y cambio de base",
+        body: "Dos matrices $A, B \\in \\mathbb{R}^{n \\times n}$ son **semejantes** si existe $P$ invertible tal que $B = P^{-1}AP$. La semejanza es una relación de equivalencia que preserva el polinomio característico, el espectro, la traza, el determinante y el rango.\n\nLa diagonalización es un caso especial donde $B = \\Lambda$ es diagonal. Si $A\\mathbf{v}_i = \\lambda_i \\mathbf{v}_i$, entonces en la base $\\{\\mathbf{v}_i\\}$ el operador actúa como:\n\n$$[A]_{\\mathcal{B}} = P^{-1}AP = \\Lambda = \\begin{pmatrix} \\lambda_1 & & \\\\ & \\ddots & \\\\ & & \\lambda_n \\end{pmatrix}$$\n\nEsto es precisamente el principio de **cambio de base**: el mismo operador lineal tiene representaciones matriciales distintas según la base elegida, y la base propia lo representa de forma diagonal."
+      },
+      {
+        label: "Algoritmo de diagonalización",
+        body: "El procedimiento para diagonalizar $A \\in \\mathbb{R}^{n \\times n}$ es:\n\n**Paso 1.** Calcular el polinomio característico $p(\\lambda) = \\det(A - \\lambda I)$ y hallar sus raíces $\\lambda_1, \\ldots, \\lambda_k$ (con multiplicidades algebraicas $m_a$).\n\n**Paso 2.** Para cada $\\lambda_i$, calcular $E_{\\lambda_i} = \\ker(A - \\lambda_i I)$ y obtener una base del espacio propio. La multiplicidad geométrica es $m_g(\\lambda_i) = n - \\mathrm{rank}(A - \\lambda_i I)$.\n\n**Paso 3.** Verificar $m_g(\\lambda_i) = m_a(\\lambda_i)$ para todo $i$. Si se cumple, $A$ es diagonalizable.\n\n**Paso 4.** Construir $P = [\\mathbf{v}_1 \\mid \\cdots \\mid \\mathbf{v}_n]$ con los vectores propios como columnas, y $\\Lambda = \\mathrm{diag}(\\lambda_1, \\ldots, \\lambda_n)$.\n\nVerificación: $AP = P\\Lambda$, equivalentemente $A\\mathbf{v}_i = \\lambda_i \\mathbf{v}_i$ para cada columna."
+      },
+      {
+        label: "Potencias, funciones matriciales y sistemas dinámicos",
+        body: "La diagonalización reduce el cálculo de potencias a operaciones escalares. Para $A = P\\Lambda P^{-1}$:\n\n$$A^k = (P\\Lambda P^{-1})^k = P\\Lambda^k P^{-1}$$\n\npuesto que los $P^{-1}P$ intermedios se cancelan telescópicamente. En coordenadas propias $\\mathbf{c} = P^{-1}\\mathbf{x}_0$, la solución del sistema dinámico $\\mathbf{x}_{t+1} = A\\mathbf{x}_t$ es:\n\n$$\\mathbf{x}_t = \\sum_{i=1}^{n} c_i \\lambda_i^t \\mathbf{v}_i$$\n\nEl comportamiento asintótico está dominado por el eigenvalor de mayor módulo $\\rho(A) = \\max_i|\\lambda_i|$ (radio espectral). Para funciones analíticas $f(z) = \\sum_k a_k z^k$, la extensión matricial es:\n\n$$f(A) = Pf(\\Lambda)P^{-1} = P\\,\\mathrm{diag}(f(\\lambda_1),\\ldots,f(\\lambda_n))P^{-1}$$\n\nCasos importantes: exponencial matricial $e^{tA}$ (sistemas EDO), $\\log A$, $A^{1/2}$ (raíz matricial)."
+      },
+      {
+        label: "Diagonalización ortogonal y Teorema Espectral",
+        body: "Para matrices **simétricas reales** ($A = A^\\top$), el Teorema Espectral garantiza una forma mucho más poderosa: la diagonalización es **ortogonal**, con $P = Q$ tal que $Q^\\top Q = QQ^\\top = I$:\n\n$$A = Q\\Lambda Q^\\top, \\qquad Q \\in \\mathcal{O}(n)$$\n\nEsto implica que $Q^{-1} = Q^\\top$, eliminando el costoso cómputo de la inversa. Además, los vectores propios de valores propios distintos son automáticamente ortogonales. La descomposición admite una representación como suma de proyecciones de rango 1 (descomposición espectral):\n\n$$A = \\sum_{i=1}^{n} \\lambda_i \\mathbf{q}_i \\mathbf{q}_i^\\top$$\n\ndonde cada $\\mathbf{q}_i \\mathbf{q}_i^\\top$ es la proyección ortogonal sobre la dirección $\\mathbf{q}_i$. Truncar esta suma a los $k$ mayores eigenvalores da la **mejor aproximación de rango $k$** en norma de Frobenius."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La diagonalización y sus generalizaciones son el corazón de varios algoritmos fundamentales en ML:\n\n**PCA:** La matriz de covarianza $\\Sigma \\in \\mathbb{R}^{d \\times d}$ (simétrica semidefinida positiva) se diagonaliza ortogonalmente. Las $k$ componentes principales son las columnas de $Q_k$ (eigenvectores de los $k$ mayores eigenvalores), y la proyección de datos es $Z = XQ_k$. La varianza total retenida es $\\sum_{i=1}^k \\lambda_i / \\sum_{i=1}^d \\lambda_i$.\n\n**Análisis espectral de grafos (GNN):** La matriz laplaciana del grafo $L = D - W$ (simétrica semidefinida positiva) se diagonaliza como $L = U\\Lambda U^\\top$. Las convoluciones espectrales en grafos operan como $g_\\theta \\star \\mathbf{x} = Ug_\\theta(\\Lambda)U^\\top \\mathbf{x}$.\n\n**Optimización:** El Hessiano $H = \\nabla^2 \\mathcal{L}$ diagonalizado revela la geometría local de la pérdida. El número de condición $\\kappa = \\lambda_{\\max}/\\lambda_{\\min}$ determina la tasa de convergencia de gradient descent:\n\n$$\\text{error}_t \\leq \\left(\\frac{\\kappa - 1}{\\kappa + 1}\\right)^t \\text{error}_0$$\n\n**Compresión de redes:** La diagonalización aproximada de capas densas $W \\approx P\\Lambda P^{-1}$ (truncando pequeños eigenvalores) reduce parámetros con mínima pérdida de expresividad."
+      },
+    ],
+    code: `import numpy as np
+from numpy.linalg import eig, eigh, matrix_power, inv
+
+# ─── 1. Diagonalización general A = P Λ P⁻¹ ────────────────────────────────
+A = np.array([[5, 4, 2],
+              [4, 5, 2],
+              [2, 2, 2]], dtype=float)
+
+eigenvalues, P = eig(A)
+Lambda = np.diag(eigenvalues)
+P_inv = inv(P)
+
+# Verificación: A = P Λ P⁻¹
+A_reconstructed = P @ Lambda @ P_inv
+print("‖A - PΛP⁻¹‖ =", np.linalg.norm(A - A_reconstructed))  # ~0
+
+# Verificación columna a columna: A·vᵢ = λᵢ·vᵢ
+for i in range(len(eigenvalues)):
+    residual = A @ P[:, i] - eigenvalues[i] * P[:, i]
+    print(f"  ‖Av_{i} - λ_{i}v_{i}‖ = {np.linalg.norm(residual):.2e}")
+
+# ─── 2. Potencias de matriz vía diagonalización ─────────────────────────────
+def matrix_power_diag(P, Lambda_diag, P_inv, k):
+    """A^k = P diag(λᵢ^k) P⁻¹  — O(n²) vs O(n³) de multiplicación directa."""
+    return P @ np.diag(Lambda_diag ** k) @ P_inv
+
+for k in [5, 10, 20]:
+    A_k_diag   = matrix_power_diag(P, eigenvalues, P_inv, k)
+    A_k_direct = matrix_power(A.astype(int), k).astype(float)
+    err = np.linalg.norm(A_k_diag - A_k_direct)
+    print(f"k={k:2d}: ‖A^k_diag - A^k_direct‖ = {err:.2e}")
+
+# ─── 3. Exponencial matricial e^A = P diag(e^λᵢ) P⁻¹ ──────────────────────
+from scipy.linalg import expm
+
+A_exp_diag = P @ np.diag(np.exp(eigenvalues)) @ P_inv
+A_exp_scipy = expm(A)
+print("\\n‖e^A_diag - e^A_scipy‖ =", np.linalg.norm(A_exp_diag - A_exp_scipy))
+
+# ─── 4. Diagonalización ortogonal (Teorema Espectral) ──────────────────────
+# eigh garantiza: eigenvalores reales ordenados, Q ortonormal
+eigenvalues_s, Q = eigh(A)  # A simétrica → usa rutina especializada
+eigenvalues_s = eigenvalues_s[::-1]   # orden descendente
+Q = Q[:, ::-1]
+
+# Verificar ortonormalidad
+print("\\nQ^T Q (debe ser I):\\n", np.round(Q.T @ Q, 10))
+
+# Descomposición espectral: A = Σ λᵢ qᵢ qᵢᵀ
+A_spectral = sum(l * np.outer(q, q)
+                 for l, q in zip(eigenvalues_s, Q.T))
+print("‖A - Σλᵢqᵢqᵢᵀ‖ =", np.linalg.norm(A - A_spectral))
+
+# ─── 5. Aproximación de rango k (best rank-k en norma Frobenius) ────────────
+print("\\n── Aproximación de rango k ──────────────────────────────────────────")
+frob_total = np.linalg.norm(A, 'fro') ** 2
+for k in range(1, len(eigenvalues_s) + 1):
+    A_k = sum(eigenvalues_s[i] * np.outer(Q[:, i], Q[:, i]) for i in range(k))
+    retained = sum(eigenvalues_s[:k] ** 2) / frob_total
+    print(f"  Rango {k}: varianza retenida = {retained*100:.1f}%")
+
+# ─── 6. Sistema dinámico x_{t+1} = A_norm · x_t ───────────────────────────
+# Normalizar para convergencia (dividir entre ρ(A) + margen)
+rho_A = max(abs(eigenvalues_s))
+A_stable = A / (rho_A + 1.0)   # radio espectral < 1
+
+eig_stable, P_stable = eig(A_stable)
+P_inv_stable = inv(P_stable)
+
+x0 = np.array([1.0, 0.0, 0.0])
+c = P_inv_stable @ x0   # coordenadas en base propia
+
+print("\\n── Sistema dinámico (50 pasos) ────────────────────────────────────────")
+x_prev = x0.copy()
+for t in [1, 5, 10, 50]:
+    # Solución analítica: xₜ = Σ cᵢ λᵢᵗ vᵢ
+    x_t = P_stable @ (c * eig_stable**t)
+    print(f"  t={t:2d}: ‖xₜ‖ = {np.linalg.norm(x_t.real):.6f}")
+`,
+    related: [
+      "Valores y Vectores Propios (Eigenvalues/Eigenvectors)",
+      "Descomposición en Valores Singulares (SVD)",
+      "Análisis de Componentes Principales (PCA)",
+      "Forma Normal de Jordan",
+      "Número de Condición y Estabilidad Numérica",
+    ],
+    hasViz: true,
+    vizType: "diagonalizacion",
   }
 ];
