@@ -5628,6 +5628,1253 @@ print(f"\\nf''({x0:.1f}) via autograd: {grad2.item():.6f}")
     related: ["Gradiente y Derivada Parcial", "Backpropagation", "Descenso de Gradiente", "Regla de la Cadena Multivariable", "Diferenciación Automática", "Serie de Taylor"],
     hasViz: true,
     vizType: "derivRule",
+  },
+  {
+    id: 37,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Regla de la Cadena Multivariable",
+    tags: ["regla de la cadena", "derivada parcial", "gradiente", "jacobiano", "backpropagation", "cálculo multivariable"],
+    definition: "La regla de la cadena multivariable generaliza la regla escalar al caso en que funciones vectoriales se componen entre sí. Si z = f(y₁,…,yₘ) y cada yᵢ = gᵢ(x₁,…,xₙ), entonces la derivada parcial de z respecto a cada xⱼ es la suma de las contribuciones de todos los caminos intermedios que conectan xⱼ con z a través de las yᵢ. En su forma matricial, la regla establece que el Jacobiano de la composición es el producto de los Jacobianos de las funciones componentes. Esta estructura es el fundamento matemático exacto del algoritmo backpropagation en redes neuronales profundas.",
+    formal: {
+      notation: "Sean $\\mathbf{g}: \\mathbb{R}^n \\to \\mathbb{R}^m$ y $f: \\mathbb{R}^m \\to \\mathbb{R}^p$ diferenciables, con $\\mathbf{y} = \\mathbf{g}(\\mathbf{x})$ y $\\mathbf{z} = f(\\mathbf{y})$",
+      body: "\\frac{\\partial z_k}{\\partial x_j} = \\sum_{i=1}^{m} \\frac{\\partial z_k}{\\partial y_i} \\cdot \\frac{\\partial y_i}{\\partial x_j}, \\qquad J_{f \\circ \\mathbf{g}}(\\mathbf{x}) = J_f(\\mathbf{g}(\\mathbf{x})) \\cdot J_{\\mathbf{g}}(\\mathbf{x})",
+      geometric: "\\nabla_{\\mathbf{x}} z = J_{\\mathbf{g}}(\\mathbf{x})^\\top \\nabla_{\\mathbf{y}} z \\quad \\in \\mathbb{R}^n, \\qquad (\\text{caso } p=1: \\text{ transpuesta del Jacobiano})",
+      properties: [
+        "\\text{Jacobiano compuesto: } J_{f \\circ g}(\\mathbf{x}) = J_f(g(\\mathbf{x})) \\cdot J_g(\\mathbf{x}) \\in \\mathbb{R}^{p \\times n}",
+        "\\text{Suma sobre caminos: } \\frac{\\partial z}{\\partial x_j} = \\sum_{i} \\frac{\\partial z}{\\partial y_i}\\frac{\\partial y_i}{\\partial x_j} \\text{ (un término por nodo intermedio)}",
+        "\\text{Modo reverso (backprop): } \\bar{\\mathbf{x}} = J_g^\\top \\bar{\\mathbf{y}}, \\quad \\bar{\\mathbf{y}} = \\nabla_{\\mathbf{y}} \\mathcal{L} \\text{ (vector adjunto)}",
+        "\\text{Modo directo (forward AD): } \\dot{\\mathbf{y}} = J_g \\dot{\\mathbf{x}}, \\quad \\dot{\\mathbf{x}} = \\mathbf{e}_j \\text{ calcula columna } j \\text{ del Jacobiano}",
+        "\\text{Costo: reverso } O(p \\cdot \\text{FLOPs}),\\text{ directo } O(n \\cdot \\text{FLOPs}); \\text{ reverso óptimo si } p \\ll n",
+      ],
+    },
+    intuition: "Imagina una fábrica con etapas en cadena: las materias primas $\\mathbf{x}$ entran, se procesan en intermedios $\\mathbf{y}$, y producen el producto final $z$. Si quieres saber 'cuánto cambia $z$ si ajusto la materia prima $x_j$', debes rastrear todos los caminos por los que $x_j$ influye sobre cada $y_i$, y luego cómo cada $y_i$ afecta $z$. La regla de la cadena suma todas esas contribuciones. Backpropagation hace exactamente esto en reversa: primero calcula cuánto afecta cada $y_i$ al error $\\mathcal{L}$, y luego retropropaga esa sensibilidad hacia $\\mathbf{x}$, multiplicando por los Jacobianos locales de cada etapa.",
+    development: [
+      {
+        label: "Caso escalar a vectorial: derivadas parciales",
+        body: "Sea $z = f(y_1, y_2)$ con $y_1 = g_1(x_1, x_2)$ y $y_2 = g_2(x_1, x_2)$. La regla de la cadena para $\\partial z / \\partial x_1$ suma las contribuciones de los dos caminos $x_1 \\to y_1 \\to z$ y $x_1 \\to y_2 \\to z$:\n\n$$\\frac{\\partial z}{\\partial x_1} = \\frac{\\partial z}{\\partial y_1}\\frac{\\partial y_1}{\\partial x_1} + \\frac{\\partial z}{\\partial y_2}\\frac{\\partial y_2}{\\partial x_1}$$\n\nGráficamente, esto corresponde a sumar los productos de las etiquetas a lo largo de todos los caminos dirigidos de $x_1$ a $z$ en el grafo computacional. En general, para $m$ intermedios y $n$ entradas:\n\n$$\\frac{\\partial z}{\\partial x_j} = \\sum_{i=1}^{m} \\frac{\\partial z}{\\partial y_i} \\frac{\\partial y_i}{\\partial x_j}, \\quad j = 1, \\ldots, n$$\n\nEsta suma es un producto interno: $\\nabla_{\\mathbf{y}} z \\cdot \\frac{\\partial \\mathbf{y}}{\\partial x_j}$, donde $\\frac{\\partial \\mathbf{y}}{\\partial x_j}$ es la $j$-ésima columna del Jacobiano $J_g$."
+      },
+      {
+        label: "Forma Jacobiana y composición matricial",
+        body: "Cuando tanto $f$ como $g$ son vectoriales ($f: \\mathbb{R}^m \\to \\mathbb{R}^p$, $g: \\mathbb{R}^n \\to \\mathbb{R}^m$), la regla de la cadena toma su forma matricial más general:\n\n$$J_{f \\circ g}(\\mathbf{x}) = J_f(g(\\mathbf{x})) \\cdot J_g(\\mathbf{x}) \\in \\mathbb{R}^{p \\times n}$$\n\ndonde el Jacobiano $J_h(\\mathbf{a}) \\in \\mathbb{R}^{q \\times r}$ tiene entradas $(J_h)_{ki} = \\partial h_k / \\partial a_i$.\n\nPara una red de $L$ capas $\\mathbf{a}^{(l)} = f_l(\\mathbf{a}^{(l-1)})$, el Jacobiano total de la pérdida respecto a los pesos de la capa $l$ es:\n\n$$\\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{a}^{(l-1)}} = J_{f_l}^\\top \\cdot \\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{a}^{(l)}}$$\n\nEsto es exactamente el paso de backpropagation entre capas: multiplicar el gradiente entrante por el Jacobiano transpuesto de la capa actual."
+      },
+      {
+        label: "Modo reverso vs. modo directo (Diferenciación Automática)",
+        body: "La regla de la cadena puede evaluarse en dos órdenes distintos, con costos muy diferentes:\n\n**Modo directo** (forward-mode AD): fija una dirección $\\dot{\\mathbf{x}} = \\mathbf{e}_j$ y propaga hacia adelante:\n\n$$\\dot{\\mathbf{y}} = J_g \\dot{\\mathbf{x}}, \\quad \\dot{z} = \\nabla_\\mathbf{y} f \\cdot \\dot{\\mathbf{y}}$$\n\nCalcula una columna del Jacobiano por pasada. Costo: $O(n)$ pasadas para el Jacobiano completo. Eficiente cuando $n \\ll p$.\n\n**Modo reverso** (reverse-mode AD, backprop): parte del gradiente de la salida $\\bar{z} = 1$ y propaga hacia atrás:\n\n$$\\bar{\\mathbf{y}} = J_f^\\top \\bar{\\mathbf{z}}, \\quad \\bar{\\mathbf{x}} = J_g^\\top \\bar{\\mathbf{y}}$$\n\nCalcula una fila del Jacobiano (o el gradiente completo si $p=1$) por pasada. Costo: $O(1)$ pasada para $\\nabla_\\mathbf{x} \\mathcal{L}$. **Óptimo para ML** donde $p=1$ (pérdida escalar) y $n$ = millones de parámetros.\n\nLa razón por la que backprop escala: con un solo backward pass se obtienen todos los $n$ gradientes, mientras que forward-mode requeriría $n$ pasadas."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La regla de la cadena multivariable es el algoritmo backpropagation, sin más. Para una red neuronal con pérdida $\\mathcal{L}$, capas $l = 1, \\ldots, L$ y pre-activaciones $\\mathbf{z}^{(l)} = W^{(l)} \\mathbf{a}^{(l-1)} + \\mathbf{b}^{(l)}$, $\\mathbf{a}^{(l)} = \\sigma(\\mathbf{z}^{(l)})$:\n\n$$\\boldsymbol{\\delta}^{(l)} \\triangleq \\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{z}^{(l)}} = \\left(W^{(l+1)\\top} \\boldsymbol{\\delta}^{(l+1)}\\right) \\odot \\sigma'(\\mathbf{z}^{(l)})$$\n\n$$\\frac{\\partial \\mathcal{L}}{\\partial W^{(l)}} = \\boldsymbol{\\delta}^{(l)} (\\mathbf{a}^{(l-1)})^\\top, \\quad \\frac{\\partial \\mathcal{L}}{\\partial \\mathbf{b}^{(l)}} = \\boldsymbol{\\delta}^{(l)}$$\n\nCada $\\boldsymbol{\\delta}^{(l)}$ es el vector adjunto de la capa $l$: cuantifica la sensibilidad de $\\mathcal{L}$ a perturbaciones en $\\mathbf{z}^{(l)}$.\n\n**Gradient checkpointing**: en redes muy profundas, almacenar todos los $\\mathbf{a}^{(l)}$ para el backward pass consume $O(L)$ memoria. Checkpointing recalcula activaciones selectivamente durante el backward, reduciendo memoria a $O(\\sqrt{L})$ a costa de $\\approx 33\\%$ más FLOPs.\n\n**Jacobian-vector products (JVP) y VJPs**: PyTorch expone `torch.autograd.functional.jvp` y `vjp` directamente, permitiendo implementar optimizadores de segundo orden, meta-learning (MAML) y cálculo de la Hessiana vía doble backprop."
+      },
+    ],
+    code: `# Python - Regla de la cadena multivariable: Jacobianos y backprop manual
+import numpy as np
+import torch
+import torch.nn.functional as F
+
+# ── 1. Jacobiano numérico de una función vectorial ────────────────────────
+def jacobiano_numerico(f, x, h=1e-5):
+    """Jacobiano J ∈ R^{m×n} por diferencias centrales."""
+    fx = f(x)
+    m, n = len(fx), len(x)
+    J = np.zeros((m, n))
+    for j in range(n):
+        xp, xm = x.copy(), x.copy()
+        xp[j] += h; xm[j] -= h
+        J[:, j] = (f(xp) - f(xm)) / (2 * h)
+    return J
+
+# g: R² → R³
+g = lambda x: np.array([
+    np.sin(x[0]) * x[1],
+    x[0]**2 - x[1]**2,
+    np.exp(x[0] + x[1]),
+])
+
+x0 = np.array([0.5, 1.2])
+J_num = jacobiano_numerico(g, x0)
+
+# Jacobiano analítico de g
+J_ana = np.array([
+    [np.cos(x0[0]) * x0[1],  np.sin(x0[0])        ],
+    [2 * x0[0],              -2 * x0[1]             ],
+    [np.exp(x0[0]+x0[1]),     np.exp(x0[0]+x0[1])  ],
+])
+print("Error Jacobiano:", np.max(np.abs(J_num - J_ana)))
+
+# ── 2. Regla de la cadena como producto de Jacobianos ────────────────────
+# z = f(g(x)),  f: R³ → R²,  g: R² → R³
+f_fn = lambda y: np.array([y[0] + y[1]**2, np.sin(y[2])])
+y0   = g(x0)
+
+J_g  = J_ana                              # (3×2)
+J_f  = np.array([                         # (2×3) — Jacobiano de f en y0
+    [1.0, 2*y0[1], 0.0             ],
+    [0.0, 0.0,     np.cos(y0[2])   ],
+])
+J_fg = J_f @ J_g                          # (2×2) — cadena
+print("\\nJacobiano compuesto J_f∘g:", np.round(J_fg, 5))
+
+# Verificar con Jacobiano numérico de la composición
+fog  = lambda x: f_fn(g(x))
+print("Verificación numérica:    ", np.round(jacobiano_numerico(fog, x0), 5))
+
+# ── 3. Backprop manual en red de 2 capas ─────────────────────────────────
+np.random.seed(42)
+n_in, n_hid, n_out = 4, 6, 2
+n_samples = 8
+
+W1 = np.random.randn(n_hid, n_in)  * 0.1
+b1 = np.zeros(n_hid)
+W2 = np.random.randn(n_out, n_hid) * 0.1
+b2 = np.zeros(n_out)
+
+X  = np.random.randn(n_samples, n_in)
+Y  = np.eye(n_out)[np.random.randint(0, n_out, n_samples)]  # one-hot
+
+sigmoid = lambda z: 1 / (1 + np.exp(-z))
+
+# Forward pass
+z1 = X @ W1.T + b1           # (n, n_hid)
+a1 = sigmoid(z1)             # activación capa 1
+z2 = a1 @ W2.T + b2          # (n, n_out)
+# Softmax + cross-entropy
+exp_z = np.exp(z2 - z2.max(axis=1, keepdims=True))
+probs = exp_z / exp_z.sum(axis=1, keepdims=True)
+loss  = -np.mean(np.sum(Y * np.log(probs + 1e-9), axis=1))
+
+# Backward pass — regla de la cadena capa por capa
+delta2 = (probs - Y) / n_samples         # ∂L/∂z2  (n, n_out)
+dW2    = delta2.T @ a1                   # (n_out, n_hid)
+db2    = delta2.sum(axis=0)
+
+delta1 = (delta2 @ W2) * a1 * (1 - a1)  # ∂L/∂z1: VJP × σ'(z1)
+dW1    = delta1.T @ X                    # (n_hid, n_in)
+db1    = delta1.sum(axis=0)
+
+print(f"\\nLoss: {loss:.4f}")
+print(f"||dW1||: {np.linalg.norm(dW1):.4f}  ||dW2||: {np.linalg.norm(dW2):.4f}")
+
+# ── 4. Verificar gradientes con PyTorch autograd ──────────────────────────
+Xt  = torch.tensor(X,  dtype=torch.float64)
+Yt  = torch.tensor(Y,  dtype=torch.float64)
+W1t = torch.tensor(W1, dtype=torch.float64, requires_grad=True)
+W2t = torch.tensor(W2, dtype=torch.float64, requires_grad=True)
+
+a1t   = torch.sigmoid(Xt @ W1t.T)
+z2t   = a1t @ W2t.T
+losst = F.cross_entropy(z2t.float(), Yt.argmax(1))
+losst.backward()
+
+print("\\nError dW1 (manual vs autograd):",
+      np.max(np.abs(dW1 - W1t.grad.numpy())))
+print("Error dW2 (manual vs autograd):",
+      np.max(np.abs(dW2 - W2t.grad.numpy())))
+
+# ── 5. VJP y JVP explícitos con torch.autograd.functional ────────────────
+from torch.autograd.functional import vjp, jvp
+
+fn  = lambda w: (torch.sigmoid(Xt @ w.T) @ W2t.detach().T).sum()
+v   = torch.ones(1, dtype=torch.float64)
+
+# VJP: v^T · J  (modo reverso — backprop)
+_, vjp_result = vjp(fn, torch.tensor(W1, requires_grad=True), v)
+print("\\nVJP shape:", vjp_result.shape)   # (n_hid, n_in)
+`,
+    related: ["Derivada y Reglas de Derivación", "Gradiente y Derivada Parcial", "Jacobiano y Hessiano", "Backpropagation", "Diferenciación Automática", "Descenso de Gradiente"],
+    hasViz: true,
+    vizType: "chainMultivar",
+  },
+  {
+    id: 38,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Derivadas Parciales y Gradiente",
+    tags: ["derivada parcial", "gradiente", "superficie", "dirección de máximo ascenso", "cálculo multivariable", "optimización"],
+    definition: "La derivada parcial de una función f(x₁,…,xₙ) respecto a xⱼ mide la tasa de cambio de f cuando solo varía xⱼ, manteniendo todas las demás variables fijas. Es la derivada ordinaria de la función de una variable que resulta de congelar las demás coordenadas. El gradiente ∇f agrupa todas las derivadas parciales en un vector que apunta en la dirección de máximo crecimiento de f en cada punto, con magnitud igual a la tasa de cambio máxima. En ML, el gradiente de la función de pérdida respecto a los parámetros es el objeto central del entrenamiento: indica cómo ajustar cada peso para reducir el error.",
+    formal: {
+      notation: "Sea $f: \\mathbb{R}^n \\to \\mathbb{R}$ diferenciable en $\\mathbf{x}_0 \\in \\mathbb{R}^n$",
+      body: "\\frac{\\partial f}{\\partial x_j}(\\mathbf{x}_0) = \\lim_{h \\to 0} \\frac{f(\\mathbf{x}_0 + h\\,\\mathbf{e}_j) - f(\\mathbf{x}_0)}{h}, \\qquad \\nabla f(\\mathbf{x}_0) = \\left(\\frac{\\partial f}{\\partial x_1}, \\ldots, \\frac{\\partial f}{\\partial x_n}\\right)^\\top \\in \\mathbb{R}^n",
+      geometric: "f(\\mathbf{x}_0 + \\mathbf{d}) \\approx f(\\mathbf{x}_0) + \\nabla f(\\mathbf{x}_0)^\\top \\mathbf{d} + O(\\|\\mathbf{d}\\|^2), \\quad \\frac{\\partial f}{\\partial \\mathbf{d}}\\bigg|_{\\mathbf{x}_0} = \\nabla f(\\mathbf{x}_0)^\\top \\hat{\\mathbf{d}} \\leq \\|\\nabla f(\\mathbf{x}_0)\\|",
+      properties: [
+        "\\text{Gradiente ortogonal a curvas de nivel: } \\nabla f(\\mathbf{x}_0) \\perp \\{\\mathbf{x} : f(\\mathbf{x}) = f(\\mathbf{x}_0)\\}",
+        "\\text{Dirección de máximo ascenso: } \\underset{\\|\\mathbf{d}\\|=1}{\\arg\\max}\\; \\nabla f^\\top \\mathbf{d} = \\hat{\\nabla f}, \\quad \\text{tasa máxima} = \\|\\nabla f\\|",
+        "\\text{Derivada direccional: } D_{\\mathbf{u}} f(\\mathbf{x}_0) = \\nabla f(\\mathbf{x}_0)^\\top \\mathbf{u}, \\quad \\|\\mathbf{u}\\| = 1",
+        "\\text{Linealidad: } \\nabla(\\alpha f + \\beta g) = \\alpha \\nabla f + \\beta \\nabla g",
+        "\\text{Condición necesaria de extremo interior: } \\nabla f(\\mathbf{x}^*) = \\mathbf{0} \\;(\\text{punto crítico})",
+      ],
+    },
+    intuition: "Imagina una superficie montañosa $z = f(x,y)$. La derivada parcial $\\partial f/\\partial x$ te dice cuánto sube la pendiente si caminas exactamente hacia el este (eje $x$), y $\\partial f/\\partial y$ si caminas hacia el norte. El gradiente $\\nabla f = (\\partial f/\\partial x,\\, \\partial f/\\partial y)$ combina ambas: apunta en la dirección de la subida más empinada, como la dirección en que rodaría una gota de agua al revés. Las curvas de nivel son las líneas de igual altitud —el gradiente siempre las cruza en ángulo recto.",
+    development: [
+      {
+        label: "Definición formal y cálculo",
+        body: "La derivada parcial $\\partial f / \\partial x_j$ se calcula aplicando las reglas de derivación ordinaria tratando $x_j$ como la única variable y el resto como constantes. Para $f(x, y) = x^2 y + e^{xy}$:\n\n$$\\frac{\\partial f}{\\partial x} = 2xy + y e^{xy}, \\qquad \\frac{\\partial f}{\\partial y} = x^2 + x e^{xy}$$\n\nLas derivadas parciales de orden superior se definen iterando el proceso. La matriz de segundas derivadas es la **Hessiana**:\n\n$$H_{ij} = \\frac{\\partial^2 f}{\\partial x_i \\partial x_j}$$\n\nEl **teorema de Schwarz** garantiza $\\partial^2 f / \\partial x_i \\partial x_j = \\partial^2 f / \\partial x_j \\partial x_i$ cuando las segundas derivadas son continuas, por lo que $H$ es simétrica. La Hessiana determina la curvatura local y clasifica los puntos críticos."
+      },
+      {
+        label: "Gradiente: geometría y derivada direccional",
+        body: "El gradiente $\\nabla f(\\mathbf{x}_0)$ caracteriza completamente la variación lineal de $f$ en $\\mathbf{x}_0$. La **derivada direccional** en la dirección unitaria $\\mathbf{u}$ es:\n\n$$D_{\\mathbf{u}} f(\\mathbf{x}_0) = \\lim_{h \\to 0} \\frac{f(\\mathbf{x}_0 + h\\mathbf{u}) - f(\\mathbf{x}_0)}{h} = \\nabla f(\\mathbf{x}_0)^\\top \\mathbf{u} = \\|\\nabla f\\| \\cos\\theta$$\n\ndonde $\\theta$ es el ángulo entre $\\nabla f$ y $\\mathbf{u}$. El máximo se alcanza cuando $\\theta = 0$, es decir $\\mathbf{u} = \\nabla f / \\|\\nabla f\\|$, confirmando que el gradiente apunta hacia el máximo crecimiento.\n\nGeométricamente, $\\nabla f(\\mathbf{x}_0)$ es ortogonal a la hipersuperficie de nivel $\\{\\mathbf{x} : f(\\mathbf{x}) = c\\}$ que pasa por $\\mathbf{x}_0$. Esto se verifica diferenciando $f(\\mathbf{x}(t)) = c$ respecto a $t$: $\\nabla f \\cdot \\dot{\\mathbf{x}} = 0$ para toda curva $\\mathbf{x}(t)$ en la superficie de nivel."
+      },
+      {
+        label: "Regla del producto, cociente y composición en varias variables",
+        body: "Las reglas algebraicas de diferenciación se extienden componente a componente al caso multivariable:\n\n$$\\nabla(fg) = g\\,\\nabla f + f\\,\\nabla g$$\n\n$$\\nabla\\left(\\frac{f}{g}\\right) = \\frac{g\\,\\nabla f - f\\,\\nabla g}{g^2}$$\n\nPara composición $h(\\mathbf{x}) = \\phi(f(\\mathbf{x}))$ con $\\phi: \\mathbb{R} \\to \\mathbb{R}$:\n\n$$\\nabla h(\\mathbf{x}) = \\phi'(f(\\mathbf{x}))\\, \\nabla f(\\mathbf{x})$$\n\nEjemplo relevante en ML: la pérdida logística $\\mathcal{L}(\\mathbf{w}) = -\\log \\sigma(y\\,\\mathbf{w}^\\top\\mathbf{x})$, con $\\sigma' = \\sigma(1-\\sigma)$:\n\n$$\\nabla_{\\mathbf{w}} \\mathcal{L} = -(1 - \\sigma(y\\,\\mathbf{w}^\\top\\mathbf{x}))\\,y\\,\\mathbf{x} = (\\hat{p} - 1)\\,y\\,\\mathbf{x}$$\n\ndonde $\\hat{p} = \\sigma(y\\,\\mathbf{w}^\\top\\mathbf{x})$ es la probabilidad predicha. La forma limpia del gradiente de la log-verosimilitud resulta de la identidad $\\frac{d}{dz}\\log\\sigma(z) = 1-\\sigma(z)$."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "El gradiente es el objeto central de todo el aprendizaje supervisado por optimización:\n\n**Función de pérdida MSE**: $\\mathcal{L}(\\mathbf{w}) = \\frac{1}{n}\\|\\mathbf{X}\\mathbf{w} - \\mathbf{y}\\|^2$, gradiente exacto:\n\n$$\\nabla_{\\mathbf{w}} \\mathcal{L} = \\frac{2}{n} \\mathbf{X}^\\top(\\mathbf{X}\\mathbf{w} - \\mathbf{y})$$\n\nIgualando a cero da la **ecuación normal**: $\\mathbf{w}^* = (\\mathbf{X}^\\top\\mathbf{X})^{-1}\\mathbf{X}^\\top\\mathbf{y}$.\n\n**Gradient clipping**: en RNNs, $\\|\\nabla \\mathcal{L}\\|$ puede crecer exponencialmente (exploding gradients). Clipping reescala el gradiente si $\\|g\\| > \\tau$: $g \\leftarrow g \\cdot \\tau / \\|g\\|$, manteniendo la dirección pero limitando la magnitud.\n\n**Gradientes por lotes**: el gradiente estocástico (SGD) estima $\\nabla \\mathcal{L}$ con un mini-batch $\\mathcal{B}$:\n\n$$\\hat{\\nabla} \\mathcal{L} = \\frac{1}{|\\mathcal{B}|} \\sum_{i \\in \\mathcal{B}} \\nabla_{\\mathbf{w}} \\ell_i(\\mathbf{w})$$\n\nes un estimador insesgado del gradiente completo, con varianza $O(1/|\\mathcal{B}|)$.\n\n**Superficies de pérdida en DL**: para redes profundas, $\\nabla_{\\mathbf{w}} \\mathcal{L} = \\mathbf{0}$ tiene exponencialmente muchas soluciones (puntos de silla y mínimos locales planos). La geometría del gradiente y la Hessiana en estos puntos es un área activa de investigación (loss landscape, sharpness-aware minimization)."
+      },
+    ],
+    code: `# Python - Derivadas parciales, gradiente y geometría
+import numpy as np
+import torch
+
+# ── 1. Derivadas parciales numéricas ─────────────────────────────────────
+def grad_numerico(f, x, h=1e-5):
+    """Gradiente por diferencias centrales: ∇f(x) ∈ R^n."""
+    n = len(x)
+    g = np.zeros(n)
+    for j in range(n):
+        xp, xm = x.copy(), x.copy()
+        xp[j] += h; xm[j] -= h
+        g[j] = (f(xp) - f(xm)) / (2 * h)
+    return g
+
+# f(x,y) = sin(x)*cos(y) + x²y
+f   = lambda v: np.sin(v[0])*np.cos(v[1]) + v[0]**2 * v[1]
+dfdx = lambda v: np.cos(v[0])*np.cos(v[1]) + 2*v[0]*v[1]   # ∂f/∂x
+dfdy = lambda v: -np.sin(v[0])*np.sin(v[1]) + v[0]**2       # ∂f/∂y
+
+x0 = np.array([1.0, 0.5])
+g_num = grad_numerico(f, x0)
+g_ana = np.array([dfdx(x0), dfdy(x0)])
+
+print("Gradiente numérico: ", np.round(g_num, 6))
+print("Gradiente analítico:", np.round(g_ana, 6))
+print("Error máximo:       ", np.max(np.abs(g_num - g_ana)))
+
+# ── 2. Derivada direccional ───────────────────────────────────────────────
+def deriv_direccional(f, x, u):
+    """D_u f(x) = ∇f(x)·u, con u unitario."""
+    u = u / np.linalg.norm(u)           # normalizar
+    return grad_numerico(f, x) @ u
+
+# Dirección de máximo ascenso = ∇f/‖∇f‖
+grad   = g_ana
+u_max  = grad / np.linalg.norm(grad)
+u_perp = np.array([-grad[1], grad[0]]) / np.linalg.norm(grad)  # perpendicular
+
+print(f"\\nD_{{∇f}} f(x₀) = {deriv_direccional(f, x0, u_max):.6f}  (debe ser ‖∇f‖={np.linalg.norm(grad):.6f})")
+print(f"D_{{⊥}}  f(x₀)  = {deriv_direccional(f, x0, u_perp):.6f}  (debe ser ≈ 0, curva de nivel)")
+
+# ── 3. Hessiana numérica ─────────────────────────────────────────────────
+def hessiana_numerica(f, x, h=1e-4):
+    """Hessiana H ∈ R^{n×n} por diferencias finitas de segundo orden."""
+    n = len(x)
+    H = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
+            xpp = x.copy(); xpp[i] += h; xpp[j] += h
+            xpm = x.copy(); xpm[i] += h; xpm[j] -= h
+            xmp = x.copy(); xmp[i] -= h; xmp[j] += h
+            xmm = x.copy(); xmm[i] -= h; xmm[j] -= h
+            H[i,j] = (f(xpp) - f(xpm) - f(xmp) + f(xmm)) / (4*h*h)
+    return H
+
+H = hessiana_numerica(f, x0)
+print("\\nHessiana en x₀:")
+print(np.round(H, 4))
+print("Simétrica:", np.allclose(H, H.T))
+eigvals = np.linalg.eigvalsh(H)
+print("Eigenvalores:", np.round(eigvals, 4),
+      "→", "mínimo local" if all(eigvals>0) else "silla" if any(eigvals<0) and any(eigvals>0) else "máximo")
+
+# ── 4. Gradiente con autograd (PyTorch) ──────────────────────────────────
+x_t = torch.tensor(x0, requires_grad=True, dtype=torch.float64)
+f_t = torch.sin(x_t[0])*torch.cos(x_t[1]) + x_t[0]**2 * x_t[1]
+f_t.backward()
+print("\\nGradiente autograd:", x_t.grad.numpy())
+
+# ── 5. Gradiente de MSE — regresión lineal ────────────────────────────────
+np.random.seed(0)
+n, p = 100, 5
+X_d  = np.random.randn(n, p)
+w_true = np.array([1.5, -2.0, 0.8, 0.0, 3.1])
+y_d  = X_d @ w_true + 0.3*np.random.randn(n)
+
+def mse_loss(w): return np.mean((X_d @ w - y_d)**2)
+def mse_grad(w): return 2/n * X_d.T @ (X_d @ w - y_d)
+
+w = np.zeros(p)
+lr = 0.05
+for step in range(300):
+    g = mse_grad(w)
+    w = w - lr * g
+
+print(f"\\nw estimado:  {np.round(w, 4)}")
+print(f"w verdadero: {w_true}")
+print(f"‖∇L(w*)‖ = {np.linalg.norm(mse_grad(w)):.6f}  (≈0 en mínimo)")
+
+# ── 6. Gradient clipping ──────────────────────────────────────────────────
+def clip_grad(g, tau=1.0):
+    norm = np.linalg.norm(g)
+    return g * tau / norm if norm > tau else g
+
+g_large = np.array([10.5, -8.3, 15.2])
+g_clipped = clip_grad(g_large, tau=1.0)
+print(f"\\n‖g‖ antes: {np.linalg.norm(g_large):.2f}, después: {np.linalg.norm(g_clipped):.4f}")
+print("Dirección preservada:", np.allclose(g_large/np.linalg.norm(g_large),
+                                           g_clipped/np.linalg.norm(g_clipped)))
+`,
+    related: ["Derivada y Reglas de Derivación", "Regla de la Cadena Multivariable", "Jacobiano y Hessiano", "Descenso de Gradiente", "Backpropagation", "Optimización Convexa"],
+    hasViz: true,
+    vizType: "partialGrad",
+  },
+  {
+    id: 40,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Matriz Jacobiana",
+    tags: ["jacobiano", "derivada de función vectorial", "transformación lineal local", "diferenciación automática", "backpropagation", "cálculo multivariable"],
+    definition: "La matriz Jacobiana de una función vectorial f: Rⁿ → Rᵐ en un punto x₀ es la matriz de todas las derivadas parciales de primer orden de f evaluadas en x₀, de dimensiones m×n. Cada fila i contiene el gradiente de la componente fᵢ respecto a todas las entradas, y cada columna j contiene las derivadas de todas las salidas respecto a xⱼ. El Jacobiano generaliza simultáneamente la derivada escalar (n=m=1), el gradiente (m=1) y la divergencia (m=n). Linealmente aproxima la función vectorial cerca de x₀, y su determinante —cuando m=n— cuantifica el factor de cambio de volumen local inducido por la transformación.",
+    formal: {
+      notation: "Sea $\\mathbf{f}: \\mathbb{R}^n \\to \\mathbb{R}^m$ diferenciable en $\\mathbf{x}_0$, con componentes $f_1, \\ldots, f_m$",
+      body: "J_{\\mathbf{f}}(\\mathbf{x}_0) = \\frac{\\partial \\mathbf{f}}{\\partial \\mathbf{x}}\\bigg|_{\\mathbf{x}_0} = \\begin{pmatrix} \\dfrac{\\partial f_1}{\\partial x_1} & \\cdots & \\dfrac{\\partial f_1}{\\partial x_n} \\\\ \\vdots & \\ddots & \\vdots \\\\ \\dfrac{\\partial f_m}{\\partial x_1} & \\cdots & \\dfrac{\\partial f_m}{\\partial x_n} \\end{pmatrix} \\in \\mathbb{R}^{m \\times n}",
+      geometric: "\\mathbf{f}(\\mathbf{x}_0 + \\mathbf{h}) = \\mathbf{f}(\\mathbf{x}_0) + J_{\\mathbf{f}}(\\mathbf{x}_0)\\,\\mathbf{h} + O(\\|\\mathbf{h}\\|^2), \\qquad \\det J_{\\mathbf{f}} > 0 \\text{ preserva orientación local}",
+      properties: [
+        "\\text{Regla de la cadena: } J_{\\mathbf{f} \\circ \\mathbf{g}}(\\mathbf{x}) = J_{\\mathbf{f}}(\\mathbf{g}(\\mathbf{x})) \\cdot J_{\\mathbf{g}}(\\mathbf{x}) \\in \\mathbb{R}^{p \\times n}",
+        "\\text{VJP (modo reverso): } \\mathbf{v}^\\top J_{\\mathbf{f}} = (J_{\\mathbf{f}}^\\top \\mathbf{v})^\\top,\\quad \\mathbf{v} \\in \\mathbb{R}^m,\\; O(\\text{FLOPs}_f) \\text{ por vector}",
+        "\\text{JVP (modo directo): } J_{\\mathbf{f}}\\,\\mathbf{u},\\quad \\mathbf{u} \\in \\mathbb{R}^n,\\; O(\\text{FLOPs}_f) \\text{ por vector}",
+        "\\text{Cambio de variable: } \\int_{\\mathbf{f}(\\Omega)} g(\\mathbf{y})\\,d\\mathbf{y} = \\int_{\\Omega} g(\\mathbf{f}(\\mathbf{x}))|\\det J_{\\mathbf{f}}(\\mathbf{x})|\\,d\\mathbf{x}",
+        "\\text{Rango: } \\text{rank}(J_{\\mathbf{f}}(\\mathbf{x}_0)) = \\text{rank de la mejor aproximación lineal local de } \\mathbf{f}",
+      ],
+    },
+    intuition: "Imagina que $\\mathbf{f}$ es una función que deforma el espacio: toma un punto $\\mathbf{x}$ y lo mueve a $\\mathbf{f}(\\mathbf{x})$. El Jacobiano $J_{\\mathbf{f}}(\\mathbf{x}_0)$ es el 'microscopio' de esa deformación: si te acercas suficientemente a $\\mathbf{x}_0$, la deformación parece una transformación lineal, y esa transformación lineal es exactamente la multiplicación por $J_{\\mathbf{f}}(\\mathbf{x}_0)$. El determinante dice cuánto se estira o encoge un pequeño cubo de volumen al pasar por $\\mathbf{f}$: si $|\\det J| = 2$ el volumen se duplica; si $|\\det J| = 0$ la transformación aplana el espacio en una dimensión menor.",
+    development: [
+      {
+        label: "Construcción fila a fila y columna a columna",
+        body: "Para $\\mathbf{f} = (f_1, \\ldots, f_m)^\\top$ con $\\mathbf{x} = (x_1, \\ldots, x_n)^\\top$, el Jacobiano se construye de dos maneras equivalentes:\n\n**Por filas**: la fila $i$ es el gradiente de $f_i$:\n\n$$J_{i,:} = \\nabla f_i^\\top = \\left(\\frac{\\partial f_i}{\\partial x_1}, \\ldots, \\frac{\\partial f_i}{\\partial x_n}\\right)$$\n\n**Por columnas**: la columna $j$ es la derivada parcial de $\\mathbf{f}$ respecto a $x_j$:\n\n$$J_{:,j} = \\frac{\\partial \\mathbf{f}}{\\partial x_j} = \\left(\\frac{\\partial f_1}{\\partial x_j}, \\ldots, \\frac{\\partial f_m}{\\partial x_j}\\right)^\\top$$\n\nLa columna $j$ responde a la pregunta: 'si perturbo $x_j$ en $\\varepsilon$, ¿cuánto se mueve cada componente de $\\mathbf{f}$?' Esto es exactamente lo que computa el **modo directo** de diferenciación automática con semilla $\\mathbf{u} = \\mathbf{e}_j$: $J_{:,j} = J_{\\mathbf{f}} \\mathbf{e}_j$."
+      },
+      {
+        label: "Jacobiano de transformaciones comunes",
+        body: "Algunos Jacobianos de referencia esenciales en ML:\n\n**Transformación afín** $\\mathbf{f}(\\mathbf{x}) = W\\mathbf{x} + \\mathbf{b}$, $W \\in \\mathbb{R}^{m \\times n}$:\n\n$$J_{\\mathbf{f}} = W \\quad \\text{(constante, independiente de } \\mathbf{x}\\text{)}$$\n\n**Softmax** $\\sigma_i(\\mathbf{z}) = e^{z_i}/\\sum_k e^{z_k}$, $\\mathbf{f}: \\mathbb{R}^n \\to \\mathbb{R}^n$:\n\n$$J_{\\sigma}(\\mathbf{z})_{ij} = \\sigma_i(\\delta_{ij} - \\sigma_j) = \\text{diag}(\\boldsymbol{\\sigma}) - \\boldsymbol{\\sigma}\\boldsymbol{\\sigma}^\\top$$\n\n**Activación elemento a elemento** $\\mathbf{f}(\\mathbf{x}) = \\phi(\\mathbf{x})$ (ReLU, sigmoid, etc.):\n\n$$J_{\\mathbf{f}} = \\text{diag}(\\phi'(x_1), \\ldots, \\phi'(x_n))$$\n\neste Jacobiano diagonal es el $\\odot\\, \\sigma'(\\mathbf{z})$ que aparece en backprop: multiplicar por él es simplemente escalar cada componente del gradiente por la derivada local de la activación."
+      },
+      {
+        label: "Determinante Jacobiano y cambio de variable",
+        body: "Para $\\mathbf{f}: \\mathbb{R}^n \\to \\mathbb{R}^n$ (misma dimensión), el determinante $|\\det J_{\\mathbf{f}}(\\mathbf{x})|$ mide el factor de expansión de volumen infinitesimal:\n\n$$\\text{Vol}(\\mathbf{f}(\\Omega_\\varepsilon)) \\approx |\\det J_{\\mathbf{f}}(\\mathbf{x}_0)| \\cdot \\text{Vol}(\\Omega_\\varepsilon)$$\n\nLa fórmula de cambio de variable generaliza la sustitución de integrales:\n\n$$\\int_{\\mathbf{f}(\\Omega)} g(\\mathbf{y})\\,d\\mathbf{y} = \\int_{\\Omega} g(\\mathbf{f}(\\mathbf{x}))\\, |\\det J_{\\mathbf{f}}(\\mathbf{x})|\\, d\\mathbf{x}$$\n\nEn el contexto de **Normalizing Flows**, se aprende una transformación biyectiva $\\mathbf{f}_\\theta$ que mapea una distribución simple $p_\\mathbf{z}$ a datos complejos. La log-verosimilitud exacta requiere $\\log |\\det J_{\\mathbf{f}_\\theta}|$, lo que impone restricciones arquitectónicas (flujos triangulares, coupling layers) para calcular el determinante en $O(n)$ en lugar de $O(n^3)$."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "El Jacobiano aparece en múltiples contextos críticos en ML moderno:\n\n**Backpropagation**: cada capa $l$ contribuye con $J_{f_l}^\\top$ al producto de matrices que propaga el gradiente. Para una capa lineal $\\mathbf{a} = W\\mathbf{x}$, $J = W$, y el gradiente retropropagado es $W^\\top \\boldsymbol{\\delta}$. Para una activación diagonal, $J = \\text{diag}(\\sigma')$ y la retropropagación es el producto de Hadamard $\\boldsymbol{\\delta} \\odot \\sigma'$.\n\n**Jacobian-vector products (JVP) y VJP**: PyTorch implementa `torch.autograd.functional.jvp` y `vjp`. El VJP es el building block del modo reverso: calcula $J^\\top \\mathbf{v}$ sin materializar $J$ explícitamente, con costo $O(\\text{FLOPs del forward pass})$ independientemente de $n$.\n\n**Neural Tangent Kernel (NTK)**: el kernel de redes infinitamente anchas es $K(\\mathbf{x}, \\mathbf{x}') = J_\\theta f(\\mathbf{x}) \\cdot J_\\theta f(\\mathbf{x}')^\\top$, donde $J_\\theta f \\in \\mathbb{R}^{m \\times p}$ es el Jacobiano de las salidas respecto a todos los parámetros. El NTK determina la dinámica de entrenamiento en el régimen de ancho infinito.\n\n**Jacobian regularization**: penalizar $\\|J_{\\mathbf{f}}\\|_F^2$ en la entrada promueve robustez adversarial —un gradiente pequeño respecto a la entrada significa que pequeñas perturbaciones no cambian mucho la salida."
+      },
+    ],
+    code: `# Python - Jacobiana: cálculo, propiedades y aplicaciones en DL
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.autograd.functional import jacobian, jvp, vjp
+
+# ── 1. Jacobiana numérica de una función vectorial ────────────────────────
+def jacobiana_numerica(f, x, h=1e-5):
+    """J ∈ R^{m×n} por diferencias centrales."""
+    fx = np.asarray(f(x), dtype=float)
+    m  = fx.size
+    n  = x.size
+    J  = np.zeros((m, n))
+    for j in range(n):
+        xp, xm = x.copy(), x.copy()
+        xp[j] += h; xm[j] -= h
+        J[:, j] = (np.asarray(f(xp)) - np.asarray(f(xm))) / (2*h)
+    return J
+
+# f: R³ → R² 
+def f_vec(x):
+    return np.array([
+        np.sin(x[0]) * x[1] + x[2]**2,
+        np.exp(x[0] - x[1]) * np.cos(x[2]),
+    ])
+
+x0 = np.array([0.5, 1.0, 0.8])
+J_num = jacobiana_numerica(f_vec, x0)
+
+# Jacobiana analítica
+J_ana = np.array([
+    [np.cos(x0[0])*x0[1],       np.sin(x0[0]),          2*x0[2]             ],
+    [np.exp(x0[0]-x0[1])*np.cos(x0[2]),
+     -np.exp(x0[0]-x0[1])*np.cos(x0[2]),
+     -np.exp(x0[0]-x0[1])*np.sin(x0[2])],
+])
+print("Error máximo J numérica vs analítica:", np.max(np.abs(J_num - J_ana)))
+print("J shape:", J_ana.shape, "— (m=2 filas, n=3 columnas)")
+
+# ── 2. Jacobiana de softmax ───────────────────────────────────────────────
+def softmax(z):
+    e = np.exp(z - z.max())
+    return e / e.sum()
+
+def jacobiana_softmax(z):
+    s = softmax(z)
+    return np.diag(s) - np.outer(s, s)   # diag(σ) - σσᵀ
+
+z0 = np.array([1.0, 2.0, 0.5, -0.3])
+J_soft = jacobiana_softmax(z0)
+print("\\nJacobiana Softmax (4×4):")
+print(np.round(J_soft, 4))
+print("Suma por filas (debe ser 0):", np.round(J_soft.sum(axis=1), 10))
+
+# ── 3. Jacobiana con PyTorch autograd ────────────────────────────────────
+def f_torch(x):
+    return torch.stack([
+        torch.sin(x[0]) * x[1] + x[2]**2,
+        torch.exp(x[0] - x[1]) * torch.cos(x[2]),
+    ])
+
+x_t = torch.tensor(x0, dtype=torch.float64, requires_grad=False)
+J_torch = jacobian(f_torch, x_t)
+print("\\nJacobiana PyTorch:")
+print(np.round(J_torch.numpy(), 6))
+print("Coincide con analítica:", np.allclose(J_torch.numpy(), J_ana, atol=1e-5))
+
+# ── 4. JVP (modo directo) — una columna del Jacobiano ────────────────────
+u = torch.tensor([1.0, 0.0, 0.0], dtype=torch.float64)   # e₁
+_, jvp_result = jvp(f_torch, (x_t,), (u,))
+print("\\nJVP con u=e₁ (debe ser col 0 de J):", np.round(jvp_result.numpy(), 6))
+print("Col 0 de J_ana:                      ", np.round(J_ana[:, 0], 6))
+
+# ── 5. VJP (modo reverso) — una fila del Jacobiano transpuesto ───────────
+v = torch.tensor([1.0, 0.0], dtype=torch.float64)         # e₁ de salida
+_, vjp_result = vjp(f_torch, (x_t,), v)
+print("\\nVJP con v=e₁ (debe ser fila 0 de J):", np.round(vjp_result[0].numpy(), 6))
+print("Fila 0 de J_ana:                     ", np.round(J_ana[0, :], 6))
+
+# ── 6. Determinante Jacobiano — cambio de volumen ─────────────────────────
+# Transformación polar → cartesiana: f(r,θ) = (r cosθ, r sinθ)
+def f_polar(x):
+    return np.array([x[0]*np.cos(x[1]), x[0]*np.sin(x[1])])
+
+r0, theta0 = 2.0, np.pi/4
+pt = np.array([r0, theta0])
+J_polar = jacobiana_numerica(f_polar, pt)
+det_J   = np.linalg.det(J_polar)
+print(f"\\ndet(J_polar) = {det_J:.4f}  (debe ser r = {r0})")
+
+# ── 7. Jacobian regularization en una red neuronal ───────────────────────
+torch.manual_seed(0)
+net = nn.Sequential(nn.Linear(3, 8), nn.ReLU(), nn.Linear(8, 2))
+x_reg = torch.randn(1, 3, requires_grad=False)
+
+# Calcular frobenius norm del Jacobiano de salida respecto a entrada
+def jac_frobenius_norm(model, x):
+    x = x.detach().requires_grad_(True)
+    J = jacobian(lambda v: model(v.unsqueeze(0)).squeeze(0), x)
+    return torch.norm(J, p='fro').item()
+
+jac_norm = jac_frobenius_norm(net, x_reg.squeeze(0))
+print(f"\\n‖J_f‖_F (Jacobian regularization) = {jac_norm:.4f}")
+`,
+    related: ["Derivadas Parciales y Gradiente", "Regla de la Cadena Multivariable", "Matriz Hessiana", "Backpropagation", "Normalizing Flows", "Diferenciación Automática"],
+    hasViz: true,
+    vizType: "jacobianViz",
+  },
+  {
+    id: 41,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Matriz Hessiana",
+    tags: ["hessiana", "segundas derivadas", "curvatura", "punto crítico", "optimización segundo orden", "definida positiva"],
+    definition: "La matriz Hessiana de una función escalar f: Rⁿ → R en un punto x₀ es la matriz simétrica de todas las derivadas parciales de segundo orden de f evaluadas en x₀, de dimensiones n×n. Cada entrada Hᵢⱼ = ∂²f/∂xᵢ∂xⱼ mide la curvatura mixta de f en las direcciones i y j. La Hessiana generaliza la segunda derivada escalar al caso multivariable: su signo definido clasifica los puntos críticos en mínimos, máximos o puntos de silla, y sus eigenvalores determinan la curvatura de la superficie de pérdida en cada dirección. En optimización de redes neuronales, la Hessiana aparece en métodos de segundo orden, análisis de paisaje de pérdida y en el estudio de la convergencia del descenso de gradiente.",
+    formal: {
+      notation: "Sea $f: \\mathbb{R}^n \\to \\mathbb{R}$ dos veces diferenciable en $\\mathbf{x}_0$",
+      body: "H_f(\\mathbf{x}_0) = \\nabla^2 f(\\mathbf{x}_0) = \\begin{pmatrix} \\dfrac{\\partial^2 f}{\\partial x_1^2} & \\cdots & \\dfrac{\\partial^2 f}{\\partial x_1 \\partial x_n} \\\\ \\vdots & \\ddots & \\vdots \\\\ \\dfrac{\\partial^2 f}{\\partial x_n \\partial x_1} & \\cdots & \\dfrac{\\partial^2 f}{\\partial x_n^2} \\end{pmatrix} \\in \\mathbb{R}^{n \\times n}",
+      geometric: "f(\\mathbf{x}_0 + \\mathbf{h}) = f(\\mathbf{x}_0) + \\nabla f(\\mathbf{x}_0)^\\top \\mathbf{h} + \\tfrac{1}{2}\\mathbf{h}^\\top H_f(\\mathbf{x}_0)\\mathbf{h} + O(\\|\\mathbf{h}\\|^3)",
+      properties: [
+        "\\text{Simetría (Schwarz): } H_{ij} = H_{ji} \\text{ si } f \\in C^2 \\Rightarrow H \\text{ es diagonalizable con eigenvalores reales}",
+        "\\text{Clasificación: } H \\succ 0 \\Rightarrow \\text{mínimo local};\\quad H \\prec 0 \\Rightarrow \\text{máximo local};\\quad \\text{eigenvalores mixtos} \\Rightarrow \\text{punto de silla}",
+        "\\text{Curvatura direccional: } \\kappa(\\mathbf{u}) = \\mathbf{u}^\\top H \\mathbf{u},\\quad \\|\\mathbf{u}\\|=1,\\quad \\kappa \\in [\\lambda_{\\min}, \\lambda_{\\max}]",
+        "\\text{Radio espectral y paso óptimo GD: } \\alpha^* = 1/\\lambda_{\\max}(H);\\quad \\text{número de condición: } \\kappa(H) = \\lambda_{\\max}/\\lambda_{\\min}",
+        "\\text{Paso Newton: } \\mathbf{x}^+ = \\mathbf{x} - H^{-1}\\nabla f,\\quad \\text{converge cuadráticamente cerca del mínimo}",
+      ],
+    },
+    intuition: "Imagina que la función de pérdida es un terreno montañoso y estás parado en un punto crítico donde el terreno es plano (gradiente cero). La Hessiana es la 'curvatura' del terreno: si en todas las direcciones el terreno se curva hacia arriba estás en un valle (mínimo), si en todas se curva hacia abajo estás en una cima (máximo), y si en algunas sube y en otras baja estás en una silla de montar. Los eigenvalores de la Hessiana son las curvaturas en las direcciones principales: uno muy grande significa que la pérdida sube muy rápido en esa dirección —el gradiente es sensible— mientras que uno cercano a cero indica una dirección casi plana, donde el aprendizaje es lento.",
+    development: [
+      {
+        label: "Construcción y simetría",
+        body: "Para $f(x_1, x_2) = x_1^2 x_2 + e^{x_1 x_2}$ la Hessiana se construye derivando dos veces:\n\n$$\\frac{\\partial^2 f}{\\partial x_1^2} = 2x_2 + x_2^2 e^{x_1 x_2}, \\quad \\frac{\\partial^2 f}{\\partial x_2^2} = x_1^2 e^{x_1 x_2}$$\n\n$$\\frac{\\partial^2 f}{\\partial x_1 \\partial x_2} = 2x_1 + (1 + x_1 x_2) e^{x_1 x_2} = \\frac{\\partial^2 f}{\\partial x_2 \\partial x_1}$$\n\nEl **teorema de Schwarz** garantiza la igualdad de derivadas mixtas cuando $f \\in C^2$, haciendo $H$ simétrica. Como matriz simétrica real, $H$ es ortogonalmente diagonalizable: $H = Q \\Lambda Q^\\top$ con $Q$ ortogonal y $\\Lambda = \\text{diag}(\\lambda_1, \\ldots, \\lambda_n)$ real. Los eigenvectores de $H$ son las **direcciones principales de curvatura** y sus eigenvalores las curvaturas correspondientes."
+      },
+      {
+        label: "Test de la segunda derivada y clasificación de puntos críticos",
+        body: "En un punto crítico $\\mathbf{x}^*$ donde $\\nabla f(\\mathbf{x}^*) = \\mathbf{0}$, la naturaleza del punto queda determinada por la Hessiana $H = H_f(\\mathbf{x}^*)$:\n\n$$H \\succ 0 \\;(\\text{todos } \\lambda_i > 0) \\Rightarrow \\mathbf{x}^* \\text{ es mínimo local estricto}$$\n\n$$H \\prec 0 \\;(\\text{todos } \\lambda_i < 0) \\Rightarrow \\mathbf{x}^* \\text{ es máximo local estricto}$$\n\n$$\\exists\\, \\lambda_i > 0,\\, \\lambda_j < 0 \\Rightarrow \\mathbf{x}^* \\text{ es punto de silla}$$\n\n$$\\lambda_{\\min} = 0 \\Rightarrow \\text{test inconcluso (dirección plana)}$$\n\nPara $n=2$, el criterio simplificado usa el discriminante: $D = f_{xx}f_{yy} - f_{xy}^2 = \\det(H)$. Si $D > 0$ y $f_{xx} > 0$: mínimo; $D > 0$ y $f_{xx} < 0$: máximo; $D < 0$: punto de silla; $D = 0$: inconcluso."
+      },
+      {
+        label: "Curvatura, número de condición y convergencia de GD",
+        body: "La **curvatura direccional** de $f$ en la dirección unitaria $\\mathbf{u}$ es:\n\n$$\\kappa(\\mathbf{u}) = \\mathbf{u}^\\top H \\mathbf{u} \\in [\\lambda_{\\min}(H),\\, \\lambda_{\\max}(H)]$$\n\nEl número de condición $\\kappa(H) = \\lambda_{\\max}/\\lambda_{\\min}$ controla la convergencia del **descenso de gradiente**: en una función cuadrática convexa $f(\\mathbf{x}) = \\frac{1}{2}\\mathbf{x}^\\top H \\mathbf{x}$, el error después de $k$ pasos con tasa óptima $\\alpha = 2/(\\lambda_{\\max}+\\lambda_{\\min})$ decae como:\n\n$$\\|\\mathbf{x}_k - \\mathbf{x}^*\\| \\leq \\left(\\frac{\\kappa(H)-1}{\\kappa(H)+1}\\right)^k \\|\\mathbf{x}_0 - \\mathbf{x}^*\\|$$\n\nSi $\\kappa(H) \\gg 1$ (superficie muy alargada/elíptica), el gradiente oscila en direcciones de alta curvatura mientras avanza lentamente en las de baja curvatura —comportamiento de zigzag conocido en el entrenamiento de redes neuronales. Los métodos de **momentum** y **Adam** mitigan esto adaptando el paso por dirección."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La Hessiana de la función de pérdida $H_{\\mathcal{L}}$ tiene $n^2$ entradas donde $n$ = número de parámetros. Para GPT-3 con $n \\approx 175 \\times 10^9$, almacenar $H$ requeriría $\\sim 10^{20}$ bytes —computacionalmente inviable. Por ello se trabaja con aproximaciones:\n\n**Método de Newton**: $\\mathbf{w}^+ = \\mathbf{w} - H^{-1}\\nabla \\mathcal{L}$. Converge cuadráticamente pero requiere $O(n^3)$ para invertir $H$. Práctico solo para modelos pequeños o capas aisladas.\n\n**L-BFGS**: aproxima $H^{-1}$ acumulando productos $\\mathbf{s}_k^\\top \\mathbf{y}_k$ de los últimos $m \\approx 20$ pasos de gradiente, con costo $O(mn)$ por iteración.\n\n**Gauss-Newton y Fisher Information**: la Hessiana de la log-verosimilitud se aproxima por la matriz de Fisher $\\mathcal{F} = \\mathbb{E}[\\nabla \\log p \\cdot \\nabla \\log p^\\top] \\approx J^\\top J$ (semidefinida positiva por construcción), base del **Natural Gradient** (Amari) y **K-FAC**.\n\n**Sharpness-Aware Minimization (SAM)**: busca mínimos con $\\lambda_{\\max}(H)$ pequeño (mínimos 'planos'), empíricamente más generalizables. La hipótesis es que mínimos agudos ($\\lambda_{\\max}$ grande) sobreajustan más.\n\n**Hessian-vector products**: PyTorch permite calcular $H\\mathbf{v}$ en $O(n)$ sin materializar $H$, via doble backprop: `torch.autograd.grad(grad_outputs=[v], ...)`."
+      },
+    ],
+    code: `# Python - Matriz Hessiana: cálculo, eigenvalores y aplicaciones
+import numpy as np
+import torch
+
+# ── 1. Hessiana numérica por diferencias finitas ──────────────────────────
+def hessiana_numerica(f, x, h=1e-4):
+    """H ∈ R^{n×n}, simétrica, por diferencias finitas de 2° orden."""
+    n = len(x)
+    H = np.zeros((n, n))
+    for i in range(n):
+        for j in range(n):
+            xpp = x.copy(); xpp[i]+=h; xpp[j]+=h
+            xpm = x.copy(); xpm[i]+=h; xpm[j]-=h
+            xmp = x.copy(); xmp[i]-=h; xmp[j]+=h
+            xmm = x.copy(); xmm[i]-=h; xmm[j]-=h
+            H[i,j] = (f(xpp) - f(xpm) - f(xmp) + f(xmm)) / (4*h*h)
+    return H
+
+# f(x,y) = x² + 4y² + xy  (cuadrática, mínimo en origen)
+f    = lambda v: v[0]**2 + 4*v[1]**2 + v[0]*v[1]
+x0   = np.array([1.5, -0.8])
+H    = hessiana_numerica(f, x0)
+H_an = np.array([[2.0, 1.0], [1.0, 8.0]])   # Hessiana analítica (constante aquí)
+
+print("Hessiana numérica vs analítica:")
+print(np.round(H, 5)); print(H_an)
+print("Simétrica:", np.allclose(H, H.T))
+
+# ── 2. Eigenvalores y clasificación del punto crítico ────────────────────
+eigvals, eigvecs = np.linalg.eigh(H_an)   # eigh garantiza eigenvalores reales
+print(f"\\nEigenvalores: {np.round(eigvals, 4)}")
+print(f"Eigenvectores (columnas):\\n{np.round(eigvecs, 4)}")
+
+if np.all(eigvals > 0):   tipo = "mínimo local (H ≻ 0)"
+elif np.all(eigvals < 0): tipo = "máximo local (H ≺ 0)"
+elif np.any(eigvals == 0): tipo = "inconcluso (λ=0)"
+else:                     tipo = "punto de silla (eigenvalores mixtos)"
+print(f"Punto crítico: {tipo}")
+
+kappa = eigvals.max() / eigvals.min()
+print(f"Número de condición κ(H) = {kappa:.4f}")
+
+# ── 3. Curvatura direccional ──────────────────────────────────────────────
+def curvatura(H, u):
+    """κ(u) = uᵀHu, con u unitario."""
+    u = u / np.linalg.norm(u)
+    return u @ H @ u
+
+angles = np.linspace(0, np.pi, 9)
+print("\\nCurvatura direccional κ(u):")
+for ang in angles:
+    u = np.array([np.cos(ang), np.sin(ang)])
+    print(f"  θ={np.degrees(ang):5.1f}°: κ={curvatura(H_an, u):.4f}")
+
+# ── 4. Hessiana con PyTorch (doble backprop) ──────────────────────────────
+def hessiana_torch(f_torch, x_t):
+    """Hessiana exacta via doble diferenciación automática."""
+    x_t = x_t.detach().requires_grad_(True)
+    grad = torch.autograd.grad(f_torch(x_t), x_t, create_graph=True)[0]
+    n = x_t.shape[0]
+    H  = torch.zeros(n, n, dtype=x_t.dtype)
+    for i in range(n):
+        g2 = torch.autograd.grad(grad[i], x_t, retain_graph=True)[0]
+        H[i] = g2
+    return H.detach().numpy()
+
+f_t = lambda v: v[0]**2 + 4*v[1]**2 + v[0]*v[1]
+x_t = torch.tensor(x0, dtype=torch.float64)
+H_pt = hessiana_torch(f_t, x_t)
+print("\\nHessiana PyTorch (doble backprop):")
+print(np.round(H_pt, 6))
+
+# ── 5. Hessian-vector product (HVP) en O(n) ──────────────────────────────
+def hvp(f_torch, x_t, v_t):
+    """Hv sin materializar H: doble backprop con semilla v."""
+    x_t = x_t.detach().requires_grad_(True)
+    grad = torch.autograd.grad(f_torch(x_t), x_t, create_graph=True)[0]
+    Hv   = torch.autograd.grad(grad, x_t, grad_outputs=v_t)[0]
+    return Hv.detach().numpy()
+
+v = torch.tensor([1.0, 0.0], dtype=torch.float64)
+Hv = hvp(f_t, x_t, v)
+print(f"\\nHv (v=e₁): {np.round(Hv, 6)}  (debe ser col 0 de H: {H_an[:,0]})")
+
+# ── 6. Paso de Newton vs GD en función cuadrática ─────────────────────────
+def newton_step(x, H, grad):
+    return x - np.linalg.solve(H, grad)
+
+def grad_f(v):
+    return np.array([2*v[0] + v[1], 8*v[1] + v[0]])
+
+x_gd  = np.array([3.0, 2.0])
+x_nt  = np.array([3.0, 2.0])
+alpha = 1.0 / eigvals.max()          # tasa óptima GD = 1/λ_max
+
+print("\\nPaso\\tGD\\t\\t\\t\\tNewton")
+for k in range(6):
+    g = grad_f(x_gd)
+    print(f"  {k}\\t{np.round(x_gd,4)}\\t{np.round(x_nt,4)}")
+    x_gd = x_gd - alpha * g
+    x_nt = newton_step(x_nt, H_an, grad_f(x_nt))
+
+# ── 7. Número de condición y zigzag de GD ────────────────────────────────
+# Función muy mal condicionada
+H_ill = np.array([[100.0, 0.0], [0.0, 0.01]])
+kappa_ill = np.linalg.cond(H_ill)
+alpha_ill = 1.0 / 100.0
+tasa_convergencia = (kappa_ill - 1) / (kappa_ill + 1)
+print(f"\\nκ(H_ill) = {kappa_ill:.1f}")
+print(f"Tasa de convergencia GD ≤ {tasa_convergencia:.4f} por paso")
+print(f"Pasos para reducir error a 1%: ≥ {int(np.log(0.01)/np.log(tasa_convergencia))+1}")
+`,
+    related: ["Derivadas Parciales y Gradiente", "Matriz Jacobiana", "Descenso de Gradiente", "Métodos de Segundo Orden", "Optimización Convexa", "Sharpness-Aware Minimization"],
+    hasViz: true,
+    vizType: "hessianViz",
+  },
+  {
+    id: 42,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Aproximación por Series de Taylor",
+    tags: ["series de Taylor", "aproximación polinomial", "Maclaurin", "linealización", "optimización segundo orden", "resto de Lagrange"],
+    definition: "La serie de Taylor de una función f infinitamente diferenciable en un punto x₀ es la representación como suma infinita de potencias de (x−x₀) cuyos coeficientes son las derivadas sucesivas de f evaluadas en x₀, divididas por el factorial del orden. La expansión de orden k proporciona el polinomio de grado k que mejor aproxima a f localmente en x₀, en el sentido de que coincide con f y sus primeras k derivadas en ese punto. En optimización y ML, las expansiones de primer y segundo orden son fundamentales: la aproximación lineal justifica el descenso de gradiente y la cuadrática fundamenta los métodos de Newton y el análisis de convergencia de optimizadores.",
+    formal: {
+      notation: "Sea $f: \\mathbb{R} \\to \\mathbb{R}$ de clase $C^{k+1}$ en un entorno de $x_0$",
+      body: "f(x) = \\sum_{n=0}^{k} \\frac{f^{(n)}(x_0)}{n!}(x-x_0)^n + R_k(x) = f(x_0) + f'(x_0)(x-x_0) + \\frac{f''(x_0)}{2!}(x-x_0)^2 + \\cdots + \\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k + R_k(x)",
+      geometric: "R_k(x) = \\frac{f^{(k+1)}(\\xi)}{(k+1)!}(x-x_0)^{k+1}, \\quad \\xi \\in (x_0, x) \\quad (\\text{resto de Lagrange})",
+      properties: [
+        "\\text{Convergencia: la serie converge a } f \\text{ en el radio de convergencia } r = \\lim_{n\\to\\infty}\\left|\\frac{a_n}{a_{n+1}}\\right|",
+        "\\text{Cota del error: } |R_k(x)| \\leq \\frac{M_{k+1}}{(k+1)!}|x-x_0|^{k+1}, \\quad M_{k+1} = \\max_{\\xi}|f^{(k+1)}(\\xi)|",
+        "\\text{Multivariable (orden 2): } f(\\mathbf{x}_0 + \\mathbf{h}) \\approx f(\\mathbf{x}_0) + \\nabla f^\\top \\mathbf{h} + \\tfrac{1}{2}\\mathbf{h}^\\top H_f \\mathbf{h}",
+        "\\text{Unicidad: el polinomio de Taylor de grado } k \\text{ es el único polinomio de grado} \\leq k \\text{ que aproxima } f \\text{ con error } o(|x-x_0|^k)",
+        "\\text{Maclaurin: caso particular } x_0=0;\\quad e^x = \\sum_{n=0}^{\\infty}\\frac{x^n}{n!},\\quad \\sin x = \\sum_{n=0}^{\\infty}\\frac{(-1)^n x^{2n+1}}{(2n+1)!}",
+      ],
+    },
+    intuition: "Si tienes una función complicada y solo necesitas entenderla cerca de un punto, ¿para qué cargar con toda su complejidad? La serie de Taylor te permite reemplazar $f$ por un polinomio simple que la imita perfectamente en la cercanía. La aproximación de orden 1 es la recta tangente —'el mapa es plano si te acercas suficientemente'—. La de orden 2 agrega la curvatura —'el mapa es una parábola si miras un poco más lejos'—. Cada término adicional añade un nivel de detalle geométrico, extendiendo la zona donde la aproximación es válida. En ML, el gradiente es la aproximación de orden 1 de la pérdida, y la Hessiana es la corrección de orden 2 que los métodos avanzados explotan.",
+    development: [
+      {
+        label: "Derivación y polinomios de Taylor de orden bajo",
+        body: "El polinomio de Taylor de orden $k$ se construye imponiendo que coincida con $f$ en todas las derivadas hasta orden $k$ en $x_0$. Si $P_k(x) = \\sum_{n=0}^k c_n(x-x_0)^n$, entonces $P_k^{(j)}(x_0) = j!\\, c_j = f^{(j)}(x_0)$, de donde $c_j = f^{(j)}(x_0)/j!$.\n\nLos polinomios de orden bajo más usados (Maclaurin, $x_0=0$):\n\n$$e^x = 1 + x + \\frac{x^2}{2} + \\frac{x^3}{6} + \\cdots$$\n\n$$\\ln(1+x) = x - \\frac{x^2}{2} + \\frac{x^3}{3} - \\cdots \\quad (|x|<1)$$\n\n$$\\sigma(x) = \\frac{1}{2} + \\frac{x}{4} - \\frac{x^3}{48} + \\cdots \\quad (\\text{sigmoid})$$\n\n$$\\frac{1}{1-x} = 1 + x + x^2 + x^3 + \\cdots \\quad (|x|<1)$$\n\nEstas expansiones permiten analizar comportamientos asintóticos, derivar reglas de L'Hôpital y obtener fórmulas cerradas para esperanzas de funciones de variables aleatorias."
+      },
+      {
+        label: "Resto de Lagrange y cotas de error",
+        body: "El **resto de Lagrange** cuantifica el error de truncar la serie en orden $k$:\n\n$$R_k(x) = \\frac{f^{(k+1)}(\\xi)}{(k+1)!}(x-x_0)^{k+1}, \\quad \\xi \\in (\\min(x,x_0),\\, \\max(x,x_0))$$\n\nEsto implica que el error es $O(|x-x_0|^{k+1})$: usando un término más de la serie, el error cae con la potencia siguiente del desplazamiento. Para $|x-x_0| < 1$, añadir términos mejora la aproximación exponencialmente.\n\nEjemplo: aproximar $e^{0.1}$ con $k=3$:\n\n$$e^{0.1} \\approx 1 + 0.1 + \\frac{0.01}{2} + \\frac{0.001}{6} = 1.10516\\overline{6}$$\n\n$$|R_3| \\leq \\frac{e^{0.1}}{4!}(0.1)^4 \\approx 4.6 \\times 10^{-6}$$\n\nError real: $|e^{0.1} - 1.105167| \\approx 4.2 \\times 10^{-6}$ ✓"
+      },
+      {
+        label: "Expansión multivariable y optimización de segundo orden",
+        body: "Para $f: \\mathbb{R}^n \\to \\mathbb{R}$ de clase $C^3$, la expansión de Taylor alrededor de $\\mathbf{x}_0$ hasta orden 2 es:\n\n$$f(\\mathbf{x}_0 + \\mathbf{h}) = f(\\mathbf{x}_0) + \\nabla f(\\mathbf{x}_0)^\\top \\mathbf{h} + \\frac{1}{2}\\mathbf{h}^\\top H_f(\\mathbf{x}_0)\\mathbf{h} + O(\\|\\mathbf{h}\\|^3)$$\n\nMinimizando el modelo cuadrático respecto a $\\mathbf{h}$ (igualando gradiente a cero):\n\n$$\\nabla_{\\mathbf{h}}\\left[\\nabla f^\\top \\mathbf{h} + \\frac{1}{2}\\mathbf{h}^\\top H \\mathbf{h}\\right] = \\nabla f + H\\mathbf{h} = \\mathbf{0}$$\n\n$$\\Rightarrow \\mathbf{h}^* = -H^{-1}\\nabla f \\quad \\text{(paso de Newton)}$$\n\nEste es el fundamento del método de Newton: si la aproximación cuadrática fuera exacta, el paso de Newton llegaría al mínimo en una sola iteración. La calidad de la aproximación cuadrática —controlada por los términos de orden 3 de $f$— determina cuán rápido converge Newton en la práctica."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La expansión de Taylor es la herramienta analítica central para justificar y analizar algoritmos de optimización en ML:\n\n**Descenso de gradiente** (orden 1): $f(\\mathbf{w} - \\alpha \\nabla f) \\approx f(\\mathbf{w}) - \\alpha \\|\\nabla f\\|^2 < f(\\mathbf{w})$ para $\\alpha$ suficientemente pequeño. La condición de Armijo/Wolfe formaliza qué tan pequeño debe ser $\\alpha$.\n\n**Análisis de la tasa de aprendizaje óptima**: expandiendo $f$ a segundo orden alrededor del mínimo $\\mathbf{w}^*$ y usando $\\nabla f(\\mathbf{w}^*)=0$:\n\n$$f(\\mathbf{w}) \\approx f(\\mathbf{w}^*) + \\frac{1}{2}(\\mathbf{w}-\\mathbf{w}^*)^\\top H(\\mathbf{w}^*)(\\mathbf{w}-\\mathbf{w}^*)$$\n\nmotivando que $\\alpha^* = 1/\\lambda_{\\max}(H)$ es el paso máximo estable.\n\n**Trust Region Methods**: en lugar de usar el paso de Newton directamente, se minimiza el modelo cuadrático de Taylor restringido a una región $\\|\\mathbf{h}\\| \\leq \\Delta$ donde la aproximación es confiable.\n\n**Activaciones y estabilidad numérica**: $\\log(1+e^x) \\approx x$ para $x \\gg 0$ y $\\approx e^x$ para $x \\ll 0$ (expansión de Taylor en los límites), motivando la implementación numéricamente estable de `log_softmax` en PyTorch.\n\n**SGLD y Langevin dynamics**: la discretización de la dinámica de Langevin usa expansión de Taylor de la log-probabilidad, conectando muestreo bayesiano con SGD con ruido."
+      },
+    ],
+    code: `# Python - Series de Taylor: aproximación, error y aplicaciones en ML
+import numpy as np
+import matplotlib.pyplot as plt
+from math import factorial
+
+# ── 1. Polinomio de Taylor genérico ──────────────────────────────────────
+def taylor_poly(derivadas_en_x0, x0, x, k):
+    """
+    Evalúa el polinomio de Taylor de orden k.
+    derivadas_en_x0: lista [f(x0), f'(x0), f''(x0), ..., f^(k)(x0)]
+    """
+    resultado = 0.0
+    h = np.asarray(x) - x0
+    for n in range(k + 1):
+        resultado += derivadas_en_x0[n] / factorial(n) * h**n
+    return resultado
+
+# Ejemplo: f(x) = e^x en x0=0 (Maclaurin)
+x0 = 0.0
+x  = np.linspace(-3, 3, 400)
+derivs_exp = [1.0] * 8   # todas las derivadas de e^x en 0 son 1
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+axes[0].plot(x, np.exp(x), 'w-', lw=2, label='$e^x$ exacta')
+for k in [1, 2, 3, 5, 7]:
+    P = taylor_poly(derivs_exp, x0, x, k)
+    P_clipped = np.clip(P, -10, 15)
+    axes[0].plot(x, P_clipped, '--', lw=1.5, label=f'k={k}', alpha=0.8)
+axes[0].set(ylim=(-5, 12), title="Taylor de $e^x$ en $x_0=0$", xlabel='x', ylabel='y')
+axes[0].legend(fontsize=8); axes[0].set_facecolor('#0b1220')
+
+# ── 2. Cota de error y convergencia ──────────────────────────────────────
+x_test = 0.5
+print("Aproximaciones de e^0.5 por orden k:")
+print(f"Valor exacto: {np.exp(x_test):.10f}")
+for k in range(1, 9):
+    approx = taylor_poly(derivs_exp, 0.0, x_test, k)
+    error  = abs(np.exp(x_test) - approx)
+    # Cota del resto de Lagrange: M_{k+1}/(k+1)! * |h|^{k+1}, M = e^0.5
+    cota   = np.exp(x_test) / factorial(k+1) * x_test**(k+1)
+    print(f"  k={k}: P_k={approx:.8f}  |error|={error:.2e}  cota={cota:.2e}")
+
+# ── 3. Taylor de sigmoid: linealización en x0=0 ──────────────────────────
+sigmoid  = lambda x: 1 / (1 + np.exp(-x))
+
+# Derivadas de sigma en 0: sigma(0)=0.5, sigma'(0)=0.25, sigma''(0)=0
+# sigma'''(0) = sigma'(0)(1-2*sigma(0))^2 - 2*sigma'(0)^2 = 0.25-0.125=... 
+# Usamos diferenciación numérica
+def deriv_n(f, x0, n, h=1e-4):
+    """n-ésima derivada por diferencias finitas repetidas."""
+    if n == 0: return f(x0)
+    return (deriv_n(f, x0+h, n-1, h) - deriv_n(f, x0-h, n-1, h)) / (2*h)
+
+sig_derivs = [deriv_n(sigmoid, 0.0, n) for n in range(6)]
+print("\\nDerivadas de sigmoid en 0:", [f"{d:.4f}" for d in sig_derivs])
+
+x_sig = np.linspace(-4, 4, 300)
+print("\\nAproximaciones de sigma(1.0):")
+for k in [1, 3, 5]:
+    approx = taylor_poly(sig_derivs, 0.0, 1.0, k)
+    print(f"  k={k}: {approx:.6f}  (exacta: {sigmoid(1.0):.6f})")
+
+# ── 4. Taylor multivariable — modelo cuadrático y paso Newton ─────────────
+# f(x,y) = (x-1)^2 + 2(y+1)^2 + 0.5*x*y   mínimo ≈ (x*,y*)
+f2d   = lambda v: (v[0]-1)**2 + 2*(v[1]+1)**2 + 0.5*v[0]*v[1]
+grad  = lambda v: np.array([2*(v[0]-1) + 0.5*v[1],
+                             4*(v[1]+1) + 0.5*v[0]])
+H_mat = np.array([[2.0, 0.5], [0.5, 4.0]])   # Hessiana constante (cuadrática)
+
+x_curr = np.array([3.0, 2.0])
+
+print("\\nMétodo de Newton en f(x,y):")
+print(f"{'Iter':>4}  {'x':>8}  {'y':>8}  {'f(x,y)':>12}  {'‖∇f‖':>10}")
+for k in range(5):
+    g  = grad(x_curr)
+    fv = f2d(x_curr)
+    print(f"{k:>4}  {x_curr[0]:>8.4f}  {x_curr[1]:>8.4f}  {fv:>12.6f}  {np.linalg.norm(g):>10.2e}")
+    h_newton = -np.linalg.solve(H_mat, g)   # h* = -H⁻¹∇f
+    x_curr   = x_curr + h_newton
+
+# ── 5. Taylor de log(1+e^x): softplus y estabilidad numérica ─────────────
+softplus_naive  = lambda x: np.log(1 + np.exp(x))
+softplus_stable = lambda x: np.where(x > 20, x, np.log1p(np.exp(np.minimum(x, 20))))
+
+# Expansión de Taylor para x→±∞ justifica la implementación estable
+x_large = np.array([100.0, 50.0, -100.0, -50.0])
+print("\\nSoftplus - naive vs estable:")
+for xi in x_large:
+    try:
+        naive  = softplus_naive(np.array([xi]))[0]
+    except:
+        naive = float('inf')
+    stable = softplus_stable(np.array([xi]))[0]
+    # Taylor: log(1+e^x) ≈ x para x>>0; ≈ e^x para x<<0
+    taylor = xi if xi > 0 else np.exp(xi)
+    print(f"  x={xi:7.1f}: naive={naive:.4f}  stable={stable:.4f}  Taylor≈{taylor:.4f}")
+
+# ── 6. Condición de descenso (Armijo) vía Taylor orden 1 ─────────────────
+def armijo_check(f, x, g, alpha, c=0.5):
+    """Armijo: f(x - α∇f) ≤ f(x) - c·α·‖∇f‖²  (Taylor 1er orden)"""
+    x_new  = x - alpha * g
+    lhs    = f(x_new)
+    rhs    = f(x) - c * alpha * np.dot(g, g)
+    return lhs <= rhs, lhs, rhs
+
+x0_arm = np.array([2.0, 1.5])
+g0     = grad(x0_arm)
+print("\\nCondición de Armijo para distintos α:")
+for alpha in [1.0, 0.5, 0.1, 0.01]:
+    ok, lhs, rhs = armijo_check(f2d, x0_arm, g0, alpha)
+    print(f"  α={alpha:.3f}: {'✓' if ok else '✗'}  f_new={lhs:.4f}  rhs={rhs:.4f}")
+`,
+    related: ["Derivada y Reglas de Derivación", "Matriz Hessiana", "Descenso de Gradiente", "Métodos de Newton y Quasi-Newton", "Optimización Convexa", "Diferenciación Automática"],
+    hasViz: true,
+    vizType: "taylorApprox",
+  },
+  {
+    id: 43,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Puntos Críticos y Puntos de Silla",
+    tags: ["puntos críticos", "puntos de silla", "mínimos locales", "paisaje de pérdida", "optimización no convexa", "escapar de sillas"],
+    definition: "Un punto crítico de f: Rⁿ → R es todo punto x* donde el gradiente se anula: ∇f(x*) = 0. Los puntos críticos se clasifican según la Hessiana en mínimos locales (H ≻ 0), máximos locales (H ≺ 0) y puntos de silla (eigenvalores de H con signos mixtos). En optimización de redes neuronales profundas, los puntos de silla son exponencialmente más frecuentes que los mínimos locales —en un espacio de n parámetros, la probabilidad de que todos los eigenvalores de H sean positivos decrece exponencialmente con n—. Comprender la geometría de estos puntos es esencial para diseñar optimizadores robustos y entender por qué el descenso de gradiente estocástico generaliza bien en la práctica.",
+    formal: {
+      notation: "Sea $f \\in C^2(\\mathbb{R}^n, \\mathbb{R})$ y $\\mathbf{x}^* \\in \\mathbb{R}^n$ con $\\nabla f(\\mathbf{x}^*) = \\mathbf{0}$",
+      body: "\\mathbf{x}^* \\text{ es } \\begin{cases} \\text{mínimo local} & \\text{si } H_f(\\mathbf{x}^*) \\succ 0 \\;(\\lambda_i > 0 \\;\\forall i) \\\\ \\text{máximo local} & \\text{si } H_f(\\mathbf{x}^*) \\prec 0 \\;(\\lambda_i < 0 \\;\\forall i) \\\\ \\text{punto de silla} & \\text{si } \\exists\\, \\lambda_i > 0,\\, \\lambda_j < 0 \\\\ \\text{inconcluso} & \\text{si } \\lambda_{\\min} = 0 \\end{cases}",
+      geometric: "f(\\mathbf{x}^* + \\mathbf{h}) \\approx f(\\mathbf{x}^*) + \\tfrac{1}{2}\\mathbf{h}^\\top H_f(\\mathbf{x}^*)\\mathbf{h} + O(\\|\\mathbf{h}\\|^3), \\quad \\kappa_{\\text{silla}} = \\lambda_{\\min}(H_f) < 0",
+      properties: [
+        "\\text{Condición necesaria (1er orden): } \\nabla f(\\mathbf{x}^*) = \\mathbf{0} \\;\\text{(no suficiente para mínimo)}",
+        "\\text{Condición suficiente (2do orden): } \\nabla f(\\mathbf{x}^*)=\\mathbf{0} \\text{ y } H_f(\\mathbf{x}^*) \\succ 0 \\Rightarrow \\text{mínimo local estricto}",
+        "\\text{Índice de Morse: número de eigenvalores negativos de } H_f \\text{ en } \\mathbf{x}^*; \\text{ silla de índice } k \\text{ tiene } k \\text{ dir. de descenso}",
+        "\\text{Sillas estrictas: } \\lambda_{\\min}(H_f(\\mathbf{x}^*)) < 0 \\Rightarrow \\exists\\, \\mathbf{d}: f(\\mathbf{x}^*+\\varepsilon\\mathbf{d}) < f(\\mathbf{x}^*) \\;\\forall\\varepsilon>0 \\text{ pequeño}",
+        "\\text{Prevalencia en DL: } P(\\text{mínimo local}) \\approx 2^{-n} \\text{ para } n \\text{ params independientes bajo modelo de campo aleatorio}",
+      ],
+    },
+    intuition: "Imagina una silla de montar: si caminas hacia adelante subes, si caminas hacia los lados bajas. El gradiente es cero en el centro de la silla —ninguna dirección cardinalmente horizontal tiene pendiente— pero no estás en un valle ni en una cima. En redes neuronales con millones de parámetros, los puntos críticos son casi universalmente sillas de este tipo: hay unas pocas direcciones de escape hacia abajo, pero el gradiente exactamente en ese punto es cero y el optimizador puede quedarse 'atascado'. El truco es que el ruido del SGD actúa como perturbaciones aleatorias que eventualmente empujan al optimizador fuera de la silla.",
+    development: [
+      {
+        label: "Clasificación completa y test de la segunda derivada",
+        body: "Para $f: \\mathbb{R}^2 \\to \\mathbb{R}$ en un punto crítico $(x^*, y^*)$, el discriminante de la Hessiana:\n\n$$D = f_{xx}f_{yy} - f_{xy}^2 = \\det H_f$$\n\nclasifica completamente el punto:\n\n| $D$ | $f_{xx}$ | Tipo |\n|-----|---------|------|\n| $D > 0$ | $> 0$ | Mínimo local |\n| $D > 0$ | $< 0$ | Máximo local |\n| $D < 0$ | cualquiera | **Punto de silla** |\n| $D = 0$ | cualquiera | Inconcluso |\n\nEjemplos canónicos en $\\mathbb{R}^2$: $f(x,y) = x^2 + y^2$ (mínimo en origen, $D=4>0$); $f(x,y) = -(x^2+y^2)$ (máximo, $D=4>0$, $f_{xx}<0$); $f(x,y) = x^2 - y^2$ (**silla de mono**, $D=-4<0$); $f(x,y) = x^2$ (mínimo degenerado, $D=0$, inconcluso)."
+      },
+      {
+        label: "Geometría de las sillas y direcciones de escape",
+        body: "Un punto de silla estricto $\\mathbf{x}^*$ tiene al menos un eigenvalor negativo $\\lambda_k < 0$ de $H_f(\\mathbf{x}^*)$. El eigenvector asociado $\\mathbf{v}_k$ es la **dirección de escape**: moverse en esa dirección desciende $f$:\n\n$$f(\\mathbf{x}^* + \\varepsilon \\mathbf{v}_k) \\approx f(\\mathbf{x}^*) + \\frac{\\varepsilon^2}{2}\\lambda_k < f(\\mathbf{x}^*)$$\n\nEl **índice de Morse** de la silla es el número de eigenvalores negativos. Una silla de índice 1 (un solo eigenvalor negativo) tiene exactamente una dirección de descenso —es la más común y más difícil de escapar— mientras que una de índice $k$ tiene $k$ direcciones de descenso.\n\nEn DL, el paisaje de pérdida típico tiene sillas de índice bajo concentradas en valores de pérdida altos (inicio del entrenamiento) y sillas de índice alto —o mínimos— en valores bajos. El SGD navega este paisaje gracias al ruido de los mini-batches, que actúa como perturbaciones que revelan las direcciones de escape."
+      },
+      {
+        label: "Prevalencia de sillas en alta dimensión y SGD como escape",
+        body: "Sea $f: \\mathbb{R}^n \\to \\mathbb{R}$ con puntos críticos modelados por matrices aleatorias simétricas (GOE). La fracción esperada de puntos críticos que son mínimos locales decae exponencialmente:\n\n$$\\mathbb{E}\\left[\\frac{\\text{# mínimos}}{\\text{# críticos}}\\right] \\approx e^{-\\beta n}$$\n\npara alguna constante $\\beta > 0$. En la práctica, para $n \\sim 10^8$ parámetros, esencialmente todos los puntos críticos son sillas.\n\nSin embargo, la **hipótesis de Benigna de Dauphin et al. (2014)** postula que en redes profundas, los mínimos locales tienen valores de pérdida similares al mínimo global, y las sillas de alto índice están asociadas a pérdidas altas. Esto significa que el optimizador no necesita encontrar el mínimo global: cualquier mínimo local es suficientemente bueno.\n\nEl **SGD escapa de sillas** gracias al ruido de estimación del gradiente:\n\n$$\\mathbf{g}_t = \\nabla f(\\mathbf{w}_t) + \\boldsymbol{\\xi}_t, \\quad \\boldsymbol{\\xi}_t \\sim \\mathcal{N}(\\mathbf{0}, \\Sigma)$$\n\nCerca de una silla estricta, $\\nabla f \\approx \\mathbf{0}$ pero $\\boldsymbol{\\xi}_t \\neq \\mathbf{0}$: el ruido proyectado sobre la dirección de escape $\\mathbf{v}_k$ genera una componente que empuja al optimizador lejos de la silla."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La geometría de puntos críticos es central para entender el entrenamiento de redes neuronales:\n\n**Loss landscape de redes profundas**: visualizaciones como las de Li et al. (2018) usando proyección aleatoria de 2D muestran que las redes con skip connections (ResNets) tienen paisajes de pérdida mucho más lisos y convexos que las redes sin ellas, con menos puntos de silla pronunciados.\n\n**Saddle-Free Newton (Dauphin et al., 2014)**: modifica el paso de Newton para escapar de sillas usando el valor absoluto de los eigenvalores:\n\n$$\\mathbf{w}^+ = \\mathbf{w} - (|H|)^{-1}\\nabla f, \\quad |H| = Q|\\Lambda|Q^\\top$$\n\nInvierte el signo en direcciones negativas, convirtiendo el descenso en ascenso local para escapar.\n\n**Sharpness y generalización**: los mínimos 'planos' (con $\\lambda_{\\max}(H)$ pequeño) generalizan mejor que los 'agudos'. SAM (Sharpness-Aware Minimization) busca explícitamente mínimos planos perturbando los pesos en la dirección del gradiente antes de actualizar.\n\n**Batch normalization**: actúa como regularizador del paisaje de pérdida, suavizando las curvaturas y reduciendo la sharpness de los puntos críticos encontrados durante el entrenamiento.\n\n**Puntos de silla en embeddings**: en word2vec y modelos de lenguaje, los embeddings óptimos a menudo corresponden a puntos de silla del objetivo de entrenamiento —no a mínimos— lo que requiere técnicas de optimización específicas como negative sampling."
+      },
+    ],
+    code: `# Python - Puntos críticos, clasificación y escape de sillas
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import minimize
+
+# ── 1. Encontrar y clasificar puntos críticos ────────────────────────────
+def clasificar_critico(H):
+    """Clasifica un punto crítico según los eigenvalores de H."""
+    eigvals = np.linalg.eigvalsh(H)
+    if np.all(eigvals > 1e-8):
+        return "Mínimo local", eigvals
+    elif np.all(eigvals < -1e-8):
+        return "Máximo local", eigvals
+    elif np.any(eigvals > 1e-8) and np.any(eigvals < -1e-8):
+        return f"Punto de silla (índice={np.sum(eigvals<0)})", eigvals
+    else:
+        return "Inconcluso (λ≈0)", eigvals
+
+# f(x,y) = x³ - 3x + y² - 2y  →  puntos críticos analíticos
+f    = lambda v: v[0]**3 - 3*v[0] + v[1]**2 - 2*v[1]
+grad = lambda v: np.array([3*v[0]**2 - 3, 2*v[1] - 2])
+H_fn = lambda v: np.array([[6*v[0], 0.0], [0.0, 2.0]])
+
+# Puntos críticos: grad=0 → x=±1, y=1
+criticos = [np.array([-1.0, 1.0]), np.array([1.0, 1.0])]
+print("Clasificación de puntos críticos:")
+for xc in criticos:
+    tipo, eigs = clasificar_critico(H_fn(xc))
+    print(f"  x*={xc}: f(x*)={f(xc):.3f}  λ={np.round(eigs,3)}  → {tipo}")
+
+# ── 2. Función con silla de mono: f(x,y) = x² - y² ──────────────────────
+f_silla = lambda v: v[0]**2 - v[1]**2
+grad_s  = lambda v: np.array([2*v[0], -2*v[1]])
+H_silla = np.array([[2.0, 0.0], [0.0, -2.0]])
+
+tipo_s, eigs_s = clasificar_critico(H_silla)
+print(f"\\nSilla de mono en origen: {tipo_s}, λ={eigs_s}")
+print(f"Dirección de escape (eigvec λ<0): {np.array([0,1])}")
+
+# ── 3. GD queda atascado en silla; SGD escapa ────────────────────────────
+np.random.seed(42)
+
+def gd_trajectory(grad_fn, x0, lr=0.1, steps=100, noise=0.0):
+    """Descenso de gradiente con ruido opcional (SGD)."""
+    traj = [x0.copy()]
+    x    = x0.copy()
+    for _ in range(steps):
+        g = grad_fn(x) + noise * np.random.randn(len(x))
+        x = x - lr * g
+        traj.append(x.copy())
+    return np.array(traj)
+
+# Función con silla en origen: f(x,y) = x^4/4 - x^2/2 + y^2
+# Mínimos en (±1,0), silla en (0,0)
+f_double = lambda v: v[0]**4/4 - v[0]**2/2 + v[1]**2
+grad_d   = lambda v: np.array([v[0]**3 - v[0], 2*v[1]])
+
+x_init = np.array([0.05, 2.0])   # cerca de la silla
+traj_gd  = gd_trajectory(grad_d, x_init, lr=0.05, steps=200, noise=0.0)
+traj_sgd = gd_trajectory(grad_d, x_init, lr=0.05, steps=200, noise=0.15)
+
+print("\\nGD final:", np.round(traj_gd[-1], 4),
+      "  f=", round(f_double(traj_gd[-1]), 4))
+print("SGD final:", np.round(traj_sgd[-1], 4),
+      "  f=", round(f_double(traj_sgd[-1]), 4))
+print("Mínimos reales: (±1, 0), f=−0.25")
+
+# ── 4. Detección numérica de tipo de punto crítico ──────────────────────
+def analizar_critico_numerico(f, xc, h=1e-4, tol=1e-6):
+    """Verifica si xc es punto crítico y lo clasifica."""
+    n = len(xc)
+    # Gradiente numérico
+    g = np.zeros(n)
+    for j in range(n):
+        xp, xm = xc.copy(), xc.copy()
+        xp[j]+=h; xm[j]-=h
+        g[j] = (f(xp) - f(xm))/(2*h)
+    # Hessiana numérica
+    H = np.zeros((n,n))
+    for i in range(n):
+        for j in range(n):
+            xpp=xc.copy(); xpp[i]+=h; xpp[j]+=h
+            xpm=xc.copy(); xpm[i]+=h; xpm[j]-=h
+            xmp=xc.copy(); xmp[i]-=h; xmp[j]+=h
+            xmm=xc.copy(); xmm[i]-=h; xmm[j]-=h
+            H[i,j]=(f(xpp)-f(xpm)-f(xmp)+f(xmm))/(4*h*h)
+    es_critico = np.linalg.norm(g) < tol
+    tipo, eigvals = clasificar_critico(H)
+    return {'critico': es_critico, 'grad_norm': np.linalg.norm(g),
+            'tipo': tipo, 'eigvals': eigvals, 'H': H}
+
+# Función de Rosenbrock: mínimo en (1,1) — difícil para GD
+rosenbrock = lambda v: (1-v[0])**2 + 100*(v[1]-v[0]**2)**2
+xc_rosen   = np.array([1.0, 1.0])
+res = analizar_critico_numerico(rosenbrock, xc_rosen)
+print(f"\\nRosenbrock en (1,1): {res['tipo']}")
+print(f"  λ = {np.round(res['eigvals'], 2)}")
+print(f"  κ(H) = {res['eigvals'].max()/res['eigvals'].min():.1f}  (muy mal condicionado)")
+
+# ── 5. Índice de Morse en función multivariable ──────────────────────────
+def indice_morse(H):
+    return int(np.sum(np.linalg.eigvalsh(H) < 0))
+
+# Sillas de distintos índices en R³
+H_idx0 = np.diag([ 2.0,  3.0,  1.5])   # mínimo (índice 0)
+H_idx1 = np.diag([-1.0,  2.0,  3.0])   # silla índice 1
+H_idx2 = np.diag([-1.0, -2.0,  3.0])   # silla índice 2
+H_idx3 = np.diag([-1.0, -2.0, -0.5])   # máximo (índice 3)
+
+for H_ex, nombre in zip([H_idx0,H_idx1,H_idx2,H_idx3],
+                         ['Mínimo','Silla-1','Silla-2','Máximo']):
+    print(f"  {nombre}: índice Morse = {indice_morse(H_ex)}")
+
+# ── 6. Saddle-Free Newton (paso modificado) ───────────────────────────────
+def saddle_free_newton_step(grad, H):
+    """Usa |H|⁻¹ en lugar de H⁻¹ para escapar de sillas."""
+    eigvals, Q = np.linalg.eigh(H)
+    abs_eigvals = np.abs(eigvals)
+    # Evitar división por cero
+    abs_eigvals = np.maximum(abs_eigvals, 1e-6)
+    H_abs_inv = Q @ np.diag(1.0/abs_eigvals) @ Q.T
+    return -H_abs_inv @ grad
+
+xc_silla = np.array([0.01, 0.01])   # cerca de silla
+g_silla  = grad_d(xc_silla)
+H_silla2 = np.array([[3*xc_silla[0]**2-1, 0],[0,2.0]])
+
+h_newton = -np.linalg.solve(H_silla2, g_silla) if np.linalg.det(H_silla2)!=0 else g_silla
+h_sfn    = saddle_free_newton_step(g_silla, H_silla2)
+print(f"\\nEn silla (0.01, 0.01) de f=x⁴/4-x²/2+y²:")
+print(f"  Newton clásico: Δw = {np.round(h_newton,4)}")
+print(f"  Saddle-Free N:  Δw = {np.round(h_sfn,4)}  ← escapa en dir. correcta")
+`,
+    related: ["Derivadas Parciales y Gradiente", "Matriz Hessiana", "Descenso de Gradiente", "Optimización Convexa", "Métodos de Newton y Quasi-Newton", "Sharpness-Aware Minimization"],
+    hasViz: true,
+    vizType: "criticalPoints",
+  },
+  {
+    id: 44,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Condiciones KKT y Multiplicadores de Lagrange",
+    tags: ["KKT", "multiplicadores de Lagrange", "optimización restringida", "condiciones de optimalidad", "dualidad", "SVM"],
+    definition: "Los multiplicadores de Lagrange y las condiciones de Karush-Kuhn-Tucker (KKT) son el marco formal para resolver problemas de optimización con restricciones. Dada una función objetivo f a minimizar sujeta a restricciones de igualdad hᵢ(x)=0 y de desigualdad gⱼ(x)≤0, el Lagrangiano L(x,λ,μ) incorpora estas restricciones mediante multiplicadores escalares. Las condiciones KKT son condiciones necesarias de optimalidad de primer orden que generalizan la condición ∇f=0 al caso restringido: en el óptimo, el gradiente de f debe ser combinación lineal de los gradientes de las restricciones activas. Para problemas convexos, las KKT son además suficientes.",
+    formal: {
+      notation: "Sea $\\min_{\\mathbf{x}\\in\\mathbb{R}^n} f(\\mathbf{x})$ sujeto a $h_i(\\mathbf{x})=0,\\; i=1,\\ldots,p$ y $g_j(\\mathbf{x})\\leq 0,\\; j=1,\\ldots,q$",
+      body: "\\mathcal{L}(\\mathbf{x},\\boldsymbol{\\lambda},\\boldsymbol{\\mu}) = f(\\mathbf{x}) + \\sum_{i=1}^{p}\\lambda_i h_i(\\mathbf{x}) + \\sum_{j=1}^{q}\\mu_j g_j(\\mathbf{x})",
+      geometric: "\\nabla_{\\mathbf{x}}\\mathcal{L} = \\mathbf{0} \\iff \\nabla f(\\mathbf{x}^*) = -\\sum_i \\lambda_i \\nabla h_i(\\mathbf{x}^*) - \\sum_j \\mu_j \\nabla g_j(\\mathbf{x}^*)",
+      properties: [
+        "\\text{Estacionariedad: } \\nabla_{\\mathbf{x}}\\mathcal{L}(\\mathbf{x}^*,\\boldsymbol{\\lambda}^*,\\boldsymbol{\\mu}^*) = \\mathbf{0}",
+        "\\text{Factibilidad primal: } h_i(\\mathbf{x}^*)=0\\;\\forall i,\\quad g_j(\\mathbf{x}^*)\\leq 0\\;\\forall j",
+        "\\text{Factibilidad dual: } \\mu_j^* \\geq 0\\;\\forall j \\quad (\\text{solo restricciones de desigualdad})",
+        "\\text{Holgura complementaria: } \\mu_j^* g_j(\\mathbf{x}^*) = 0\\;\\forall j \\quad (\\text{restricción activa } \\Leftrightarrow \\mu_j^*>0)",
+        "\\text{Suficiencia (convexo): si } f,g_j \\text{ convexas y } h_i \\text{ afines, KKT} \\Rightarrow \\text{óptimo global}",
+      ],
+    },
+    intuition: "Imagina que quieres escalar la montaña más alta dentro de un parque nacional delimitado por una valla circular. Sin la valla llegarías al pico global, pero con ella podrías terminar en la valla misma si el pico está fuera. En el óptimo sobre la valla, el gradiente de la altitud debe apuntar directamente hacia adentro de la valla —no puede tener componente tangencial a la valla, porque entonces podrías mejorar moviéndote a lo largo de ella. El multiplicador de Lagrange $\\lambda$ mide exactamente cuánto ganarías si pudieras expandir la valla: es el 'precio sombra' de la restricción. La holgura complementaria dice que o bien estás en la valla ($g=0$) o la valla no importa ($\\mu=0$), nunca ambas restricciones activas e inactivas simultáneamente.",
+    development: [
+      {
+        label: "Multiplicadores de Lagrange: solo igualdades",
+        body: "Para $\\min f(\\mathbf{x})$ sujeto a $h(\\mathbf{x}) = 0$, la condición geométrica de optimalidad es que $\\nabla f$ y $\\nabla h$ sean paralelos en $\\mathbf{x}^*$: de lo contrario existiría una dirección tangente a la restricción que disminuye $f$.\n\nFormalmente, se introduce el **Lagrangiano** $\\mathcal{L}(\\mathbf{x},\\lambda) = f(\\mathbf{x}) + \\lambda h(\\mathbf{x})$ y se buscan sus puntos estacionarios:\n\n$$\\nabla_{\\mathbf{x}}\\mathcal{L} = \\nabla f + \\lambda \\nabla h = \\mathbf{0}$$\n$$\\nabla_{\\lambda}\\mathcal{L} = h(\\mathbf{x}) = 0$$\n\nEl sistema de $n+1$ ecuaciones con $n+1$ incógnitas $(\\mathbf{x}, \\lambda)$ determina los candidatos a óptimo. El multiplicador $\\lambda^*$ tiene interpretación económica directa:\n\n$$\\lambda^* = -\\frac{df^*}{dc}$$\n\ndonde $c$ es el lado derecho de $h(\\mathbf{x}) = c$: mide cuánto cambia el valor óptimo si se relaja marginalmente la restricción."
+      },
+      {
+        label: "Condiciones KKT completas: desigualdades y holgura complementaria",
+        body: "Con restricciones de desigualdad $g_j(\\mathbf{x}) \\leq 0$, la condición de **holgura complementaria** es la clave:\n\n$$\\mu_j^* g_j(\\mathbf{x}^*) = 0 \\quad \\forall j$$\n\nEsto significa exactamente una de dos cosas para cada restricción:\n- **Restricción activa**: $g_j(\\mathbf{x}^*) = 0$ y $\\mu_j^* > 0$ — la restricción 'toca' el óptimo y tiene precio sombra positivo\n- **Restricción inactiva**: $g_j(\\mathbf{x}^*) < 0$ y $\\mu_j^* = 0$ — la restricción no toca el óptimo y se puede ignorar\n\nLas cuatro condiciones KKT juntas:\n\n$$\\nabla f(\\mathbf{x}^*) + \\sum_i \\lambda_i^* \\nabla h_i(\\mathbf{x}^*) + \\sum_j \\mu_j^* \\nabla g_j(\\mathbf{x}^*) = \\mathbf{0}$$\n$$h_i(\\mathbf{x}^*) = 0 \\;\\forall i, \\quad g_j(\\mathbf{x}^*) \\leq 0 \\;\\forall j$$\n$$\\mu_j^* \\geq 0 \\;\\forall j, \\quad \\mu_j^* g_j(\\mathbf{x}^*) = 0 \\;\\forall j$$\n\nLa condición de **calificación de restricciones** (constraint qualification, CQ) —como la de Slater para problemas convexos o LICQ para el caso general— garantiza que las KKT sean condiciones necesarias."
+      },
+      {
+        label: "Dualidad de Lagrange y gap de dualidad",
+        body: "La **función dual de Lagrange** se define como el ínfimo del Lagrangiano respecto a $\\mathbf{x}$:\n\n$$d(\\boldsymbol{\\lambda}, \\boldsymbol{\\mu}) = \\inf_{\\mathbf{x}} \\mathcal{L}(\\mathbf{x}, \\boldsymbol{\\lambda}, \\boldsymbol{\\mu})$$\n\nSiempre es cóncava (independientemente de la convexidad de $f$) y proporciona una cota inferior del problema primal: $d(\\boldsymbol{\\lambda}, \\boldsymbol{\\mu}) \\leq f(\\mathbf{x}^*)$ para todo $\\boldsymbol{\\mu} \\geq \\mathbf{0}$.\n\nEl **problema dual** maximiza esta cota:\n\n$$\\max_{\\boldsymbol{\\lambda},\\, \\boldsymbol{\\mu}\\geq\\mathbf{0}} d(\\boldsymbol{\\lambda},\\boldsymbol{\\mu})$$\n\nEl **gap de dualidad** es $f(\\mathbf{x}^*) - d^*$. Bajo la **condición de Slater** (existe $\\mathbf{x}$ factible estrictamente: $g_j(\\mathbf{x})<0\\;\\forall j$) para problemas convexos, el gap es cero (**dualidad fuerte**) y los puntos KKT son exactamente los pares primales-duales óptimos."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "Las KKT y la dualidad de Lagrange son el sustrato matemático de varios algoritmos fundamentales en ML:\n\n**Support Vector Machine (SVM)**: el problema primal $\\min_{\\mathbf{w},b,\\boldsymbol{\\xi}} \\frac{1}{2}\\|\\mathbf{w}\\|^2 + C\\sum_i \\xi_i$ con restricciones $y_i(\\mathbf{w}^\\top\\mathbf{x}_i+b) \\geq 1-\\xi_i$, $\\xi_i \\geq 0$ tiene dual:\n\n$$\\max_{\\boldsymbol{\\alpha}} \\sum_i \\alpha_i - \\frac{1}{2}\\sum_{i,j}\\alpha_i\\alpha_j y_i y_j \\mathbf{x}_i^\\top\\mathbf{x}_j \\quad \\text{s.t.} \\quad 0\\leq\\alpha_i\\leq C,\\; \\sum_i\\alpha_i y_i=0$$\n\nLa holgura complementaria revela que solo los **vectores soporte** ($\\alpha_i > 0$, puntos en o dentro del margen) contribuyen a la decisión. El **truco del kernel** reemplaza $\\mathbf{x}_i^\\top\\mathbf{x}_j$ por $\\kappa(\\mathbf{x}_i,\\mathbf{x}_j)$ sin cambiar la estructura dual.\n\n**Regularización como restricción**: el problema $\\min \\mathcal{L}(\\mathbf{w})$ s.t. $\\|\\mathbf{w}\\|^2 \\leq r$ es equivalente (via KKT) al problema regularizado $\\min \\mathcal{L}(\\mathbf{w}) + \\lambda\\|\\mathbf{w}\\|^2$ donde $\\lambda^* = \\mu^*$ es el multiplicador dual.\n\n**Programación cuadrática en fine-tuning**: RLHF usa PPO con restricciones de política (KL-divergence $\\leq \\delta$), que se resuelve via multiplicadores de Lagrange duales adaptativos.\n\n**Attention con restricción de normalización**: el softmax es la solución al problema $\\max \\mathbf{a}^\\top\\mathbf{z} - \\mathbf{a}^\\top\\log\\mathbf{a}$ s.t. $\\sum_i a_i = 1$, $a_i\\geq 0$, cuyas KKT dan exactamente $a_i = e^{z_i}/\\sum_j e^{z_j}$."
+      },
+    ],
+    code: `# Python - KKT, Lagrange y aplicaciones en ML
+import numpy as np
+from scipy.optimize import minimize, LinearConstraint, NonlinearConstraint
+
+# ── 1. Multiplicadores de Lagrange: mínimo en círculo ────────────────────
+# min f(x,y) = (x-2)² + (y-1)²  s.t.  x² + y² = 1
+# Lagrangiano: L = f + λ(x²+y²-1)
+# KKT: ∇f + λ∇h = 0  →  (2(x-2)+2λx, 2(y-1)+2λy) = 0
+# Solución analítica: x* = 2/(√5), y* = 1/(√5), λ* = 1 - √5
+
+f    = lambda v: (v[0]-2)**2 + (v[1]-1)**2
+h    = lambda v: v[0]**2 + v[1]**2 - 1     # restricción igualdad
+
+# Solución analítica
+x_star = np.array([2/np.sqrt(5), 1/np.sqrt(5)])
+lam_star = 1 - np.sqrt(5)
+print("── Multiplicadores de Lagrange ──")
+print(f"x* = ({x_star[0]:.4f}, {x_star[1]:.4f})")
+print(f"λ* = {lam_star:.4f}")
+print(f"f(x*) = {f(x_star):.4f}")
+print(f"h(x*) = {h(x_star):.6f}  (debe ser 0)")
+
+# Verificar condición KKT: ∇f + λ∇h = 0
+grad_f  = np.array([2*(x_star[0]-2), 2*(x_star[1]-1)])
+grad_h  = np.array([2*x_star[0], 2*x_star[1]])
+kkt_res = grad_f + lam_star * grad_h
+print(f"‖∇f + λ∇h‖ = {np.linalg.norm(kkt_res):.2e}  (debe ser ≈ 0)")
+
+# Precio sombra: si radio = 1+ε, f* mejora en λ*·ε
+eps = 0.01
+f_relajado = (2/np.sqrt(5*(1+eps)**(-2))-2)**2  # aproximado
+print(f"Precio sombra: Δf*/Δc ≈ {lam_star:.4f}")
+
+# ── 2. KKT con desigualdades — verificación numérica ──────────────────────
+# min f(x,y) = x² + y²  s.t.  x+y >= 1  (g: 1-x-y <= 0)
+# KKT: (2x,2y) + μ(-1,-1) = 0  →  x*=y*=1/2, μ*=1
+
+f2   = lambda v: v[0]**2 + v[1]**2
+g2   = lambda v: 1 - v[0] - v[1]   # g ≤ 0
+
+x2   = np.array([0.5, 0.5])
+mu2  = 1.0  # multiplicador dual
+grad_f2 = np.array([2*x2[0], 2*x2[1]])
+grad_g2 = np.array([-1.0, -1.0])
+
+print("\n── KKT con desigualdad ──")
+print(f"x* = {x2}, f(x*) = {f2(x2):.4f}")
+print(f"g(x*) = {g2(x2):.4f}  (restricción activa, g=0)")
+print(f"μ* = {mu2:.4f}  ≥ 0  ✓")
+print(f"μ*·g(x*) = {mu2*g2(x2):.4f}  (holgura complementaria = 0) ✓")
+print(f"‖∇f + μ∇g‖ = {np.linalg.norm(grad_f2 + mu2*grad_g2):.2e}  ✓")
+
+# ── 3. SVM: dual de Lagrange y vectores soporte ───────────────────────────
+from sklearn.svm import SVC
+from sklearn.datasets import make_classification
+
+np.random.seed(0)
+X, y = make_classification(n_samples=40, n_features=2, n_redundant=0,
+                           n_clusters_per_class=1, random_state=42)
+y = 2*y - 1   # labels ∈ {-1, +1}
+
+svm = SVC(kernel='linear', C=1.0)
+svm.fit(X, y)
+
+print("\n── SVM — KKT y vectores soporte ──")
+print(f"Vectores soporte: {svm.n_support_} por clase")
+print(f"‖w‖ = {np.linalg.norm(svm.coef_):.4f}, margen = {2/np.linalg.norm(svm.coef_):.4f}")
+
+# Dual: αᵢ = svm.dual_coef_ * yᵢ
+alpha = np.abs(svm.dual_coef_).flatten()
+print(f"αᵢ en {alpha.min():.4f}…{alpha.max():.4f}  (solo SVs tienen α>0)")
+
+# Verificar KKT: w = Σ αᵢ yᵢ xᵢ  (vectores soporte)
+sv_indices = svm.support_
+w_recalc = sum(svm.dual_coef_[0,k] * X[sv_indices[k]]
+               for k in range(len(sv_indices)))
+print(f"w via dual:  {np.round(w_recalc,4)}")
+print(f"w via primal:{np.round(svm.coef_[0],4)}")
+
+# ── 4. Regularización L2 como restricción (equivalencia KKT) ─────────────
+# min ‖Xw−y‖²  s.t.  ‖w‖² ≤ r   ←→   min ‖Xw−y‖² + λ‖w‖²
+np.random.seed(1)
+n_s, p = 50, 10
+X_r = np.random.randn(n_s, p)
+w_t = np.random.randn(p) * 0.5
+y_r = X_r @ w_t + 0.1*np.random.randn(n_s)
+
+# Ridge (forma regularizada): w* = (X'X + λI)⁻¹ X'y
+lam_ridge = 1.0
+w_ridge = np.linalg.solve(X_r.T@X_r + lam_ridge*np.eye(p), X_r.T@y_r)
+
+# Radio equivalente: ‖w_ridge‖² = r*
+r_equiv = np.linalg.norm(w_ridge)**2
+print(f"\n── Ridge ↔ restricción L2 ──")
+print(f"λ_ridge = {lam_ridge},  ‖w*‖² = {r_equiv:.4f}  (radio equivalente)")
+print(f"μ* (mult. dual) = λ_ridge = {lam_ridge}  (por KKT)")
+
+# ── 5. Softmax como problema KKT ──────────────────────────────────────────
+# max aᵀz - aᵀlog(a)  s.t.  Σaᵢ=1, aᵢ≥0
+# KKT: zᵢ - log(aᵢ) - 1 - λ = 0 + μᵢ=0 → aᵢ = exp(zᵢ-1-λ) → softmax
+z = np.array([2.0, 1.0, 0.5, -0.3])
+softmax = lambda v: np.exp(v-v.max()) / np.exp(v-v.max()).sum()
+a_star = softmax(z)
+print(f"\n── Softmax como KKT ──")
+print(f"z = {z}")
+print(f"a* = {np.round(a_star,4)}  (solución KKT del problema de entropía)")
+print(f"Σaᵢ = {a_star.sum():.6f}  ✓")
+print(f"KKT: zᵢ−log(aᵢ*)−1 = {np.round(z-np.log(a_star)-1,4)}  (debe ser constante=λ*)")
+`,
+    related: ["Optimización Convexa", "Descenso de Gradiente", "Puntos Críticos y Puntos de Silla", "Support Vector Machine", "Regularización L1 y L2", "Dualidad y Programación Cuadrática"],
+    hasViz: true,
+    vizType: "kktViz",
+  },
+  {
+    id: 45,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Función de Pérdida (Loss Function)",
+    tags: ["función de pérdida", "MSE", "cross-entropy", "Huber", "log-verosimilitud", "calibración"],
+    definition: "La función de pérdida ℓ(ŷ, y) cuantifica la discrepancia entre la predicción ŷ de un modelo y el valor verdadero y, proporcionando la señal escalar que el optimizador minimiza durante el entrenamiento. La elección de la pérdida no es arbitraria: debe ser coherente con la distribución asumida sobre los datos (principio de máxima verosimilitud), diferenciable casi en todas partes para permitir backpropagation, y sensible a las propiedades que importan en la tarea. La función de pérdida total sobre el conjunto de entrenamiento es L(θ) = (1/n)Σᵢ ℓ(f(xᵢ;θ), yᵢ), cuyo gradiente respecto a los parámetros θ dirige la actualización del modelo.",
+    formal: {
+      notation: "Sean $\\hat{y} = f(\\mathbf{x};\\boldsymbol{\\theta}) \\in \\mathcal{Y}$ la predicción y $y \\in \\mathcal{Y}$ el objetivo; $\\mathcal{L}(\\boldsymbol{\\theta}) = \\frac{1}{n}\\sum_{i=1}^n \\ell(\\hat{y}_i, y_i)$",
+      body: "\\ell_{\\text{MSE}}(\\hat{y},y) = (\\hat{y}-y)^2 \\quad \\ell_{\\text{CE}}(\\hat{\\mathbf{p}},y) = -\\log \\hat{p}_y \\quad \\ell_{\\text{Huber}}(r) = \\begin{cases} \\frac{1}{2}r^2 & |r|\\leq\\delta \\\\ \\delta|r|-\\frac{\\delta^2}{2} & |r|>\\delta \\end{cases}",
+      geometric: "-\\log p(y\\mid\\mathbf{x};\\boldsymbol{\\theta}) \\xrightarrow{\\text{minimizar}} \\text{máxima verosimilitud} \\iff \\text{minimizar } \\ell \\text{ derivada de } p",
+      properties: [
+        "\\text{MLE} \\Leftrightarrow \\text{pérdida: Gaussiana}\\to\\text{MSE};\\quad \\text{Bernoulli}\\to\\text{BCE};\\quad \\text{Laplace}\\to\\text{MAE};\\quad \\text{Categórica}\\to\\text{CE}",
+        "\\text{Convexidad: MSE, BCE, CE son convexas en } \\hat{y};\\text{ facilitan optimización global en modelos lineales}",
+        "\\text{Robustez: MAE y Huber son menos sensibles a outliers que MSE } (\\nabla_{\\text{MSE}} = 2r \\text{ crece ilimitado)}",
+        "\\text{Calibración: } -\\log\\hat{p}_y \\text{ penaliza más la confianza errónea que la incertidumbre, promoviendo probabilidades calibradas}",
+        "\\text{Gradiente BCE: } \\partial\\ell/\\partial\\hat{p} = -1/\\hat{p} \\text{ (diverge en 0); en práctica se usa log-sum-exp numéricamente estable}",
+      ],
+    },
+    intuition: "La función de pérdida es el 'termómetro' del aprendizaje: convierte el error del modelo en un número que el optimizador puede bajar. Cada pérdida cuenta una historia diferente: el MSE castiga los errores grandes desproporcionadamente (al cuadrado), lo que lo hace sensible a valores atípicos pero útil cuando los errores grandes son realmente costosos. La entropía cruzada castiga la confianza equivocada de forma logarítmica —si predices 99% de probabilidad para la clase incorrecta, pagas un precio enorme— promoviendo predicciones calibradas. El Huber es el 'mejor de ambos mundos': cuadrático para errores pequeños (suave) y lineal para errores grandes (robusto).",
+    development: [
+      {
+        label: "Pérdidas para regresión: MSE, MAE y Huber",
+        body: "Para $y \\in \\mathbb{R}$, el residuo $r = \\hat{y} - y$ determina las pérdidas de regresión:\n\n**MSE** (Error cuadrático medio): $\\ell = r^2$, gradiente $\\nabla = 2r$. Derivado de la asunción $y \\sim \\mathcal{N}(\\hat{y}, \\sigma^2)$ via MLE. Penaliza errores grandes cuadráticamente, lo que lo hace óptimo cuando los outliers son raros y los errores grandes muy costosos.\n\n**MAE** (Error absoluto medio): $\\ell = |r|$, gradiente $\\nabla = \\text{sign}(r)$. Derivado de $y \\sim \\text{Laplace}(\\hat{y}, b)$. El estimador es la mediana condicional, más robusto a outliers. Gradiente constante en magnitud puede ralentizar la convergencia cerca del mínimo.\n\n**Huber**: combina ambos con umbral $\\delta$:\n\n$$\\ell_\\delta(r) = \\begin{cases} \\frac{1}{2}r^2 & |r| \\leq \\delta \\\\ \\delta(|r| - \\frac{\\delta}{2}) & |r| > \\delta \\end{cases}$$\n\nGradiente: $\\nabla = r$ si $|r| \\leq \\delta$, $\\nabla = \\delta\\,\\text{sign}(r)$ si $|r| > \\delta$. Suave en el origen (permite convergencia rápida) y lineal para outliers (evita gradientes explosivos)."
+      },
+      {
+        label: "Pérdidas para clasificación: BCE y Cross-Entropy",
+        body: "**Binary Cross-Entropy (BCE)**: para $y \\in \\{0,1\\}$ y $\\hat{p} = \\sigma(\\hat{y}) \\in (0,1)$:\n\n$$\\ell_{\\text{BCE}}(\\hat{p}, y) = -y\\log\\hat{p} - (1-y)\\log(1-\\hat{p})$$\n\nDerivado de $y \\sim \\text{Bernoulli}(\\hat{p})$ via $-\\log p(y|\\hat{p})$. El gradiente respecto al logit $z = \\hat{y}$:\n\n$$\\frac{\\partial \\ell}{\\partial z} = \\hat{p} - y$$\n\nnotablemente limpio: el error es simplemente la diferencia entre probabilidad predicha y etiqueta. Esto resulta de la cancelación entre la derivada del log y la derivada del sigmoid.\n\n**Categorical Cross-Entropy (CE)**: para $y \\in \\{1,\\ldots,K\\}$ con softmax $\\hat{\\mathbf{p}} = \\text{softmax}(\\mathbf{z})$:\n\n$$\\ell_{\\text{CE}}(\\hat{\\mathbf{p}}, y) = -\\log \\hat{p}_y = -z_y + \\log\\sum_k e^{z_k}$$\n\nGradiente respecto a logits: $\\partial\\ell/\\partial z_k = \\hat{p}_k - \\mathbb{1}[k=y]$, nuevamente el vector de error entre predicción y one-hot. Este resultado limpio hace que el gradiente de CE+softmax sea numéricamente estable y fácil de implementar."
+      },
+      {
+        label: "Pérdidas especializadas y conexión con divergencias",
+        body: "La **Kullback-Leibler divergence** conecta la cross-entropy con la teoría de información:\n\n$$D_{KL}(P \\| Q) = \\sum_k p_k \\log\\frac{p_k}{q_k} = H(P,Q) - H(P)$$\n\nMinimizar $\\ell_{\\text{CE}}(\\hat{\\mathbf{p}}, P) = H(P, \\hat{\\mathbf{p}})$ es equivalente a minimizar $D_{KL}(P \\| \\hat{\\mathbf{p}})$ cuando $P$ es fija (la distribución empírica de los datos).\n\n**Label Smoothing**: reemplaza el one-hot $y$ por $\\tilde{y}_k = (1-\\varepsilon)\\mathbb{1}[k=y] + \\varepsilon/K$, suavizando los objetivos y reduciendo la sobreconfianza:\n\n$$\\ell_{\\text{LS}} = (1-\\varepsilon)\\ell_{\\text{CE}} + \\varepsilon \\cdot H(\\text{Uniform}, \\hat{\\mathbf{p}})$$\n\n**Focal Loss** (para desbalance de clases): $(1-\\hat{p}_y)^\\gamma \\cdot (-\\log\\hat{p}_y)$, que reduce el peso de los ejemplos fáciles (bien clasificados) y enfoca el entrenamiento en los difíciles.\n\n**Contrastive Loss / InfoNCE**: en aprendizaje auto-supervisado (SimCLR, CLIP):\n\n$$\\ell = -\\log\\frac{e^{\\text{sim}(z_i,z_j)/\\tau}}{\\sum_{k\\neq i} e^{\\text{sim}(z_i,z_k)/\\tau}}$$"
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La elección de la función de pérdida tiene implicaciones profundas en el comportamiento del modelo:\n\n**Gradient flow y magnitud**: en entrenamiento profundo, el gradiente de la pérdida es el primer factor en la cadena de backprop. BCE con sigmoid tiene gradiente $\\hat{p}-y \\in [-1,1]$ —bien escalado—. MSE con sigmoid tiene gradiente $2r \\cdot \\sigma'(z) \\in [-0.5, 0.5]$ —más pequeño por la saturación de sigmoid—, lo que hace BCE preferible para clasificación.\n\n**Pérdidas en LLMs**: los modelos de lenguaje minimizan CE sobre el vocabulario ($K \\sim 50000$ tokens). La perplejidad $\\text{PPL} = \\exp(\\mathcal{L}_{\\text{CE}})$ es la métrica estándar: PPL=10 significa que el modelo asigna en media $1/10$ de probabilidad al token correcto.\n\n**RLHF y pérdidas de preferencia**: Bradley-Terry loss para modelar preferencias humanas:\n\n$$\\ell_{\\text{BT}} = -\\log\\sigma(r(x,y_w) - r(x,y_l))$$\n\ndonde $y_w$ es la respuesta preferida y $y_l$ la rechazada. DPO simplifica esto eliminando el modelo de recompensa explícito.\n\n**Numerical stability**: implementar $\\log(\\sigma(z))$ directamente causa underflow para $z \\ll 0$. La forma numéricamente estable es $-\\text{softplus}(-z) = -\\log(1+e^{-z})$. PyTorch's `F.binary_cross_entropy_with_logits` implementa esto automáticamente."
+      },
+    ],
+    code: `# Python - Funciones de pérdida: implementación, gradientes y propiedades
+import numpy as np
+import torch
+import torch.nn.functional as F
+
+# ── 1. Pérdidas de regresión ──────────────────────────────────────────────
+def mse(y_hat, y):     return np.mean((y_hat - y)**2)
+def mae(y_hat, y):     return np.mean(np.abs(y_hat - y))
+def huber(y_hat, y, delta=1.0):
+    r = y_hat - y
+    return np.mean(np.where(np.abs(r)<=delta, 0.5*r**2, delta*(np.abs(r)-0.5*delta)))
+
+# Gradientes (para implementación manual de backprop)
+def grad_mse(y_hat, y, n):   return 2*(y_hat - y)/n
+def grad_mae(y_hat, y, n):   return np.sign(y_hat - y)/n
+def grad_huber(y_hat, y, delta, n):
+    r = y_hat - y
+    return np.where(np.abs(r)<=delta, r, delta*np.sign(r))/n
+
+np.random.seed(42)
+y_true = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 100.0])  # outlier en 100
+y_pred = np.array([1.1, 2.3, 2.8, 4.5, 4.9,  10.0])
+
+print("── Regresión ──")
+print(f"MSE:      {mse(y_pred, y_true):.4f}  ← dominado por outlier")
+print(f"MAE:      {mae(y_pred, y_true):.4f}  ← más robusto")
+print(f"Huber(δ=1): {huber(y_pred, y_true, 1.0):.4f}  ← compromiso")
+
+# ── 2. Pérdidas de clasificación binaria ──────────────────────────────────
+def bce_stable(logits, y):
+    """BCE numéricamente estable via log-sum-exp."""
+    return np.mean(np.maximum(logits, 0) - logits*y + np.log1p(np.exp(-np.abs(logits))))
+
+sigmoid = lambda z: 1/(1+np.exp(-z))
+
+logits = np.array([ 2.5, -1.2,  0.8, -3.1,  1.9])
+y_bin  = np.array([   1,    0,    1,    0,    1], dtype=float)
+p_hat  = sigmoid(logits)
+
+print("\n── Clasificación binaria ──")
+print(f"Logits:  {logits}")
+print(f"P(y=1):  {np.round(p_hat, 3)}")
+print(f"BCE (estable): {bce_stable(logits, y_bin):.4f}")
+# Gradiente = p_hat - y (limpio!)
+grad_bce = (p_hat - y_bin) / len(y_bin)
+print(f"∂BCE/∂z = p̂−y = {np.round(grad_bce, 4)}")
+
+# ── 3. Cross-Entropy multiclase + softmax ─────────────────────────────────
+def softmax(z):
+    e = np.exp(z - z.max())
+    return e / e.sum()
+
+def ce_loss(logits_matrix, labels):
+    """CE multiclase estable: log-sum-exp."""
+    n = len(labels)
+    losses = []
+    for i, (z, y) in enumerate(zip(logits_matrix, labels)):
+        log_sum_exp = np.log(np.sum(np.exp(z - z.max()))) + z.max() - z.max()
+        # Reescribir: CE = -z_y + log Σ exp(z_k)
+        losses.append(-z[y] + np.log(np.sum(np.exp(z - z.max()))) + z.max() - z.max())
+    return np.mean(losses)
+
+# Tres clases, cuatro ejemplos
+Z = np.array([[2.0, 1.0, 0.1],
+              [0.5, 2.5, 0.2],
+              [0.1, 0.3, 3.0],
+              [1.8, 0.2, 0.5]])
+y_cat = np.array([0, 1, 2, 0])
+
+P = np.array([softmax(z) for z in Z])
+print(f"\n── CE multiclase ──")
+print(f"CE loss: {ce_loss(Z, y_cat):.4f}")
+print(f"Perplejidad: {np.exp(ce_loss(Z, y_cat)):.4f}")
+# Gradiente = softmax - one_hot
+K = 3
+one_hot = np.eye(K)[y_cat]
+grad_ce = (P - one_hot) / len(y_cat)
+print(f"∂CE/∂z (primero):\n  {np.round(grad_ce[0], 4)}")
+
+# ── 4. Verificación con PyTorch ───────────────────────────────────────────
+Z_t  = torch.tensor(Z, dtype=torch.float32)
+y_t  = torch.tensor(y_cat, dtype=torch.long)
+
+ce_torch = F.cross_entropy(Z_t, y_t)
+print(f"\nCE PyTorch:  {ce_torch.item():.4f}  (debe coincidir)")
+ppl_torch = torch.exp(ce_torch)
+print(f"Perplejidad: {ppl_torch.item():.4f}")
+
+# ── 5. Label Smoothing ────────────────────────────────────────────────────
+def label_smoothing_ce(logits, y, K, eps=0.1):
+    """CE con label smoothing: mezcla one-hot con uniforme."""
+    p_soft = np.zeros(K) + eps/K
+    p_soft[y] += 1 - eps
+    log_p = logits - np.log(np.sum(np.exp(logits - logits.max()))) - logits.max()
+    return -np.sum(p_soft * log_p)
+
+z_ex = np.array([3.0, 0.5, 0.2])
+print(f"\n── Label Smoothing ──")
+print(f"CE normal:          {label_smoothing_ce(z_ex, 0, 3, eps=0.0):.4f}")
+print(f"CE label-smooth 10%:{label_smoothing_ce(z_ex, 0, 3, eps=0.1):.4f}")
+
+# ── 6. Focal Loss ─────────────────────────────────────────────────────────
+def focal_loss(p_hat, y, gamma=2.0):
+    """Focal loss: (1-p_y)^γ * CE. Enfoca en ejemplos difíciles."""
+    p_y   = np.where(y==1, p_hat, 1-p_hat)
+    ce    = -np.log(np.clip(p_y, 1e-9, 1))
+    return np.mean((1-p_y)**gamma * ce)
+
+p_easy = np.array([0.95, 0.03])   # bien clasificados
+p_hard = np.array([0.55, 0.45])   # difíciles
+y_fl   = np.array([1, 0])
+print(f"\n── Focal Loss (γ=2) ──")
+print(f"BCE  (fácil): {bce_stable(np.log(p_easy/(1-p_easy+1e-9)),y_fl):.4f}")
+print(f"Focal(fácil): {focal_loss(p_easy, y_fl):.4f}  ← reducido")
+print(f"BCE  (difíc): {bce_stable(np.log(p_hard/(1-p_hard+1e-9)),y_fl):.4f}")
+print(f"Focal(difíc): {focal_loss(p_hard, y_fl):.4f}  ← similar, enfoca aquí")
+
+# ── 7. Perplexity en LLM ─────────────────────────────────────────────────
+# Simular pérdidas por token en una secuencia
+token_ce_losses = np.array([2.1, 1.8, 3.5, 0.9, 2.3, 4.1, 1.2])
+ppl = np.exp(np.mean(token_ce_losses))
+print(f"\n── LLM Perplexity ──")
+print(f"CE por token: {np.round(token_ce_losses,2)}")
+print(f"PPL = exp(mean CE) = {ppl:.2f}")
+print(f"Interpretación: el modelo asigna ≈ 1/{ppl:.0f} de prob. al token correcto en media")
+`,
+    related: ["Descenso de Gradiente", "Backpropagation", "Regresión Logística", "Entropía y KL Divergence", "Calibración de Modelos", "RLHF y DPO"],
+    hasViz: true,
+    vizType: "lossLandscape",
   }
 
 ];

@@ -39,6 +39,16 @@ import SvdTransformViz from './components/visualizations/SvdTransformViz';
 import PcaExplorerViz from './components/visualizations/PcaExplorerViz';
 import TensorOpsViz from './components/visualizations/TensorOpsViz';
 import DerivRuleViz from './components/visualizations/DerivRuleViz';
+import ChainMultivarViz from './components/visualizations/ChainMultivarViz';
+import PartialGradViz from './components/visualizations/PartialGradViz';
+import JacobianVizViz from './components/visualizations/JacobianVizViz';
+import HessianVizViz from './components/visualizations/HessianVizViz';
+import TaylorApproxViz from './components/visualizations/TaylorApproxViz';
+import CriticalPointsViz from './components/visualizations/CriticalPointsViz';
+import KktVizViz from './components/visualizations/KktVizViz';
+import LossLandscapeViz from './components/visualizations/LossLandscapeViz';
+
+
 
 const katexCSS = document.createElement("link");
 katexCSS.rel = "stylesheet";
@@ -90,7 +100,7 @@ function DevBody({ text }) {
 
 
 
-const vizMap = { dotproduct: DotProductViz, bayes: BayesViz, gradient: GradientViz, temperature: TemperatureViz, numeroReal: NumeroRealViz, numeroComplejo: NumeroComplejoViz, campoAlgebra: CampoAlgebraViz, variable: VariableViz, funcion: FuncionViz, dominioRango: DominioRangoViz, composicionFunciones: ComposicionFuncionesViz, funcionInversa: FuncionInversaViz, funcionLinealNoLineal: FuncionLinealNoLinealViz, funcionConvexaConcava: FuncionConvexaConcavaViz, limitesContinuidad: LimitesContinuidadViz, vector: VectorViz, espacioSubespacio: EspacioSubespacioViz, combinacionLinealSpan: CombinacionLinealSpanViz, independenciaLineal: IndependenciaLinealViz, baseDimension: BaseDimensionViz, vectorOps: VectorOpsViz, crossProduct: CrossProductViz, normBalls: NormBallsViz, euclideanDistance: EuclideanDistanceViz, cosineSimilarity: CosineSimilarityViz, orthogonalProjection: OrthogonalProjectionViz, matrixTypes: MatrixTypesViz, matrixOps: MatrixOpsViz, detRank: DetRankViz, pseudoinverse: PseudoinverseViz, linearSystems: LinearSystemsViz, gaussianElimination: GaussianEliminationViz, luFactorization: LuFactorizationViz, eigenTransform: EigenTransformViz, diagonalizacion: DiagonalizacionViz, svdTransform: SvdTransformViz, pcaExplorer: PcaExplorerViz, tensorOps: TensorOpsViz, derivRule: DerivRuleViz };
+const vizMap = { dotproduct: DotProductViz, bayes: BayesViz, gradient: GradientViz, temperature: TemperatureViz, numeroReal: NumeroRealViz, numeroComplejo: NumeroComplejoViz, campoAlgebra: CampoAlgebraViz, variable: VariableViz, funcion: FuncionViz, dominioRango: DominioRangoViz, composicionFunciones: ComposicionFuncionesViz, funcionInversa: FuncionInversaViz, funcionLinealNoLineal: FuncionLinealNoLinealViz, funcionConvexaConcava: FuncionConvexaConcavaViz, limitesContinuidad: LimitesContinuidadViz, vector: VectorViz, espacioSubespacio: EspacioSubespacioViz, combinacionLinealSpan: CombinacionLinealSpanViz, independenciaLineal: IndependenciaLinealViz, baseDimension: BaseDimensionViz, vectorOps: VectorOpsViz, crossProduct: CrossProductViz, normBalls: NormBallsViz, euclideanDistance: EuclideanDistanceViz, cosineSimilarity: CosineSimilarityViz, orthogonalProjection: OrthogonalProjectionViz, matrixTypes: MatrixTypesViz, matrixOps: MatrixOpsViz, detRank: DetRankViz, pseudoinverse: PseudoinverseViz, linearSystems: LinearSystemsViz, gaussianElimination: GaussianEliminationViz, luFactorization: LuFactorizationViz, eigenTransform: EigenTransformViz, diagonalizacion: DiagonalizacionViz, svdTransform: SvdTransformViz, pcaExplorer: PcaExplorerViz, tensorOps: TensorOpsViz, derivRule: DerivRuleViz, chainMultivar: ChainMultivarViz, partialGrad: PartialGradViz, jacobianViz: JacobianVizViz, hessianViz: HessianVizViz, taylorApprox: TaylorApproxViz, criticalPoints: CriticalPointsViz, kktViz: KktVizViz, lossLandscape: LossLandscapeViz };
 const sectionColors = { "I": "#e2e8f0", "II": "#60a5fa", "III": "#34d399", "IV": "#a78bfa", "V": "#f472b6", "VI": "#38bdf8", "VII": "#facc15", "VIII": "#fb923c", "IX": "#f87171" };
 
 export default function App() {
