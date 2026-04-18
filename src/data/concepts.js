@@ -6875,6 +6875,967 @@ print(f"Interpretación: el modelo asigna ≈ 1/{ppl:.0f} de prob. al token corr
     related: ["Descenso de Gradiente", "Backpropagation", "Regresión Logística", "Entropía y KL Divergence", "Calibración de Modelos", "RLHF y DPO"],
     hasViz: true,
     vizType: "lossLandscape",
+  },
+  {
+    id: 46,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Métricas de Error (MSE, MAE, MAPE, RMSE)",
+    tags: ["MSE", "MAE", "MAPE", "RMSE", "métricas de evaluación", "regresión"],
+    definition: "Las métricas de error cuantifican la discrepancia agregada entre las predicciones de un modelo y los valores verdaderos sobre un conjunto de datos. A diferencia de la función de pérdida —que guía el entrenamiento y debe ser diferenciable— las métricas de evaluación pueden ser no diferenciables y se eligen por su interpretabilidad en el dominio del problema. MSE (Error Cuadrático Medio) penaliza errores grandes desproporcionadamente; MAE (Error Absoluto Medio) es la distancia L1 promedio; MAPE (Error Porcentual Absoluto Medio) expresa el error como fracción del valor verdadero; RMSE (Raíz del Error Cuadrático Medio) devuelve el error a las unidades originales. Cada métrica implica supuestos distintos sobre qué tipo de error es más costoso.",
+    formal: {
+      notation: "Sean $\\{y_i\\}_{i=1}^n$ los valores verdaderos y $\\{\\hat{y}_i\\}_{i=1}^n$ las predicciones, con residuos $r_i = y_i - \\hat{y}_i$",
+      body: "\\text{MSE} = \\frac{1}{n}\\sum_{i=1}^n r_i^2 \\qquad \\text{MAE} = \\frac{1}{n}\\sum_{i=1}^n |r_i| \\qquad \\text{MAPE} = \\frac{100}{n}\\sum_{i=1}^n \\left|\\frac{r_i}{y_i}\\right| \\qquad \\text{RMSE} = \\sqrt{\\text{MSE}}",
+      geometric: "\\text{MAE} \\leq \\text{RMSE} \\leq \\sqrt{n}\\cdot\\text{MAE} \\quad (\\text{desig. de normas}) \\qquad \\text{RMSE}^2 = \\text{Bias}^2 + \\text{Varianza del error} + \\sigma^2_{\\text{irreducible}}",
+      properties: [
+        "\\text{MSE es diferenciable en todo } \\mathbb{R}\\text{; MAE no lo es en } r=0 \\text{ (subgradiente } \\partial|r| = [-1,1]\\text{)}",
+        "\\text{Estimador óptimo: MSE} \\to \\hat{y} = \\mathbb{E}[Y|X];\\quad \\text{MAE} \\to \\hat{y} = \\text{Mediana}[Y|X]",
+        "\\text{MAPE indefinido si } y_i = 0\\text{; asimétrico: sobrepredicción y subpredicción penalizadas distinto}",
+        "\\text{RMSE tiene mismas unidades que } y\\text{; MSE tiene unidades}^2\\text{; MAE tiene mismas unidades que } y",
+        "\\text{Descomposición bias-varianza: } \\text{MSE}(\\hat{\\theta}) = [\\text{Bias}(\\hat{\\theta})]^2 + \\text{Var}(\\hat{\\theta})",
+      ],
+    },
+    intuition: "Imagina que eres pronosticador de precios y tienes diez predicciones. Si la mayoría son buenas pero una es desastrosa, el MSE te castigará duramente por esa sola predicción —el error al cuadrado la amplifica—. El MAE simplemente promediará todos los errores con igual peso, siendo más honesto sobre el error típico. El MAPE te dirá 'me equivoqué un 15% en promedio', lo que es fácil de comunicar a un cliente pero falla si algún valor verdadero es cero o muy pequeño. El RMSE es la métrica del 'término medio': más sensible que MAE a errores grandes, pero en las mismas unidades que el problema.",
+    development: [
+      {
+        label: "MSE y RMSE: geometría L2 y sensibilidad a outliers",
+        body: "El MSE corresponde a la norma cuadrática del vector de residuos, normalizada:\n\n$$\\text{MSE} = \\frac{1}{n}\\|\\mathbf{r}\\|_2^2 = \\frac{1}{n}\\sum_i r_i^2$$\n\nSu mínimo se alcanza en $\\hat{y}_i = \\bar{y}$ cuando el modelo es la constante, lo que corresponde a predecir la **media condicional** $\\mathbb{E}[Y|X]$.\n\nEl RMSE = $\\sqrt{\\text{MSE}}$ devuelve la métrica a las unidades originales y puede interpretarse como la desviación estándar de los residuos si estos tienen media cero:\n\n$$\\text{RMSE} = \\sqrt{\\frac{1}{n}\\sum_i r_i^2} \\approx \\sigma_r \\quad \\text{si } \\bar{r} \\approx 0$$\n\nLa **sensibilidad cuadrática** implica que un error de magnitud $10k$ contribuye $100k^2$ veces más que uno de magnitud $k$. Esto hace que MSE/RMSE sean métricas apropiadas cuando los errores grandes son cualitativamente más costosos, pero problemáticas en presencia de outliers que no son representativos del comportamiento típico."
+      },
+      {
+        label: "MAE: geometría L1 y robustez",
+        body: "El MAE corresponde a la norma L1 del vector de residuos normalizada:\n\n$$\\text{MAE} = \\frac{1}{n}\\|\\mathbf{r}\\|_1 = \\frac{1}{n}\\sum_i |r_i|$$\n\nSu estimador óptimo es la **mediana condicional** $\\text{Med}[Y|X]$, no la media. Esto lo hace inherentemente más robusto: un outlier extremo $r_j \\to \\infty$ mueve la mediana mucho menos que la media.\n\nDesigualdad entre normas que relaciona MAE y RMSE:\n\n$$\\text{MAE} = \\frac{\\|\\mathbf{r}\\|_1}{n} \\leq \\frac{\\sqrt{n}\\|\\mathbf{r}\\|_2}{n} = \\frac{\\|\\mathbf{r}\\|_2}{\\sqrt{n}} = \\text{RMSE}$$\n\ncon igualdad si y solo si todos los residuos tienen la misma magnitud. La **brecha RMSE−MAE** es un indicador de la presencia de outliers o de heteroscedasticidad en los residuos: cuanto mayor la brecha, más concentrado está el error en pocas observaciones."
+      },
+      {
+        label: "MAPE, sMAPE y métricas relativas",
+        body: "El MAPE expresa el error como porcentaje del valor verdadero:\n\n$$\\text{MAPE} = \\frac{100}{n}\\sum_i \\left|\\frac{y_i - \\hat{y}_i}{y_i}\\right|$$\n\nSus limitaciones son conocidas:\n- **Indefinido** si $y_i = 0$, y muy inestable si $y_i \\approx 0$\n- **Asimétrico**: sobrepredicción ($\\hat{y} > y$) tiene error acotado al 100%, pero subpredicción ($\\hat{y} < y$) puede exceder 100%\n- **Sesgo hacia predicciones bajas**: el optimizador de MAPE tiende a predecir por debajo\n\nEl **sMAPE** (symmetric MAPE) mitiga la asimetría:\n\n$$\\text{sMAPE} = \\frac{200}{n}\\sum_i \\frac{|y_i - \\hat{y}_i|}{|y_i| + |\\hat{y}_i|}$$\n\nEl **MASE** (Mean Absolute Scaled Error, Hyndman & Koehler 2006) normaliza por el MAE de un modelo naive (predicción ingenua):\n\n$$\\text{MASE} = \\frac{\\text{MAE}}{\\frac{1}{n-1}\\sum_{i=2}^n |y_i - y_{i-1}|} \\quad (\\text{series temporales})$$\n\nMASE < 1 significa que el modelo supera al naive; es la métrica más recomendada para comparar modelos en diferentes escalas."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "La distinción entre **pérdida de entrenamiento** y **métrica de evaluación** es fundamental en ML:\n\n**Proxy loss**: en muchos casos, la métrica que importa no es diferenciable (MAPE, F1, AUC) y se optimiza una pérdida sustituta diferenciable. El gap entre la pérdida proxy y la métrica real es una fuente de suboptimalidad.\n\n**Forecasting con LLMs**: los modelos de series temporales como TimesFM y Chronos se evalúan con WQL (Weighted Quantile Loss) y MASE, no con MSE, porque los datos de demanda tienen alta variabilidad y outliers estructurales.\n\n**Métricas por percentil**: para distribuciones asimétricas, el RMSE puede ser engañoso. Las métricas de cuantiles —$q$-risk o pinball loss— evalúan directamente el $q$-percentil predicho:\n\n$$\\ell_q(r) = r(q - \\mathbb{1}[r<0]) = \\begin{cases} q\\cdot r & r \\geq 0 \\\\ (q-1)\\cdot r & r < 0 \\end{cases}$$\n\n**Descomposición del MSE**: en modelos probabilísticos, $\\text{MSE} = \\text{Bias}^2 + \\text{Varianza}$. Regularización reduce varianza aumentando bias; la curva bias-varianza es la representación geométrica de este tradeoff.\n\n**R² (coeficiente de determinación)**:\n\n$$R^2 = 1 - \\frac{\\text{SSR}}{\\text{SST}} = 1 - \\frac{\\sum_i r_i^2}{\\sum_i (y_i-\\bar{y})^2} \\in (-\\infty, 1]$$\n\nNormaliza el MSE por la varianza de $y$: $R^2=0$ equivale a predecir la media, $R^2=1$ es predicción perfecta. Puede ser negativo si el modelo es peor que la media."
+      },
+    ],
+    code: `# Python - Métricas de error: implementación, propiedades y comparativas
+import numpy as np
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+# ── 1. Implementación desde cero ─────────────────────────────────────────
+def mse(y, yhat):   return np.mean((y - yhat)**2)
+def rmse(y, yhat):  return np.sqrt(mse(y, yhat))
+def mae(y, yhat):   return np.mean(np.abs(y - yhat))
+def mape(y, yhat):
+    mask = y != 0
+    return 100 * np.mean(np.abs((y[mask] - yhat[mask]) / y[mask]))
+def smape(y, yhat):
+    denom = np.abs(y) + np.abs(yhat)
+    mask  = denom > 0
+    return 200 * np.mean(np.abs(y[mask]-yhat[mask]) / denom[mask])
+def r2(y, yhat):
+    ss_res = np.sum((y - yhat)**2)
+    ss_tot = np.sum((y - np.mean(y))**2)
+    return 1 - ss_res / ss_tot
+
+# ── 2. Caso base ─────────────────────────────────────────────────────────
+np.random.seed(42)
+y_true = np.array([10, 20, 30, 40, 50, 60, 70, 80, 90, 100], dtype=float)
+y_pred = np.array([11, 19, 33, 38, 52, 58, 73, 79, 88, 105], dtype=float)
+
+print("── Métricas base ──")
+print(f"MSE:   {mse(y_true,y_pred):.4f}")
+print(f"RMSE:  {rmse(y_true,y_pred):.4f}  ← mismas unidades que y")
+print(f"MAE:   {mae(y_true,y_pred):.4f}")
+print(f"MAPE:  {mape(y_true,y_pred):.4f}%")
+print(f"sMAPE: {smape(y_true,y_pred):.4f}%")
+print(f"R²:    {r2(y_true,y_pred):.4f}")
+print(f"Desigualdad MAE ≤ RMSE: {mae(y_true,y_pred):.4f} ≤ {rmse(y_true,y_pred):.4f} ✓")
+
+# ── 3. Efecto de outliers ────────────────────────────────────────────────
+y_out     = y_pred.copy()
+y_out[-1] = 500   # outlier extremo en el último punto
+
+print("\\n── Impacto de outlier (ŷ₁₀ = 500 en vez de 105) ──")
+metrics = {'MSE': mse, 'RMSE': rmse, 'MAE': mae}
+for name, fn in metrics.items():
+    orig = fn(y_true, y_pred)
+    with_out = fn(y_true, y_out)
+    print(f"{name:5s}: {orig:.3f} → {with_out:.3f}  (×{with_out/orig:.1f})")
+
+# ── 4. Estimador óptimo de MSE vs MAE ────────────────────────────────────
+# MSE minimizado por la media; MAE por la mediana
+y_skew = np.array([1,1,1,1,2,2,3,3,4,100], dtype=float)
+
+pred_mean   = np.full_like(y_skew, np.mean(y_skew))
+pred_median = np.full_like(y_skew, np.median(y_skew))
+
+print("\\n── Media vs Mediana como predictor constante ──")
+print(f"Media={np.mean(y_skew):.1f}  →  MSE={mse(y_skew,pred_mean):.2f},  MAE={mae(y_skew,pred_mean):.2f}")
+print(f"Med.={np.median(y_skew):.1f}  →  MSE={mse(y_skew,pred_median):.2f},  MAE={mae(y_skew,pred_median):.2f}")
+print("Media minimiza MSE; Mediana minimiza MAE ✓")
+
+# ── 5. MAPE: asimetría y problemas ───────────────────────────────────────
+y_sym   = np.array([100.0, 100.0])
+over    = np.array([150.0,  50.0])   # sobre-pred +50 y sub-pred -50
+print("\\n── Asimetría MAPE ──")
+print(f"ŷ=[150,50], y=[100,100]:")
+print(f"  MAPE  = {mape(y_sym,over):.2f}%  (50% sobre + 50% sub → promedio 50%)")
+y_sym2  = np.array([100.0, 100.0])
+under   = np.array([ 60.0, 140.0])
+print(f"ŷ=[60,140], y=[100,100]:")
+print(f"  MAPE  = {mape(y_sym2,under):.2f}%  (40% sub + 40% sobre → asimétrico)")
+
+# ── 6. MASE para series temporales ───────────────────────────────────────
+def mase(y, yhat, y_train):
+    """MASE = MAE_model / MAE_naive(seasonal lag=1)."""
+    naive_mae = np.mean(np.abs(np.diff(y_train)))
+    return mae(y, yhat) / naive_mae
+
+y_train_ts = np.sin(np.linspace(0,4*np.pi,50)) * 10 + np.arange(50)*0.5
+y_test     = y_train_ts[-10:]
+y_naive    = y_train_ts[-11:-1]   # predicción naive: valor anterior
+y_model    = y_test + np.random.randn(10)*0.8
+
+print(f"\\n── MASE (series temporales) ──")
+print(f"MASE naive: {mase(y_test,y_naive,y_train_ts):.4f}  (debe ser ≈1)")
+print(f"MASE modelo:{mase(y_test,y_model,y_train_ts):.4f}  (<1 = supera naive)")
+
+# ── 7. Descomposición bias-varianza ──────────────────────────────────────
+np.random.seed(0)
+n_boot = 200
+y_fixed   = np.array([5.0])
+preds_high_var = np.random.normal(5.0, 2.0, n_boot)   # insesgado, alta var
+preds_high_bias= np.random.normal(3.0, 0.3, n_boot)   # sesgado, baja var
+
+def bias_variance(y_true_val, preds):
+    bias2 = (np.mean(preds) - y_true_val)**2
+    var   = np.var(preds)
+    mse_v = np.mean((preds - y_true_val)**2)
+    return bias2, var, mse_v
+
+b2, v, m = bias_variance(5.0, preds_high_var)
+print(f"\\n── Descomposición Bias-Varianza ──")
+print(f"Alta varianza: Bias²={b2:.3f} + Var={v:.3f} = MSE={m:.3f} (suma={b2+v:.3f})")
+b2, v, m = bias_variance(5.0, preds_high_bias)
+print(f"Alto bias:     Bias²={b2:.3f} + Var={v:.3f} = MSE={m:.3f} (suma={b2+v:.3f})")
+
+# ── 8. R² y sus limitaciones ─────────────────────────────────────────────
+y_r2   = np.array([1,2,3,4,5], dtype=float)
+yhat_perfect = y_r2
+yhat_mean    = np.full(5, np.mean(y_r2))
+yhat_bad     = np.array([5,4,3,2,1], dtype=float)  # inversión perfecta
+
+print(f"\\n── R² ──")
+print(f"Perfecto:   R²={r2(y_r2,yhat_perfect):.4f}")
+print(f"Media:      R²={r2(y_r2,yhat_mean):.4f}")
+print(f"Invertido:  R²={r2(y_r2,yhat_bad):.4f}  ← puede ser muy negativo")
+`,
+    related: ["Función de Pérdida", "Descenso de Gradiente", "Regresión Lineal", "Descomposición Bias-Varianza", "Evaluación de Modelos", "Series de Tiempo"],
+    hasViz: true,
+    vizType: "errorMetrics",
+  },
+  {
+    id: 47,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Descenso del Gradiente (Gradient Descent)",
+    tags: ["descenso de gradiente", "SGD", "mini-batch", "tasa de aprendizaje", "convergencia", "optimización iterativa"],
+    definition: "El descenso del gradiente es un algoritmo iterativo de optimización de primer orden que minimiza una función diferenciable f(θ) actualizando los parámetros en la dirección opuesta al gradiente local: θₜ₊₁ = θₜ − α∇f(θₜ). La dirección −∇f es la de máximo descenso local, garantizando reducción de f para α suficientemente pequeño. Existen tres variantes según el tamaño del lote de datos usado para estimar el gradiente: batch GD (gradiente exacto sobre todos los datos), SGD estocástico (un solo ejemplo) y mini-batch GD (subconjunto de b ejemplos). En DL, mini-batch GD con momentum es el algoritmo base sobre el que se construyen todos los optimizadores modernos (Adam, AdaGrad, RMSProp).",
+    formal: {
+      notation: "Sea $f: \\mathbb{R}^n \\to \\mathbb{R}$ diferenciable, $\\boldsymbol{\\theta}_0 \\in \\mathbb{R}^n$ punto inicial, $\\alpha > 0$ tasa de aprendizaje",
+      body: "\\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha \\nabla f(\\boldsymbol{\\theta}_t), \\qquad \\hat{\\nabla} f(\\boldsymbol{\\theta}_t) = \\frac{1}{|\\mathcal{B}|}\\sum_{i \\in \\mathcal{B}} \\nabla \\ell_i(\\boldsymbol{\\theta}_t)",
+      geometric: "f(\\boldsymbol{\\theta}_{t+1}) \\leq f(\\boldsymbol{\\theta}_t) - \\alpha\\left(1 - \\frac{\\alpha L}{2}\\right)\\|\\nabla f(\\boldsymbol{\\theta}_t)\\|^2 < f(\\boldsymbol{\\theta}_t) \\quad \\text{si } \\alpha < \\frac{2}{L}",
+      properties: [
+        "\\text{Condición suficiente de descenso: } \\alpha < 2/L \\text{ donde } L \\text{ es la constante de Lipschitz de } \\nabla f",
+        "\\text{Convergencia convexa: } f(\\boldsymbol{\\theta}_t) - f^* \\leq \\frac{\\|\\boldsymbol{\\theta}_0 - \\boldsymbol{\\theta}^*\\|^2}{2\\alpha t} \\quad O(1/t)",
+        "\\text{Convergencia fuertemente convexa (}\\mu\\text{-SC): } \\|\\boldsymbol{\\theta}_t - \\boldsymbol{\\theta}^*\\|^2 \\leq \\left(1 - \\alpha\\mu\\right)^t \\|\\boldsymbol{\\theta}_0 - \\boldsymbol{\\theta}^*\\|^2 \\quad O(\\rho^t)",
+        "\\text{Paso óptimo (cuadrática): } \\alpha^* = 1/L = 1/\\lambda_{\\max}(H); \\text{ condición } \\kappa = L/\\mu = \\lambda_{\\max}/\\lambda_{\\min}",
+        "\\text{SGD: gradiente insesgado } \\mathbb{E}[\\hat{\\nabla}f] = \\nabla f; \\text{ varianza } \\propto \\sigma^2/|\\mathcal{B}| \\to 0 \\text{ al aumentar batch}",
+      ],
+    },
+    intuition: "Imagina que estás en una montaña con niebla densa y quieres llegar al valle más bajo. No puedes ver el paisaje completo, solo sientes la pendiente bajo tus pies en este momento. La estrategia óptima local es dar un paso en la dirección más empinada hacia abajo —eso es exactamente $-\\nabla f$. El tamaño del paso $\\alpha$ es crucial: pasos muy pequeños y tardarás una eternidad; pasos muy grandes y podrías saltar al otro lado del valle o incluso subir. El SGD es como tomar esa decisión de paso basándote solo en la pendiente bajo un pie —ruidoso pero sorprendentemente efectivo, y el ruido incluso ayuda a escapar de trampas locales.",
+    development: [
+      {
+        label: "Derivación y condición de descenso",
+        body: "La actualización $\\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha \\nabla f(\\boldsymbol{\\theta}_t)$ se obtiene minimizando el **modelo de primer orden** de $f$ más un término de proximidad cuadrático:\n\n$$\\boldsymbol{\\theta}_{t+1} = \\underset{\\boldsymbol{\\theta}}{\\arg\\min}\\left[f(\\boldsymbol{\\theta}_t) + \\nabla f(\\boldsymbol{\\theta}_t)^\\top(\\boldsymbol{\\theta}-\\boldsymbol{\\theta}_t) + \\frac{1}{2\\alpha}\\|\\boldsymbol{\\theta}-\\boldsymbol{\\theta}_t\\|^2\\right]$$\n\nSi $\\nabla f$ es $L$-Lipschitz continuo ($\\|\\nabla f(\\mathbf{x})-\\nabla f(\\mathbf{y})\\| \\leq L\\|\\mathbf{x}-\\mathbf{y}\\|$), entonces:\n\n$$f(\\boldsymbol{\\theta}_{t+1}) \\leq f(\\boldsymbol{\\theta}_t) - \\alpha\\left(1-\\frac{\\alpha L}{2}\\right)\\|\\nabla f(\\boldsymbol{\\theta}_t)\\|^2$$\n\nEl lado derecho es $< f(\\boldsymbol{\\theta}_t)$ si $\\alpha < 2/L$, garantizando descenso monótono. La tasa óptima que maximiza la reducción por paso es $\\alpha^* = 1/L$."
+      },
+      {
+        label: "Variantes: Batch, SGD y Mini-batch",
+        body: "Las tres variantes difieren en cómo estiman $\\nabla f(\\boldsymbol{\\theta}) = \\frac{1}{n}\\sum_{i=1}^n \\nabla \\ell_i(\\boldsymbol{\\theta})$:\n\n**Batch GD**: usa todos los $n$ ejemplos. Gradiente exacto, pero coste $O(n)$ por paso. Convergencia suave y monótona. Inviable para $n$ grande.\n\n**SGD estocástico**: usa $|\\mathcal{B}|=1$ ejemplo por paso. Coste $O(1)$, ruido alto. El gradiente estocástico es **insesgado**: $\\mathbb{E}[\\nabla \\ell_i] = \\nabla f$. Puede escapar de mínimos locales por el ruido.\n\n**Mini-batch GD**: usa $b$ ejemplos. Compromiso óptimo en la práctica:\n\n$$\\text{Var}[\\hat{\\nabla}f] = \\frac{\\sigma^2}{b} \\to \\text{reducir varianza aumentando } b$$\n\nTradeoff clave: $b$ grande → gradiente más preciso pero menos pasos por segundo; $b$ pequeño → más actualizaciones pero más ruidosas. En GPUs, $b \\in [32, 512]$ suele ser el sweet spot por el paralelismo hardware.\n\nRegla de **linear scaling**: si se duplica $b$, se puede duplicar $\\alpha$ manteniendo la convergencia similar (Goyal et al., 2017, usado en ResNet con $b=8192$)."
+      },
+      {
+        label: "Tasa de aprendizaje: schedules y búsqueda",
+        body: "La tasa de aprendizaje $\\alpha$ es el hiperparámetro más crítico. Estrategias:\n\n**Búsqueda de lr** (Smith, 2015): aumentar $\\alpha$ linealmente durante un entrenamiento corto y graficar la pérdida vs $\\alpha$. Elegir el $\\alpha$ justo antes de que la pérdida comience a divergir.\n\n**Step decay**: $\\alpha_t = \\alpha_0 \\cdot \\gamma^{\\lfloor t/k \\rfloor}$ — reducir por factor $\\gamma$ cada $k$ épocas. Simple y efectivo.\n\n**Cosine annealing**: $\\alpha_t = \\alpha_{\\min} + \\frac{1}{2}(\\alpha_{\\max}-\\alpha_{\\min})(1+\\cos(\\pi t/T))$ — decaimiento suave que puede reiniciarse (SGDR).\n\n**Warm-up**: comenzar con $\\alpha$ muy pequeño durante los primeros pasos y aumentar gradualmente. Crítico para estabilidad con batch grande o Transformers (Adam con warm-up es el estándar).\n\n**Condición de Robbins-Monro** para convergencia de SGD:\n$$\\sum_{t=0}^\\infty \\alpha_t = \\infty \\quad \\text{y} \\quad \\sum_{t=0}^\\infty \\alpha_t^2 < \\infty$$\nPor ejemplo $\\alpha_t = \\alpha_0/(1+\\beta t)$ satisface ambas condiciones."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "El descenso de gradiente en DL tiene características que lo diferencian del caso teórico clásico:\n\n**SGD como regularizador implícito**: el ruido del gradiente estocástico actúa como una perturbación que favorece mínimos planos sobre mínimos agudos. Mínimos planos generalizan mejor (fenómeno observado empíricamente, teorizado via SAM).\n\n**Gradiente de pérdida = error × features**: para regresión lineal, $\\nabla_{\\mathbf{w}}\\mathcal{L} = \\mathbf{X}^\\top(\\hat{\\mathbf{y}}-\\mathbf{y})/n$. El gradiente es proporcional al error residual, lo que da intuición sobre por qué el optimizador aprende: cuando el error es grande, da pasos grandes.\n\n**Optimizadores modernos**: todos son variantes de GD:\n- **Momentum**: $\\mathbf{v}_{t+1} = \\beta \\mathbf{v}_t + \\nabla f_t$, $\\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha \\mathbf{v}_{t+1}$\n- **AdaGrad**: $\\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha \\nabla f_t / \\sqrt{\\mathbf{G}_t + \\varepsilon}$\n- **Adam**: combina momentum de primer y segundo momento; estándar en Transformers\n\n**Gradient clipping**: $\\mathbf{g} \\leftarrow \\mathbf{g} \\cdot \\min(1, \\tau/\\|\\mathbf{g}\\|)$ — esencial para RNNs y Transformers para evitar explosión del gradiente.\n\n**Número de épocas vs pasos**: en LLMs, el modelo ve cada token típicamente menos de una época (entrenamiento en datos masivos sin repetición), haciendo que el régimen de GD sea fundamentalmente estocástico."
+      },
+    ],
+    code: `# Python - Descenso del gradiente: implementaciones y análisis
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+
+# ── 1. GD batch, mini-batch y SGD en regresión lineal ────────────────────
+n, p = 200, 3
+X    = np.random.randn(n, p)
+w_true = np.array([1.5, -2.0, 0.8])
+y    = X @ w_true + 0.3 * np.random.randn(n)
+
+def mse_loss(w): return np.mean((X @ w - y)**2)
+def mse_grad(w, idx=None):
+    Xi = X[idx] if idx is not None else X
+    yi = y[idx] if idx is not None else y
+    return 2 * Xi.T @ (Xi @ w - yi) / len(yi)
+
+def gd_run(lr, batch_size, steps, w0=None):
+    w = w0 if w0 is not None else np.zeros(p)
+    losses = [mse_loss(w)]
+    for t in range(steps):
+        if batch_size == n:                       # Batch GD
+            g = mse_grad(w)
+        else:                                      # SGD / Mini-batch
+            idx = np.random.choice(n, batch_size, replace=False)
+            g = mse_grad(w, idx)
+        w = w - lr * g
+        losses.append(mse_loss(w))
+    return w, losses
+
+w0 = np.zeros(p)
+w_batch, l_batch   = gd_run(0.05, n,   80,  w0)
+w_mini,  l_mini    = gd_run(0.08, 32,  400, w0)
+w_sgd,   l_sgd     = gd_run(0.02, 1,   400, w0)
+
+print("── Comparativa de variantes ──")
+print(f"Batch GD  (80 steps):  loss={l_batch[-1]:.4f}  ‖w−w*‖={np.linalg.norm(w_batch-w_true):.4f}")
+print(f"Mini-batch(400 steps): loss={l_mini[-1]:.4f}  ‖w−w*‖={np.linalg.norm(w_mini-w_true):.4f}")
+print(f"SGD       (400 steps): loss={l_sgd[-1]:.4f}  ‖w−w*‖={np.linalg.norm(w_sgd-w_true):.4f}")
+
+# ── 2. Efecto de la tasa de aprendizaje ──────────────────────────────────
+print("\\n── Efecto de la tasa de aprendizaje ──")
+for lr in [0.001, 0.05, 0.15, 0.35, 0.5]:
+    _, losses = gd_run(lr, n, 50, np.zeros(p))
+    final = losses[-1]
+    status = "diverge" if final > 1e6 or np.isnan(final) else f"{final:.4f}"
+    print(f"  α={lr:.3f}: loss final = {status}")
+
+# ── 3. Condición de Lipschitz y paso óptimo ──────────────────────────────
+# Para f = ½‖Xw−y‖², ∇²f = (2/n)X'X → L = λ_max(2X'X/n)
+H_mat  = 2 * X.T @ X / n
+eigvals = np.linalg.eigvalsh(H_mat)
+L      = eigvals.max()
+mu     = eigvals.min()
+kappa  = L / mu
+
+print(f"\\n── Condición de Lipschitz ──")
+print(f"L = λ_max(H) = {L:.4f}  → α* = 1/L = {1/L:.4f}")
+print(f"μ = λ_min(H) = {mu:.4f}  → κ(H) = {kappa:.2f}")
+print(f"α < 2/L = {2/L:.4f} garantiza descenso monótono")
+
+# Verificar con α = 1/L (óptimo)
+w_opt, l_opt = gd_run(1/L, n, 30, np.zeros(p))
+print(f"GD con α=1/L (30 steps): loss={l_opt[-1]:.6f}")
+
+# ── 4. Tasas de convergencia teórica ─────────────────────────────────────
+# Cuadrática fuertemente convexa: ‖wt−w*‖² ≤ (1-αμ)^t ‖w0−w*‖²
+alpha = 1 / L
+rho   = 1 - alpha * mu
+w_star = np.linalg.solve(H_mat, 2 * X.T @ y / n)
+print(f"\\n── Convergencia lineal ──")
+print(f"ρ = 1-αμ = {rho:.6f}  (factor de contracción por paso)")
+print(f"Pasos para reducir error a 1e-6: ≥ {int(np.log(1e-6)/np.log(rho))+1}")
+
+# ── 5. Schedules de tasa de aprendizaje ──────────────────────────────────
+T = 100
+t_arr = np.arange(T)
+lr_step   = 0.1 * (0.5 ** (t_arr // 25))            # step decay cada 25 pasos
+lr_cosine = 1e-4 + 0.5*(0.1-1e-4)*(1+np.cos(np.pi*t_arr/T))  # cosine annealing
+lr_inv    = 0.1 / (1 + 0.05*t_arr)                  # Robbins-Monro 1/t
+
+print("\\n── Schedules de lr en t=[0,25,50,75,99] ──")
+for t in [0,25,50,75,99]:
+    print(f"  t={t:2d}: step={lr_step[t]:.4f}  cosine={lr_cosine[t]:.4f}  1/t={lr_inv[t]:.4f}")
+
+# Verificar condición Robbins-Monro para 1/t schedule
+sum_lr  = lr_inv.sum()
+sum_lr2 = (lr_inv**2).sum()
+print(f"\\nRobbins-Monro (T=100): Σα={sum_lr:.2f}  Σα²={sum_lr2:.4f}")
+
+# ── 6. Momentum y comparativa ─────────────────────────────────────────────
+def gd_momentum(lr, beta, steps, w0=None):
+    w = w0 if w0 is not None else np.zeros(p)
+    v = np.zeros(p)
+    losses = [mse_loss(w)]
+    for _ in range(steps):
+        g = mse_grad(w)
+        v = beta*v + g
+        w = w - lr*v
+        losses.append(mse_loss(w))
+    return w, losses
+
+w_mom, l_mom = gd_momentum(0.02, 0.9, 50, np.zeros(p))
+w_gd2, l_gd2 = gd_run(0.02, n, 50, np.zeros(p))
+
+print(f"\\n── Momentum vs GD puro (50 pasos, α=0.02) ──")
+print(f"GD puro:   {l_gd2[-1]:.6f}")
+print(f"Momentum:  {l_mom[-1]:.6f}  (β=0.9)")
+
+# ── 7. Gradient clipping ─────────────────────────────────────────────────
+def clip_grad_norm(g, max_norm=1.0):
+    norm = np.linalg.norm(g)
+    return g * min(1.0, max_norm / norm) if norm > max_norm else g
+
+g_large = np.array([15.3, -8.7, 22.1])
+g_clipped = clip_grad_norm(g_large, max_norm=1.0)
+print(f"\\n── Gradient clipping ──")
+print(f"‖g‖ = {np.linalg.norm(g_large):.3f} → clipped: ‖g‖ = {np.linalg.norm(g_clipped):.4f}")
+print(f"Dirección preservada: {np.allclose(g_large/np.linalg.norm(g_large), g_clipped/np.linalg.norm(g_clipped))}")
+`,
+    related: ["Función de Pérdida", "Backpropagation", "Momentum y Optimizadores", "Tasa de Aprendizaje Adaptativa", "Matriz Hessiana", "Condiciones KKT"],
+    hasViz: true,
+    vizType: "gradientDescent",
+  },
+  {
+    id: 48,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Tasa de Aprendizaje y Learning Rate Scheduling",
+    tags: ["tasa de aprendizaje", "learning rate", "scheduling", "cosine annealing", "warm-up", "lr finder"],
+    definition: "La tasa de aprendizaje α es el escalar que controla la magnitud del paso en cada actualización de parámetros: θₜ₊₁ = θₜ − α∇f(θₜ). Es el hiperparámetro más crítico en el entrenamiento de redes neuronales: demasiado pequeña y el entrenamiento es lento o se estanca en mínimos locales subóptimos; demasiado grande y el optimizador diverge o oscila. El learning rate scheduling adapta α a lo largo del entrenamiento según un programa predefinido o adaptativo, aprovechando que distintas fases del entrenamiento requieren distintos tamaños de paso: exploración inicial (α grande) y refinamiento final (α pequeño). Los schedules modernos como cosine annealing con warm-up son estándar en el entrenamiento de LLMs y Vision Transformers.",
+    formal: {
+      notation: "Sea $\\alpha_t > 0$ la tasa de aprendizaje en el paso $t$, $T$ el número total de pasos, $\\alpha_{\\max}$ y $\\alpha_{\\min}$ las cotas",
+      body: "\\alpha_t^{\\text{cosine}} = \\alpha_{\\min} + \\frac{1}{2}(\\alpha_{\\max} - \\alpha_{\\min})\\left(1 + \\cos\\left(\\frac{\\pi t}{T}\\right)\\right) \\qquad \\alpha_t^{\\text{step}} = \\alpha_0 \\cdot \\gamma^{\\lfloor t/k \\rfloor}",
+      geometric: "\\alpha_t^{\\text{warmup}} = \\alpha_{\\max} \\cdot \\frac{t}{t_{\\text{warmup}}} \\;\\text{ para } t \\leq t_{\\text{warmup}}, \\quad \\text{luego schedule principal}",
+      properties: [
+        "\\text{Cota de descenso: } f(\\theta_{t+1}) \\leq f(\\theta_t) - \\alpha_t(1-\\frac{\\alpha_t L}{2})\\|\\nabla f\\|^2 \\Rightarrow \\alpha_t < 2/L",
+        "\\text{Robbins-Monro: convergencia SGD si } \\sum_t \\alpha_t = \\infty \\text{ y } \\sum_t \\alpha_t^2 < \\infty",
+        "\\text{Linear scaling rule: } \\alpha \\propto b \\text{ (batch size)}; \\text{ duplicar } b \\Rightarrow \\text{duplicar } \\alpha \\text{ con warm-up}",
+        "\\text{CLR (Smith 2015): } \\alpha \\text{ oscila entre } [\\alpha_{\\min},\\alpha_{\\max}] \\text{ cíclicamente; escapa de sillas}",
+        "\\text{LR Finder: aumentar } \\alpha \\text{ log-linealmente, elegir } \\alpha^* \\approx 10\\times \\text{ antes de divergencia}",
+      ],
+    },
+    intuition: "La tasa de aprendizaje es el 'zoom' del optimizador: con zoom muy alejado (α grande) ves el paisaje global pero te mueves torpemente; con zoom muy cercano (α pequeño) tienes precisión fina pero puede que nunca llegues al destino. La solución es cambiar el zoom durante el viaje: empieza suavemente (warm-up) para que el modelo se oriente, luego explora con pasos más grandes, y finalmente afina con pasos pequeños (decay). El cosine annealing hace esto de forma suave y periódica, mientras que el LR Finder encuentra automáticamente la zona donde el terreno tiene la pendiente más aprovechable.",
+    development: [
+      {
+        label: "Schedules clásicos: Step, Exponencial, Polinomial",
+        body: "Los schedules más simples reducen $\\alpha$ según reglas deterministas:\n\n**Step decay**: $\\alpha_t = \\alpha_0 \\cdot \\gamma^{\\lfloor t/k \\rfloor}$, con $\\gamma \\in (0,1)$ y periodo $k$. Fácil de interpretar: cada $k$ épocas se reduce por un factor. Usado en ResNet original ($\\gamma=0.1$ cada 30 épocas).\n\n**Exponencial**: $\\alpha_t = \\alpha_0 \\cdot e^{-\\lambda t}$, decaimiento suave continuo. Satisface Robbins-Monro solo si $\\lambda$ es pequeño.\n\n**Polinomial**: $\\alpha_t = \\alpha_0 \\cdot (1 - t/T)^p$, con $p=1$ (lineal) o $p=2$ (cuadrático). Con $p=1$ es el schedule usado en muchos LLMs:\n\n$$\\alpha_t = \\alpha_{\\max}\\left(1 - \\frac{t - t_{\\text{warmup}}}{T - t_{\\text{warmup}}}\\right)$$\n\n**Inverso de raíz**: $\\alpha_t = \\alpha_0 / \\sqrt{t}$, el schedule teórico óptimo para SGD no suave. Satisface Robbins-Monro exactamente: $\\sum 1/\\sqrt{t} = \\infty$ y $\\sum 1/t < \\infty$."
+      },
+      {
+        label: "Cosine Annealing y SGDR",
+        body: "El **cosine annealing** (Loshchilov & Hutter, 2016) hace decaer $\\alpha$ siguiendo la mitad de un periodo de coseno:\n\n$$\\alpha_t = \\alpha_{\\min} + \\frac{1}{2}(\\alpha_{\\max}-\\alpha_{\\min})\\left(1+\\cos\\left(\\frac{\\pi t}{T}\\right)\\right)$$\n\nPropiedades deseables: empieza en $\\alpha_{\\max}$, termina en $\\alpha_{\\min}$, el decaimiento es suave y más lento al principio y al final (derivada cero en los extremos), evitando cambios abruptos.\n\n**SGDR** (Stochastic Gradient Descent with Warm Restarts) añade reinicios periódicos: al completar un ciclo, $\\alpha$ vuelve a $\\alpha_{\\max}$ y comienza un nuevo ciclo, a menudo con periodo más largo ($T_i = T_{i-1} \\cdot T_{\\text{mult}}$):\n\n$$\\alpha_t = \\alpha_{\\min} + \\frac{1}{2}(\\alpha_{\\max}-\\alpha_{\\min})\\left(1+\\cos\\left(\\frac{\\pi \\cdot T_{\\text{cur}}}{T_i}\\right)\\right)$$\n\nLos reinicios actúan como 'sacudidas' que ayudan a escapar de mínimos locales y explorar el paisaje de pérdida. Los checkpoints al final de cada ciclo (donde $\\alpha \\approx \\alpha_{\\min}$) producen modelos para ensembling."
+      },
+      {
+        label: "Warm-up y Linear Scaling Rule",
+        body: "El **warm-up** inicializa el entrenamiento con $\\alpha$ muy pequeño y lo aumenta gradualmente durante $t_{\\text{warmup}}$ pasos:\n\n$$\\alpha_t = \\alpha_{\\max} \\cdot \\frac{t}{t_{\\text{warmup}}}, \\quad t \\leq t_{\\text{warmup}}$$\n\nEs esencial cuando:\n- Se usa batch size grande: los gradientes iniciales son ruidosos y un $\\alpha$ grande causaría actualizaciones catastróficas\n- Se parte de pesos preentrenados: el warm-up evita destruir representaciones aprendidas\n- Se usa Adam con $\\beta_2$ alto: los estimados de segundo momento tardan en converger, haciendo inestable el paso inicial\n\nLa **linear scaling rule** (Goyal et al., 2017) establece que al escalar el batch de $b$ a $kb$, se debe escalar $\\alpha$ de $\\alpha_0$ a $k\\alpha_0$, seguido de warm-up de $5$ épocas. Esto permite distribuir el entrenamiento en múltiples GPUs manteniendo la dinámica de aprendizaje.\n\nFormalmente: si la actualización SGD es $\\theta \\leftarrow \\theta - \\alpha \\frac{1}{b}\\sum_{i\\in\\mathcal{B}}\\nabla\\ell_i$, entonces $k$ pasos con batch $b$ y $\\alpha$ son aproximadamente equivalentes a $1$ paso con batch $kb$ y $k\\alpha$."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "El scheduling de la tasa de aprendizaje es una de las decisiones de diseño más impactantes en el entrenamiento de modelos modernos:\n\n**LLMs**: GPT-3 usa cosine decay de $\\alpha_{\\max}=6\\times10^{-4}$ a $\\alpha_{\\min}=6\\times10^{-5}$ durante $300\\text{B}$ tokens con warm-up de $375\\text{M}$ tokens. Llama 3 usa cosine con $\\alpha_{\\min}/\\alpha_{\\max}=0.1$ (decae al 10% del máximo).\n\n**LR Finder** (Smith, 2015): ejecutar el modelo durante una época aumentando $\\alpha$ log-linealmente desde $10^{-7}$ hasta $10^{-1}$. Graficar pérdida vs $\\log\\alpha$ y elegir el valor donde la pérdida decrece más rápido (máxima pendiente negativa). Implementado en fast.ai.\n\n**OneCycleLR**: schedule de una sola fase cíclica que primero aumenta $\\alpha$ hasta el máximo y luego lo baja, con decaimiento adicional de momentum en sentido contrario. Alcanza convergencia en $\\approx1/3$ de los pasos de schedules tradicionales.\n\n**Cooldown en Transformers**: muchos modelos usan una fase final de 'cooldown' donde $\\alpha$ cae drásticamente (incluso a 0), permitiendo que el modelo 'consolide' lo aprendido antes de parar.\n\n**Schedule-free optimizers** (Defazio et al., 2024): eliminan la necesidad de scheduling explícito usando un promedio de Polyak-Ruppert en el espacio de parámetros, logrando rendimiento competitivo sin ajustar ningún schedule."
+      },
+    ],
+    code: `# Python - Learning rate schedules: implementación y visualización
+import numpy as np
+import torch
+import torch.optim as optim
+import torch.nn as nn
+
+# ── 1. Implementación de schedules desde cero ─────────────────────────────
+def lr_constant(t, T, lr_max, lr_min=0):
+    return lr_max
+
+def lr_step(t, T, lr_max, lr_min=0, gamma=0.5, step_size=None):
+    step_size = step_size or T//4
+    return lr_max * (gamma ** (t // step_size))
+
+def lr_exponential(t, T, lr_max, lr_min=1e-6, lam=None):
+    lam = lam or -np.log(lr_min/lr_max)/T
+    return lr_max * np.exp(-lam * t)
+
+def lr_cosine(t, T, lr_max, lr_min=1e-6):
+    return lr_min + 0.5*(lr_max-lr_min)*(1 + np.cos(np.pi*t/T))
+
+def lr_linear(t, T, lr_max, lr_min=0):
+    return lr_max * max(0, 1 - t/T)
+
+def lr_sqrt_inv(t, T, lr_max, lr_min=0):
+    return lr_max / np.sqrt(max(t,1))
+
+def lr_warmup(t, T, lr_max, lr_min=1e-6, warmup=None, schedule_fn=lr_cosine):
+    warmup = warmup or int(0.05*T)
+    if t < warmup:
+        return lr_max * t / warmup
+    return schedule_fn(t - warmup, T - warmup, lr_max, lr_min)
+
+def lr_sgdr(t, T, lr_max, lr_min=1e-6, T0=None, T_mult=2):
+    """SGDR con reinicios crecientes."""
+    T0 = T0 or max(1, T//4)
+    T_cur, T_i = t, T0
+    while T_cur >= T_i:
+        T_cur -= T_i
+        T_i   = int(T_i * T_mult)
+    return lr_min + 0.5*(lr_max-lr_min)*(1+np.cos(np.pi*T_cur/T_i))
+
+# Comparar schedules
+T = 200
+lr_max, lr_min = 0.1, 1e-5
+t_arr = np.arange(T)
+
+schedules = {
+    'Constante':   [lr_constant(t, T, lr_max) for t in t_arr],
+    'Step decay':  [lr_step(t, T, lr_max, step_size=50) for t in t_arr],
+    'Exponencial': [lr_exponential(t, T, lr_max, lr_min) for t in t_arr],
+    'Cosine':      [lr_cosine(t, T, lr_max, lr_min) for t in t_arr],
+    'Cosine+WU':   [lr_warmup(t, T, lr_max, lr_min, warmup=20) for t in t_arr],
+    'SGDR':        [lr_sgdr(t, T, lr_max, lr_min, T0=50) for t in t_arr],
+}
+
+print("── Valores de α en distintos pasos ──")
+print(f"{'Schedule':>14} | {'t=0':>8} | {'t=50':>8} | {'t=100':>8} | {'t=190':>8}")
+print("-"*52)
+for name, lrs in schedules.items():
+    print(f"{name:>14} | {lrs[0]:.2e} | {lrs[50]:.2e} | {lrs[100]:.2e} | {lrs[190]:.2e}")
+
+# ── 2. Verificar Robbins-Monro ────────────────────────────────────────────
+T_rm = 10000
+t_rm = np.arange(1, T_rm+1)
+lr_inv_sqrt = 0.1 / np.sqrt(t_rm)
+lr_inv_lin  = 0.1 / t_rm
+
+print("\\n── Condiciones Robbins-Monro ──")
+for name, lrs in [('1/√t', lr_inv_sqrt), ('1/t', lr_inv_lin)]:
+    print(f"  {name}: Σα={lrs.sum():.2f}  Σα²={(lrs**2).sum():.4f}  →  RM: {lrs.sum()>100} y {(lrs**2).sum()<10}")
+
+# ── 3. LR Finder (simulación) ─────────────────────────────────────────────
+np.random.seed(42)
+
+# Modelo simple: f(w) = w^4 - 4w^2 + 0.5w
+f_sim  = lambda w: w**4 - 4*w**2 + 0.5*w
+df_sim = lambda w: 4*w**3 - 8*w + 0.5
+
+def lr_finder(f, df, w0=2.5, lr_start=1e-6, lr_end=1.0, n_steps=100):
+    """LR Finder: aumentar lr log-linealmente y registrar pérdida."""
+    lrs = np.logspace(np.log10(lr_start), np.log10(lr_end), n_steps)
+    w = w0
+    losses, lr_log = [], []
+    # EMA de la pérdida para suavizar
+    loss_ema = f(w)
+    for i, lr in enumerate(lrs):
+        loss = f(w)
+        loss_ema = 0.9*loss_ema + 0.1*loss
+        losses.append(loss_ema)
+        lr_log.append(lr)
+        if loss_ema > 5 * losses[0] or not np.isfinite(loss_ema):
+            break  # divergencia
+        g = df(w) + np.random.randn()*0.1  # ruido SGD
+        w = w - lr * g
+    return np.array(lr_log), np.array(losses)
+
+lrs_found, losses_found = lr_finder(f_sim, df_sim)
+# Encontrar lr óptimo: pendiente más negativa
+grad_loss = np.gradient(losses_found, np.log10(lrs_found+1e-12))
+best_idx  = np.argmin(grad_loss)
+best_lr   = lrs_found[best_idx]
+print(f"\\n── LR Finder ──")
+print(f"LR óptimo sugerido: {best_lr:.2e}  (pendiente más negativa)")
+print(f"LR recomendado para entrenamiento: ~{best_lr/10:.2e}  (1 orden abajo)")
+
+# ── 4. Schedules con PyTorch ──────────────────────────────────────────────
+# Red simple de juguete
+model = nn.Linear(10, 1)
+opt   = optim.SGD(model.parameters(), lr=0.1)
+
+schedulers = {
+    'StepLR':        optim.lr_scheduler.StepLR(opt, step_size=30, gamma=0.5),
+    'CosineAnnealing': optim.lr_scheduler.CosineAnnealingLR(opt, T_max=100, eta_min=1e-5),
+    'OneCycleLR':    optim.lr_scheduler.OneCycleLR(opt, max_lr=0.1, total_steps=100),
+}
+print("\\n── PyTorch Schedulers (lr en pasos 0,25,50,75,99) ──")
+for sched_name, sched in schedulers.items():
+    opt2 = optim.SGD(model.parameters(), lr=0.1)
+    if sched_name == 'OneCycleLR':
+        s = optim.lr_scheduler.OneCycleLR(opt2, max_lr=0.1, total_steps=100)
+    elif sched_name == 'StepLR':
+        s = optim.lr_scheduler.StepLR(opt2, step_size=30, gamma=0.5)
+    else:
+        s = optim.lr_scheduler.CosineAnnealingLR(opt2, T_max=100, eta_min=1e-5)
+    lrs_pt = []
+    for _ in range(100):
+        lrs_pt.append(opt2.param_groups[0]['lr'])
+        s.step()
+    print(f"  {sched_name:>18}: {[f'{lrs_pt[t]:.4f}' for t in [0,25,50,75,99]]}")
+
+# ── 5. Linear Scaling Rule ────────────────────────────────────────────────
+base_lr, base_batch = 0.01, 32
+configs = [(32, 1), (64, 2), (128, 4), (256, 8), (512, 16)]
+print("\\n── Linear Scaling Rule ──")
+print(f"{'Batch':>6} | {'α (linear)':>10} | {'Warm-up steps':>13}")
+for batch, k in configs:
+    lr_scaled = base_lr * k
+    warmup_steps = 5 * (1000 // batch)   # ~5 épocas de warmup
+    print(f"{batch:>6} | {lr_scaled:>10.4f} | {warmup_steps:>13}")
+
+# ── 6. Efecto del warm-up en Adam ─────────────────────────────────────────
+# Simular inestabilidad sin warmup con Adam en inicio
+np.random.seed(0)
+def simulate_adam_stability(use_warmup, lr=0.01, warmup_steps=20, T_sim=100):
+    """Simular pérdida en los primeros pasos con/sin warmup."""
+    w = np.array([2.0])
+    m, v = np.zeros(1), np.zeros(1)
+    b1, b2, eps = 0.9, 0.999, 1e-8
+    losses = []
+    for t in range(1, T_sim+1):
+        alpha_t = lr * (t/warmup_steps) if (use_warmup and t <= warmup_steps) else lr
+        g = 2*w + np.random.randn(1)*0.5
+        m = b1*m + (1-b1)*g
+        v = b2*v + (1-b2)*g**2
+        m_hat = m/(1-b1**t)
+        v_hat = v/(1-b2**t)
+        w = w - alpha_t * m_hat/(np.sqrt(v_hat)+eps)
+        losses.append(float(w**2))
+    return losses
+
+l_no_wu = simulate_adam_stability(False)
+l_wu    = simulate_adam_stability(True)
+print(f"\\n── Adam con/sin Warm-up (primeros 5 pasos) ──")
+print(f"{'Paso':>4} | {'Sin WU':>10} | {'Con WU':>10}")
+for t in range(5):
+    print(f"{t+1:>4} | {l_no_wu[t]:>10.4f} | {l_wu[t]:>10.4f}")
+print(f"Max loss sin WU (pasos 1-20): {max(l_no_wu[:20]):.4f}")
+print(f"Max loss con WU (pasos 1-20): {max(l_wu[:20]):.4f}")
+`,
+    related: ["Descenso del Gradiente", "Momentum y Optimizadores Adaptativos", "Backpropagation", "Función de Pérdida", "Entrenamiento de Transformers", "Batch Normalization"],
+    hasViz: true,
+    vizType: "lrScheduler",
+  },
+  {
+    id: 50,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Momentum y Nesterov Accelerated Gradient",
+    tags: ["momentum", "Nesterov", "NAG", "aceleración", "optimización", "SGD con momentum"],
+    definition: "Momentum es una modificación del descenso de gradiente que acumula una media móvil exponencial de los gradientes pasados —el vector de velocidad— y lo usa para actualizar los parámetros. Esto suaviza las oscilaciones en direcciones de alta curvatura y acelera el avance en direcciones consistentes de descenso, comportándose como una bola que rueda por el paisaje de pérdida acumulando inercia. El Nesterov Accelerated Gradient (NAG) mejora momentum evaluando el gradiente en la posición anticipada θ + βv, lo que proporciona un término corrector que frena antes de los valles y mejora la tasa de convergencia de O(1/t) a O(1/t²) en funciones convexas.",
+    formal: {
+      notation: "Sea $\\boldsymbol{\\theta}_t \\in \\mathbb{R}^n$ los parámetros, $\\mathbf{v}_t$ el vector de velocidad, $\\beta \\in [0,1)$ el coeficiente de momentum, $\\alpha > 0$ la tasa de aprendizaje",
+      body: "\\text{Momentum:}\\quad \\mathbf{v}_{t+1} = \\beta\\mathbf{v}_t + \\nabla f(\\boldsymbol{\\theta}_t) \\qquad \\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha\\mathbf{v}_{t+1}",
+      geometric: "\\text{NAG:}\\quad \\mathbf{v}_{t+1} = \\beta\\mathbf{v}_t + \\nabla f(\\boldsymbol{\\theta}_t - \\alpha\\beta\\mathbf{v}_t) \\qquad \\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha\\mathbf{v}_{t+1}",
+      properties: [
+        "\\text{Velocidad efectiva: } \\mathbf{v}_t = \\sum_{k=0}^{t} \\beta^{t-k} \\nabla f_k \\approx \\frac{1}{1-\\beta}\\nabla f \\text{ (régimen estacionario)}",
+        "\\text{Amplificación en dirección consistente: factor } 1/(1-\\beta); \\text{ para } \\beta=0.9 \\Rightarrow \\times 10",
+        "\\text{Convergencia Nesterov (convexa): } f(\\boldsymbol{\\theta}_t)-f^* \\leq O(1/t^2) \\text{ vs } O(1/t) \\text{ GD estándar}",
+        "\\text{Momentum óptimo (cuadrática): } \\beta^* = \\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^2, \\kappa = L/\\mu; \\text{ convergencia } O(\\rho^t), \\rho = \\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}",
+        "\\text{Formulación equivalente Sutskever: } \\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha\\nabla f(\\boldsymbol{\\theta}_t) + \\beta(\\boldsymbol{\\theta}_t - \\boldsymbol{\\theta}_{t-1})",
+      ],
+    },
+    intuition: "Sin momentum, el descenso de gradiente en un valle estrecho zigzaguea de pared en pared en la dirección corta mientras avanza lentamente en la dirección larga. Con momentum, la pelota acumula velocidad en la dirección larga —donde los gradientes apuntan consistentemente— mientras las oscilaciones en la dirección corta se cancelan mutuamente porque los gradientes alternan signo. Nesterov va un paso más allá: en lugar de calcular el gradiente donde estás ahora, lo calcula donde estarías si siguieras la inercia actual —'mira antes de saltar'—. Esto da información más precisa sobre la curvatura futura y permite frenar antes de sobrepasar el mínimo.",
+    development: [
+      {
+        label: "Momentum clásico: acumulación de velocidad",
+        body: "La actualización con momentum puede reescribirse expandiendo la recursión:\n\n$$\\mathbf{v}_{t+1} = \\beta\\mathbf{v}_t + \\nabla f_t = \\sum_{k=0}^{t} \\beta^{t-k} \\nabla f_k$$\n\nEl vector de velocidad es una **media móvil exponencial** de los gradientes pasados con pesos $\\beta^k$ que decaen exponencialmente. En régimen estacionario (gradiente constante $\\nabla f$):\n\n$$\\mathbf{v} = \\frac{\\nabla f}{1-\\beta}$$\n\nEs decir, el paso efectivo es $\\alpha/(1-\\beta)$ veces el gradiente. Para $\\beta=0.9$, el paso efectivo es **10 veces** mayor que sin momentum. Para $\\beta=0.99$, es 100 veces mayor.\n\nEl efecto de cancelación en direcciones oscilantes: si el gradiente alterna entre $+g$ y $-g$, la contribución al velocity es $g + \\beta(-g) + \\beta^2 g + \\cdots = g/(1+\\beta)$, que es **menor** que sin momentum. Esto explica por qué momentum amortigua las oscilaciones mientras acelera en direcciones consistentes."
+      },
+      {
+        label: "Nesterov: gradiente anticipado y corrección de curvatura",
+        body: "El **Nesterov Accelerated Gradient** (NAG) evalúa el gradiente en la posición **anticipada** $\\tilde{\\boldsymbol{\\theta}}_t = \\boldsymbol{\\theta}_t - \\alpha\\beta\\mathbf{v}_t$:\n\n$$\\mathbf{v}_{t+1} = \\beta\\mathbf{v}_t + \\nabla f(\\boldsymbol{\\theta}_t - \\alpha\\beta\\mathbf{v}_t)$$\n\nLa diferencia con momentum clásico es sutil pero crucial. El término corrector puede escribirse como:\n\n$$\\nabla f(\\tilde{\\boldsymbol{\\theta}}_t) \\approx \\nabla f(\\boldsymbol{\\theta}_t) - \\alpha\\beta H_f \\mathbf{v}_t$$\n\ndonde $H_f\\mathbf{v}_t$ es el producto Hessiana-velocidad. Esto introduce información de **curvatura de segundo orden** sin calcularla explícitamente: si la velocidad apunta hacia un mínimo, el gradiente anticipado apuntará de vuelta, **frenando** la actualización.\n\nTeóricamente, Nesterov demostró que para funciones convexas $L$-suaves, NAG alcanza:\n\n$$f(\\boldsymbol{\\theta}_t) - f^* \\leq \\frac{2L\\|\\boldsymbol{\\theta}_0-\\boldsymbol{\\theta}^*\\|^2}{(t+1)^2} = O(1/t^2)$$\n\ncomparado con $O(1/t)$ de GD, lo que es **óptimo** para métodos de primer orden en la clase de funciones convexas suaves."
+      },
+      {
+        label: "Momentum óptimo y número de condición",
+        body: "Para funciones cuadráticas $f(\\boldsymbol{\\theta}) = \\frac{1}{2}\\boldsymbol{\\theta}^\\top H\\boldsymbol{\\theta} - \\mathbf{b}^\\top\\boldsymbol{\\theta}$ con número de condición $\\kappa = \\lambda_{\\max}/\\lambda_{\\min}$:\n\n**GD**: convergencia $\\left(\\frac{\\kappa-1}{\\kappa+1}\\right)^t$ con $\\alpha = 2/(\\lambda_{\\max}+\\lambda_{\\min})$\n\n**Momentum óptimo**: con $\\beta^* = \\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^2$, la convergencia mejora a:\n\n$$\\left(\\frac{\\sqrt{\\kappa}-1}{\\sqrt{\\kappa}+1}\\right)^t$$\n\nLa diferencia es dramática para $\\kappa$ grande. Ejemplo con $\\kappa=1000$:\n\n- GD: $\\rho_{GD} \\approx 0.9990$, necesita $\\sim 4600$ pasos para $\\varepsilon = 10^{-2}$\n- Momentum: $\\rho_{NAG} \\approx 0.9684$, necesita $\\sim 143$ pasos\n\n¡Un factor de $\\sim 32\\times$ de aceleración! La raíz cuadrada en el exponente es lo que Nesterov llamó **aceleración óptima**: no se puede hacer mejor con métodos de primer orden."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "Momentum y NAG son los pilares de todos los optimizadores modernos de DL:\n\n**SGD con momentum** es el optimizador estándar para entrenamiento de CNNs (ResNet, EfficientNet). Con $\\beta=0.9$ y learning rate scheduling, supera a Adam en visión computacional cuando se sintoniza bien.\n\n**Adam = momentum de primer y segundo orden**: Adam combina el estimado de primer momento (como momentum) con el de segundo momento (varianza adaptativa). El primer momento de Adam es esencialmente momentum clásico con corrección de bias:\n$$\\hat{\\mathbf{m}}_t = \\frac{\\beta_1 \\mathbf{m}_{t-1} + (1-\\beta_1)\\nabla f_t}{1-\\beta_1^t}$$\n\n**Nesterov en práctica (PyTorch)**: `torch.optim.SGD(momentum=0.9, nesterov=True)`. La implementación práctica usa la formulación de Sutskever:\n$$\\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t + \\beta^2\\mathbf{v}_t - (1+\\beta)\\alpha\\nabla f_t$$\n\n**Momentum en batch pequeño vs grande**: con batch grande el gradiente es más preciso y el momentum 'acumula' menos ruido. Con batch pequeño, $\\beta$ alto puede hacer que el velocity acumule mucho ruido estocástico, haciendo que $\\beta=0.9$ sea a veces mejor que $\\beta=0.99$.\n\n**Heavy Ball vs NAG**: Heavy Ball (Polyak) tiene las mismas actualizaciones que momentum clásico pero con $\\alpha$ y $\\beta$ ajustados globalmente —es óptimo para funciones cuadráticas pero puede diverger en no convexas. NAG es más robusto por su naturaleza de 'mirar hacia adelante'."
+      },
+    ],
+    code: `# Python - Momentum y NAG: implementaciones y comparativas
+import numpy as np
+
+np.random.seed(42)
+
+# ── 1. Implementaciones desde cero ────────────────────────────────────────
+def gd(grad_fn, theta0, lr, steps):
+    theta, traj = theta0.copy(), [theta0.copy()]
+    for _ in range(steps):
+        theta -= lr * grad_fn(theta)
+        traj.append(theta.copy())
+    return np.array(traj)
+
+def momentum_gd(grad_fn, theta0, lr, beta, steps):
+    theta = theta0.copy()
+    v     = np.zeros_like(theta)
+    traj  = [theta.copy()]
+    for _ in range(steps):
+        v     = beta*v + grad_fn(theta)
+        theta -= lr * v
+        traj.append(theta.copy())
+    return np.array(traj)
+
+def nesterov_gd(grad_fn, theta0, lr, beta, steps):
+    theta = theta0.copy()
+    v     = np.zeros_like(theta)
+    traj  = [theta.copy()]
+    for _ in range(steps):
+        # Gradiente en posición anticipada
+        theta_look = theta - lr * beta * v
+        v          = beta*v + grad_fn(theta_look)
+        theta     -= lr * v
+        traj.append(theta.copy())
+    return np.array(traj)
+
+# ── 2. Función cuadrática mal condicionada ────────────────────────────────
+# f(x,y) = 0.5(10x² + 0.1y²)  → κ = 100
+H_mat  = np.diag([10.0, 0.1])
+theta_star = np.zeros(2)
+
+f_quad  = lambda t: 0.5 * t @ H_mat @ t
+grad_q  = lambda t: H_mat @ t
+
+theta0  = np.array([1.0, 1.0])
+lr_gd   = 2/(10+0.1)    # α = 2/(λ_max + λ_min) — óptimo para GD
+lr_mom  = lr_gd
+beta    = ((np.sqrt(100)-1)/(np.sqrt(100)+1))**2  # β* óptimo
+
+traj_gd  = gd(grad_q, theta0, lr_gd, 150)
+traj_mom = momentum_gd(grad_q, theta0, lr_mom, 0.9, 150)
+traj_nag = nesterov_gd(grad_q, theta0, lr_mom, 0.9, 150)
+traj_opt = momentum_gd(grad_q, theta0, 1/(10+0.1), beta, 150)
+
+print("── Convergencia en función cuadrática (κ=100) ──")
+for name, traj in [('GD', traj_gd), ('Momentum β=0.9', traj_mom),
+                   ('NAG β=0.9', traj_nag), (f'Mom β*={beta:.4f}', traj_opt)]:
+    errors = [f_quad(t)-f_quad(theta_star) for t in traj]
+    # Pasos hasta error < 1e-4
+    idx = next((i for i,e in enumerate(errors) if e < 1e-4), len(errors)-1)
+    print(f"  {name:22s}: {idx:4d} pasos para f−f*<1e-4, "
+          f"final={errors[-1]:.2e}")
+
+# ── 3. Factor de amplificación por β ─────────────────────────────────────
+print("\\n── Factor de amplificación 1/(1-β) ──")
+for beta_v in [0.0, 0.5, 0.9, 0.95, 0.99]:
+    factor = 1/(1-beta_v)
+    print(f"  β={beta_v:.2f}: paso efectivo = {factor:.1f}× el gradiente")
+
+# ── 4. Amortiguación de oscilaciones ─────────────────────────────────────
+# Gradiente que alterna signo: simula dirección de alta curvatura
+print("\\n── Amortiguación de oscilaciones (gradiente alternante) ──")
+g_alternating = lambda t, step: np.array([1.0 if step%2==0 else -1.0])
+
+for beta_v in [0.0, 0.5, 0.9]:
+    v = np.array([0.0])
+    vs = []
+    for s in range(10):
+        g = g_alternating(None, s)
+        v = beta_v*v + g
+        vs.append(abs(v[0]))
+    print(f"  β={beta_v:.1f}: |v| promedio = {np.mean(vs):.4f}  "
+          f"(teórico 1/(1+β)={1/(1+beta_v):.4f})")
+
+# ── 5. Comparativa SGD vs Momentum en regresión ruidosa ──────────────────
+n, p = 300, 8
+X    = np.random.randn(n, p)
+w_t  = np.random.randn(p)
+y    = X @ w_t + np.random.randn(n) * 0.5
+
+def sgd_loss_traj(method, lr, beta, steps, batch=32):
+    w = np.zeros(p)
+    v = np.zeros(p)
+    losses = []
+    for t in range(steps):
+        idx = np.random.choice(n, batch, replace=False)
+        Xb, yb = X[idx], y[idx]
+        g = 2 * Xb.T @ (Xb @ w - yb) / batch
+        if method == 'sgd':
+            w -= lr * g
+        elif method == 'momentum':
+            v  = beta*v + g
+            w -= lr * v
+        elif method == 'nesterov':
+            w_look = w - lr*beta*v
+            g_look = 2 * Xb.T @ (Xb @ w_look - yb) / batch
+            v      = beta*v + g_look
+            w     -= lr * v
+        losses.append(np.mean((X @ w - y)**2))
+    return losses
+
+print("\\n── Mini-batch SGD vs Momentum vs NAG (300 pasos, b=32) ──")
+for method in ['sgd', 'momentum', 'nesterov']:
+    losses = sgd_loss_traj(method, lr=0.01, beta=0.9, steps=300)
+    print(f"  {method:10s}: loss inicial={losses[0]:.4f}, "
+          f"loss final={losses[-1]:.4f}, "
+          f"loss@50={losses[49]:.4f}")
+
+# ── 6. Formulación de Sutskever (PyTorch) ─────────────────────────────────
+def momentum_sutskever(grad_fn, theta0, lr, beta, steps):
+    """Formulación alternativa equivalente a NAG en PyTorch."""
+    theta = theta0.copy()
+    v     = np.zeros_like(theta)
+    traj  = [theta.copy()]
+    for _ in range(steps):
+        g   = grad_fn(theta)
+        v   = beta*v + g
+        # θ ← θ - α(βv + g) = θ - αβv - αg
+        theta = theta - lr*(beta*v + g)
+        traj.append(theta.copy())
+    return np.array(traj)
+
+# Verificar equivalencia con NAG en cuadrática
+traj_suts = momentum_sutskever(grad_q, theta0, lr_mom, 0.9, 30)
+traj_nag2 = nesterov_gd(grad_q, theta0, lr_mom, 0.9, 30)
+errors_nag  = [f_quad(t) for t in traj_nag2]
+errors_suts = [f_quad(t) for t in traj_suts]
+print(f"\\n── Formulación Sutskever ≈ NAG ──")
+print(f"NAG   loss@30: {errors_nag[-1]:.6f}")
+print(f"Suts  loss@30: {errors_suts[-1]:.6f}")
+print(f"Diferencia: {abs(errors_nag[-1]-errors_suts[-1]):.2e}")
+
+# ── 7. Momentum óptimo vs β=0.9 ──────────────────────────────────────────
+kappas = [5, 10, 50, 100, 500]
+print("\\n── β* óptimo por número de condición κ ──")
+print(f"{'κ':>6} | {'β*':>8} | {'ρ_GD':>10} | {'ρ_NAG':>10} | {'speedup':>8}")
+for kappa in kappas:
+    beta_star  = ((np.sqrt(kappa)-1)/(np.sqrt(kappa)+1))**2
+    rho_gd     = (kappa-1)/(kappa+1)
+    rho_nag    = (np.sqrt(kappa)-1)/(np.sqrt(kappa)+1)
+    # Pasos para 1e-4
+    steps_gd   = int(np.log(1e-4)/np.log(rho_gd))+1 if rho_gd<1 else 9999
+    steps_nag  = int(np.log(1e-4)/np.log(rho_nag))+1 if rho_nag<1 else 9999
+    speedup    = steps_gd/max(steps_nag,1)
+    print(f"{kappa:>6} | {beta_star:>8.4f} | {rho_gd:>10.4f} | {rho_nag:>10.4f} | {speedup:>8.1f}×")
+`,
+    related: ["Descenso del Gradiente", "Tasa de Aprendizaje y Scheduling", "Adam y Optimizadores Adaptativos", "Función de Pérdida", "Matriz Hessiana", "Backpropagation"],
+    hasViz: true,
+    vizType: "momentumNAG",
+  },
+  {
+    id: 51,
+    section: "Cálculo y Optimización: El Motor de Aprendizaje",
+    sectionCode: "III",
+    name: "Algoritmos Adaptativos (AdaGrad, RMSProp, Adam)",
+    tags: ["Adam", "AdaGrad", "RMSProp", "optimizadores adaptativos", "tasa de aprendizaje adaptativa", "segundo momento"],
+    definition: "Los optimizadores adaptativos ajustan la tasa de aprendizaje individualmente para cada parámetro basándose en el historial de gradientes. AdaGrad acumula la suma de cuadrados de los gradientes pasados y divide la tasa de aprendizaje por su raíz cuadrada, dando pasos más pequeños a parámetros con gradientes grandes y frecuentes. RMSProp mejora AdaGrad usando una media móvil exponencial en lugar de suma acumulativa, evitando que el denominador crezca indefinidamente. Adam combina las ideas de momentum (primer momento del gradiente) y RMSProp (segundo momento), con corrección de sesgo para los primeros pasos, convirtiéndose en el optimizador estándar para el entrenamiento de redes neuronales profundas y LLMs.",
+    formal: {
+      notation: "Sean $\\mathbf{g}_t = \\nabla f(\\boldsymbol{\\theta}_t)$ el gradiente, $\\mathbf{m}_t$ el primer momento, $\\mathbf{v}_t$ el segundo momento, $\\varepsilon > 0$ un término de estabilidad numérica",
+      body: "\\text{Adam: }\\begin{cases} \\mathbf{m}_t = \\beta_1 \\mathbf{m}_{t-1} + (1-\\beta_1)\\mathbf{g}_t \\\\ \\mathbf{v}_t = \\beta_2 \\mathbf{v}_{t-1} + (1-\\beta_2)\\mathbf{g}_t^2 \\\\ \\hat{\\mathbf{m}}_t = \\mathbf{m}_t/(1-\\beta_1^t), \\quad \\hat{\\mathbf{v}}_t = \\mathbf{v}_t/(1-\\beta_2^t) \\\\ \\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha\\, \\hat{\\mathbf{m}}_t / (\\sqrt{\\hat{\\mathbf{v}}_t} + \\varepsilon) \\end{cases}",
+      geometric: "\\text{AdaGrad: } \\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\frac{\\alpha}{\\sqrt{\\mathbf{G}_t + \\varepsilon}} \\odot \\mathbf{g}_t \\qquad \\text{RMSProp: } \\mathbf{G}_t = \\rho\\mathbf{G}_{t-1} + (1-\\rho)\\mathbf{g}_t^2",
+      properties: [
+        "\\text{AdaGrad: } G_{t,j} = \\sum_{k=1}^t g_{k,j}^2 \\to \\infty \\text{ monótonamente — el paso tiende a 0, útil para datos esparsos}",
+        "\\text{RMSProp: } G_{t,j} \\approx \\frac{1-\\rho^t}{1-\\rho}\\mathbb{E}[g_j^2] \\text{ — estacionario, sin decaimiento asintótico}",
+        "\\text{Adam bias-correction: necesaria porque } \\mathbf{m}_0=\\mathbf{v}_0=0 \\Rightarrow \\mathbb{E}[\\mathbf{m}_t]\\neq\\mathbb{E}[\\mathbf{g}_t] \\text{ al inicio}",
+        "\\text{Paso efectivo Adam: } \\alpha_t^{\\text{eff}} = \\alpha\\sqrt{1-\\beta_2^t}/(1-\\beta_1^t) \\approx \\alpha \\text{ en régimen estacionario}",
+        "\\text{AdamW: desacopla weight decay de la adaptación: } \\boldsymbol{\\theta}_{t+1} = (1-\\alpha\\lambda)\\boldsymbol{\\theta}_t - \\alpha\\hat{\\mathbf{m}}_t/(\\sqrt{\\hat{\\mathbf{v}}_t}+\\varepsilon)",
+      ],
+    },
+    intuition: "Imagina que estás entrenando un modelo de lenguaje donde algunos tokens son rarísimos (el parámetro asociado recibe gradientes solo una vez cada mil pasos) y otros son frecuentes (gradiente en cada paso). SGD daría el mismo paso a ambos, desperdiciando capacidad en los frecuentes y siendo demasiado lento en los raros. AdaGrad 'recuerda' cuántas veces se ha actualizado cada parámetro y da pasos más grandes a los poco actualizados. RMSProp hace lo mismo pero 'olvida' el pasado lejano. Adam combina esto con momentum: acumula el 'eje de dirección' y lo normaliza por la varianza histórica, dando un paso casi siempre del mismo tamaño independientemente de la escala del gradiente.",
+    development: [
+      {
+        label: "AdaGrad: acumulación de gradientes y datos esparsos",
+        body: "AdaGrad (Duchi et al., 2011) acumula la **suma de cuadrados** de todos los gradientes pasados para cada dimensión:\n\n$$G_{t,j} = \\sum_{k=1}^t g_{k,j}^2, \\quad \\theta_{t+1,j} = \\theta_{t,j} - \\frac{\\alpha}{\\sqrt{G_{t,j}+\\varepsilon}} g_{t,j}$$\n\nEfecto: parámetros con gradientes grandes y frecuentes ($G_{t,j}$ grande) reciben pasos pequeños; parámetros con gradientes raros ($G_{t,j}$ pequeño) reciben pasos grandes. Esto es ideal para **datos esparsos** (NLP con vocabularios grandes, embeddings de features raras).\n\nLimitación crítica: $G_{t,j}$ **crece indefinidamente**, haciendo que el paso efectivo $\\alpha/\\sqrt{G_{t,j}}$ tienda a cero —el aprendizaje se detiene prematuramente. Para problemas no convexos con muchos pasos de entrenamiento, AdaGrad se vuelve ineficiente después de cierto punto."
+      },
+      {
+        label: "RMSProp: media móvil exponencial del segundo momento",
+        body: "RMSProp (Hinton, 2012, no publicado formalmente) reemplaza la suma acumulativa por una **media móvil exponencial**:\n\n$$G_{t,j} = \\rho G_{t-1,j} + (1-\\rho)g_{t,j}^2, \\quad \\rho \\approx 0.9$$\n\nEl valor estacionario es $G_{t,j} \\approx \\mathbb{E}[g_j^2]$, que permanece acotado. Esto resuelve el problema de AdaGrad: el denominador no crece indefinidamente sino que refleja la **varianza reciente** del gradiente.\n\nInterpretación: $1/\\sqrt{G_{t,j}}$ es una estimación de $1/\\sigma_j$ donde $\\sigma_j$ es la desviación estándar del gradiente en la dimensión $j$. El paso efectivo $\\alpha g_{t,j}/\\sqrt{G_{t,j}} \\approx \\alpha \\cdot \\text{SNR}_j$ (ratio señal/ruido del gradiente), normalizando automáticamente la actualización según la incertidumbre en cada dirección.\n\nRMSProp fue propuesto por Hinton en un slide de su curso de Coursera y se convirtió en uno de los optimizadores más populares para RNNs antes de Adam."
+      },
+      {
+        label: "Adam: momentum + RMSProp + corrección de sesgo",
+        body: "Adam (Kingma & Ba, 2014) combina primer momento (momentum) y segundo momento (RMSProp) con corrección de sesgo:\n\n$$\\mathbf{m}_t = \\beta_1\\mathbf{m}_{t-1} + (1-\\beta_1)\\mathbf{g}_t \\quad \\text{(media del gradiente)}$$\n$$\\mathbf{v}_t = \\beta_2\\mathbf{v}_{t-1} + (1-\\beta_2)\\mathbf{g}_t^2 \\quad \\text{(media del cuadrado)}$$\n\nLa **corrección de sesgo** es necesaria porque $\\mathbf{m}_0 = \\mathbf{v}_0 = \\mathbf{0}$, lo que sesga las estimaciones hacia cero en los primeros pasos:\n\n$$\\hat{\\mathbf{m}}_t = \\frac{\\mathbf{m}_t}{1-\\beta_1^t}, \\quad \\hat{\\mathbf{v}}_t = \\frac{\\mathbf{v}_t}{1-\\beta_2^t}$$\n\nPara $t=1$ con $\\beta_1=0.9$: $\\hat{m}_1 = m_1/0.1 = 10m_1$ — la corrección es de un factor 10. Para $t$ grande, $\\beta_1^t \\to 0$ y la corrección desaparece.\n\nEl paso efectivo en régimen estacionario:\n$$\\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha \\frac{\\hat{\\mathbf{m}}_t}{\\sqrt{\\hat{\\mathbf{v}}_t}+\\varepsilon} \\approx \\boldsymbol{\\theta}_t - \\alpha \\cdot \\text{sign}(\\mathbf{g}_t) \\cdot \\frac{|\\hat{\\mathbf{m}}_t|}{\\sqrt{\\hat{\\mathbf{v}}_t}}$$\n\ndefaults: $\\beta_1=0.9$, $\\beta_2=0.999$, $\\varepsilon=10^{-8}$, $\\alpha=10^{-3}$."
+      },
+      {
+        label: "En Machine Learning / Conexión con DL",
+        body: "Los optimizadores adaptativos dominan el entrenamiento de modelos modernos:\n\n**AdamW** (Loshchilov & Hutter, 2019): el L2 estándar añadido al gradiente ($\\mathbf{g}_t + \\lambda\\boldsymbol{\\theta}_t$) interactúa mal con la adaptación de Adam —la regularización se escala también por $1/\\sqrt{\\hat{\\mathbf{v}}_t}$, haciendo que los parámetros con alta varianza de gradiente tengan menos regularización. AdamW desacopla el weight decay:\n$$\\boldsymbol{\\theta}_{t+1} = (1-\\alpha\\lambda)\\boldsymbol{\\theta}_t - \\alpha\\frac{\\hat{\\mathbf{m}}_t}{\\sqrt{\\hat{\\mathbf{v}}_t}+\\varepsilon}$$\nEs el estándar para transformers. GPT, BERT, Llama, todos usan AdamW.\n\n**Adam vs SGD en práctica**: Adam converge más rápido y es menos sensible al learning rate inicial, pero SGD con momentum bien sintonizado puede alcanzar menor pérdida final en visión computacional. El fenómeno se conoce como el **generalization gap** de Adam.\n\n**Lion** (Chen et al., 2023): optimizador basado en signos del momento que usa menos memoria que Adam ($O(n)$ vs $O(2n)$): $\\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha\\text{sign}(\\beta_1\\mathbf{m}_{t-1}+(1-\\beta_1)\\mathbf{g}_t)$.\n\n**Sophia** (Liu et al., 2023): usa la diagonal de la Hessiana como precondicionador $\\hat{\\mathbf{h}}_t$ en lugar del segundo momento: $\\boldsymbol{\\theta}_{t+1} = \\boldsymbol{\\theta}_t - \\alpha\\hat{\\mathbf{m}}_t/\\max(\\hat{\\mathbf{h}}_t, \\varepsilon)$. Converge ~2× más rápido que Adam en LLMs.\n\n**Memoria**: Adam requiere $2n$ parámetros adicionales ($\\mathbf{m}_t, \\mathbf{v}_t$). Para GPT-3 con $175\\text{B}$ parámetros, esto añade $350\\text{B}$ valores más. Adafactor y 8-bit Adam reducen esta huella de memoria para hacer viables los LLMs."
+      },
+    ],
+    code: `# Python - AdaGrad, RMSProp y Adam: implementaciones y comparativas
+import numpy as np
+
+np.random.seed(42)
+
+# ── 1. Implementaciones desde cero ────────────────────────────────────────
+def adagrad(grad_fn, theta0, lr=0.1, eps=1e-8, steps=200):
+    theta = theta0.copy()
+    G     = np.zeros_like(theta)
+    traj  = [theta.copy()]
+    for _ in range(steps):
+        g = grad_fn(theta)
+        G += g**2
+        theta -= lr / (np.sqrt(G) + eps) * g
+        traj.append(theta.copy())
+    return np.array(traj)
+
+def rmsprop(grad_fn, theta0, lr=0.01, rho=0.9, eps=1e-8, steps=200):
+    theta = theta0.copy()
+    G     = np.zeros_like(theta)
+    traj  = [theta.copy()]
+    for _ in range(steps):
+        g = grad_fn(theta)
+        G = rho*G + (1-rho)*g**2
+        theta -= lr / (np.sqrt(G) + eps) * g
+        traj.append(theta.copy())
+    return np.array(traj)
+
+def adam(grad_fn, theta0, lr=0.001, b1=0.9, b2=0.999, eps=1e-8, steps=200):
+    theta = theta0.copy()
+    m     = np.zeros_like(theta)
+    v     = np.zeros_like(theta)
+    traj  = [theta.copy()]
+    for t in range(1, steps+1):
+        g     = grad_fn(theta)
+        m     = b1*m + (1-b1)*g
+        v     = b2*v + (1-b2)*g**2
+        m_hat = m / (1 - b1**t)      # corrección de sesgo
+        v_hat = v / (1 - b2**t)
+        theta -= lr * m_hat / (np.sqrt(v_hat) + eps)
+        traj.append(theta.copy())
+    return np.array(traj)
+
+def adamw(grad_fn, theta0, lr=0.001, b1=0.9, b2=0.999,
+          eps=1e-8, wd=0.01, steps=200):
+    """Adam con weight decay desacoplado."""
+    theta = theta0.copy()
+    m     = np.zeros_like(theta)
+    v     = np.zeros_like(theta)
+    traj  = [theta.copy()]
+    for t in range(1, steps+1):
+        g     = grad_fn(theta)         # gradiente SIN regularización
+        m     = b1*m + (1-b1)*g
+        v     = b2*v + (1-b2)*g**2
+        m_hat = m / (1 - b1**t)
+        v_hat = v / (1 - b2**t)
+        # Weight decay desacoplado: aplicado directamente sobre θ
+        theta  = theta * (1 - lr*wd) - lr * m_hat / (np.sqrt(v_hat) + eps)
+        traj.append(theta.copy())
+    return np.array(traj)
+
+# ── 2. Test en función 2D no convexa ─────────────────────────────────────
+# f(x,y) = (1-x)² + 100(y-x²)²  (Rosenbrock)
+f_rb  = lambda t: (1-t[0])**2 + 100*(t[1]-t[0]**2)**2
+g_rb  = lambda t: np.array([
+    -2*(1-t[0]) - 400*t[0]*(t[1]-t[0]**2),
+    200*(t[1]-t[0]**2)
+])
+
+theta0 = np.array([-1.5, 1.5])
+
+traj_ag  = adagrad(  g_rb, theta0, lr=0.5,   steps=3000)
+traj_rms = rmsprop(  g_rb, theta0, lr=0.01,  steps=3000)
+traj_adam= adam(     g_rb, theta0, lr=0.005, steps=3000)
+
+print("── Rosenbrock: distancia al mínimo (1,1) ──")
+for name, traj in [('AdaGrad', traj_ag), ('RMSProp', traj_rms), ('Adam', traj_adam)]:
+    dist = np.linalg.norm(traj[-1] - np.array([1,1]))
+    loss = f_rb(traj[-1])
+    print(f"  {name:8s}: ‖θ−(1,1)‖={dist:.4f}  f={loss:.4f}")
+
+# ── 3. Corrección de sesgo en Adam ────────────────────────────────────────
+print("\\n── Corrección de sesgo (primer paso, β₁=0.9, β₂=0.999) ──")
+g_ex  = np.array([1.0])
+m, v  = np.zeros(1), np.zeros(1)
+b1, b2, eps_v = 0.9, 0.999, 1e-8
+
+for t in range(1, 6):
+    m = b1*m + (1-b1)*g_ex
+    v = b2*v + (1-b2)*g_ex**2
+    m_hat = m / (1-b1**t)
+    v_hat = v / (1-b2**t)
+    step  = m_hat / (np.sqrt(v_hat)+eps_v)
+    print(f"  t={t}: m={m[0]:.4f} m̂={m_hat[0]:.4f} "
+          f"v={v[0]:.6f} v̂={v_hat[0]:.4f} paso={step[0]:.4f}")
+
+# ── 4. Adam vs AdamW con regularización L2 ───────────────────────────────
+print("\\n── Adam vs AdamW: efecto del weight decay ──")
+# Función: min ‖θ‖² (queremos que θ→0), datos escasos → gradientes raros
+n, p = 100, 50
+X_sp = np.zeros((n, p))
+X_sp[np.arange(n), np.random.randint(0, p, n)] = 1.0  # one-hot esparso
+y_sp = np.random.randn(n)
+
+def sparse_grad(theta, idx=None):
+    if idx is None: idx = np.arange(n)
+    Xi, yi = X_sp[idx], y_sp[idx]
+    return Xi.T @ (Xi @ theta - yi) / len(idx)
+
+# Adam con L2 en gradiente (forma estándar — interacción con adaptación)
+def adam_l2(grad_fn, theta0, lr=1e-3, wd=0.01, steps=500):
+    theta=theta0.copy(); m=np.zeros_like(theta); v=np.zeros_like(theta)
+    losses=[]
+    for t in range(1, steps+1):
+        g = grad_fn(theta) + wd*theta   # L2 en el gradiente
+        m = 0.9*m + 0.1*g
+        v = 0.999*v + 0.001*g**2
+        mh = m/(1-0.9**t); vh = v/(1-0.999**t)
+        theta -= lr * mh/(np.sqrt(vh)+1e-8)
+        losses.append(np.linalg.norm(theta))
+    return losses
+
+# AdamW: weight decay desacoplado
+def adamw_run(grad_fn, theta0, lr=1e-3, wd=0.01, steps=500):
+    theta=theta0.copy(); m=np.zeros_like(theta); v=np.zeros_like(theta)
+    losses=[]
+    for t in range(1, steps+1):
+        g = grad_fn(theta)             # gradiente puro, sin L2
+        m = 0.9*m + 0.1*g
+        v = 0.999*v + 0.001*g**2
+        mh = m/(1-0.9**t); vh = v/(1-0.999**t)
+        theta = theta*(1-lr*wd) - lr*mh/(np.sqrt(vh)+1e-8)
+        losses.append(np.linalg.norm(theta))
+    return losses
+
+theta_init = np.random.randn(p)*2
+l_adam_l2 = adam_l2(sparse_grad, theta_init)
+l_adamw    = adamw_run(sparse_grad, theta_init)
+print(f"  Adam+L2  ‖θ‖ final: {l_adam_l2[-1]:.4f}")
+print(f"  AdamW    ‖θ‖ final: {l_adamw[-1]:.4f}  (weight decay más efectivo)")
+
+# ── 5. Paso efectivo de cada optimizador ─────────────────────────────────
+print("\\n── Paso efectivo en régimen estacionario ──")
+g_stat = np.array([0.5, 5.0, 0.01])  # gradientes de distintas magnitudes
+alpha_v = 0.01
+
+# AdaGrad después de T pasos con g constante
+T_stat = 100
+G_ag  = T_stat * g_stat**2
+step_ag = alpha_v / np.sqrt(G_ag + 1e-8) * g_stat
+print(f"  AdaGrad  (T={T_stat}): paso = {np.round(step_ag,5)}")
+
+# RMSProp
+G_rms = g_stat**2
+step_rms = alpha_v / np.sqrt(G_rms + 1e-8) * g_stat
+print(f"  RMSProp  (EMA):       paso = {np.round(step_rms,5)}")
+
+# Adam (m≈g, v≈g²)
+step_adam = alpha_v * g_stat / (np.sqrt(g_stat**2) + 1e-8)
+print(f"  Adam     (estacion.): paso ≈ {np.round(step_adam,5)}  (≈α para todo g)")
+print(f"  → Adam normaliza: paso ≈ α = {alpha_v} independiente de escala")
+
+# ── 6. Comparativa con PyTorch ───────────────────────────────────────────
+import torch
+import torch.nn as nn
+
+torch.manual_seed(0)
+X_t = torch.randn(200, 10)
+y_t = (X_t @ torch.randn(10) + 0.1*torch.randn(200)).unsqueeze(1)
+
+def train_with_opt(opt_name, steps=300):
+    model = nn.Linear(10, 1)
+    if opt_name == 'adagrad':
+        opt = torch.optim.Adagrad(model.parameters(), lr=0.1)
+    elif opt_name == 'rmsprop':
+        opt = torch.optim.RMSprop(model.parameters(), lr=0.01)
+    elif opt_name == 'adam':
+        opt = torch.optim.Adam(model.parameters(), lr=0.001)
+    elif opt_name == 'adamw':
+        opt = torch.optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+    losses = []
+    for _ in range(steps):
+        loss = nn.MSELoss()(model(X_t), y_t)
+        opt.zero_grad(); loss.backward(); opt.step()
+        losses.append(loss.item())
+    return losses
+
+print("\\n── PyTorch: pérdida final tras 300 pasos ──")
+for name in ['adagrad','rmsprop','adam','adamw']:
+    ls = train_with_opt(name)
+    print(f"  {name:8s}: inicial={ls[0]:.4f}  final={ls[-1]:.4f}  @100={ls[99]:.4f}")
+`,
+    related: ["Descenso del Gradiente", "Momentum y Nesterov", "Tasa de Aprendizaje y Scheduling", "Regularización L1 y L2", "Backpropagation", "Entrenamiento de Transformers"],
+    hasViz: true,
+    vizType: "adaptiveOpt",
   }
 
 ];
